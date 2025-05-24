@@ -66,6 +66,16 @@ Enhance your Vercel applications with web-browsing capabilities. Build Generativ
 #### [**Braintrust Integration**](./examples/integrations/braintrust/)
 Integrate Browserbase with Braintrust for evaluation and testing of AI agent performance in web environments. Monitor, measure, and improve your browser automation workflows.
 
+#### [**MongoDB Integration**](./examples/integrations/mongodb/README.md)
+**Intelligent Web Scraping & Data Storage** - Extract structured data from e-commerce websites using Stagehand and store it in MongoDB for analysis. Perfect for building data pipelines, market research, and competitive analysis workflows.
+
+**Capabilities:**
+- AI-powered web scraping with Stagehand
+- Structured data extraction with schema validation
+- MongoDB storage for persistence and querying
+- Built-in data analysis and reporting
+- Robust error handling for production use
+
 ## 🏗️ Monorepo Structure
 
 ```
@@ -80,6 +90,7 @@ integrations/
 │       ├── langchain/           # LangChain framework integration
 │       ├── browser-use/         # Simplified browser automation
 │       ├── braintrust/          # Evaluation and testing tools
+│       ├── mongodb/             # MongoDB data extraction & storage
 │       └── agentkit/            # AgentKit implementations
 └── README.md                    # This file
 ```
