@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+} */
+
+/* Remove all outlines and tap highlights */
+* {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Specifically target buttons and interactive elements */
+button,
+input,
+select,
+textarea,
+a {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* Re-enable text selection for inputs and textareas */
+input,
+textarea {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Remove focus outlines but maintain accessibility */
+:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Optional: Add your own focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--foreground) !important;
+  outline-offset: 2px;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Remove tap highlight on mobile devices */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Re-enable text selection for specific elements that need it */
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}

@@ -1,0 +1,47 @@
+{
+  "name": "@browserbasehq/integrations",
+  "version": "1.0.0",
+  "description": "Browserbase integrations - A collection of examples for integrating Browserbase with various frameworks and tools",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@10.9.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
+    "test": "pnpm -r test",
+    "test:unit": "pnpm -r test:unit",
+    "test:integration": "pnpm -r test:integration",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r clean",
+    "publish:packages": "pnpm -r publish"
+  },
+  "keywords": [
+    "browserbase",
+    "integrations",
+    "monorepo",
+    "automation",
+    "browser",
+    "testing"
+  ],
+  "author": "Browserbase Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.14.0",
+    "@types/node": "^22.9.0",
+    "eslint": "^9.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "globals": "^15.11.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.12.2",
+    "vitest": "^2.1.4"
+  }
+}

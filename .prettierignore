@@ -1,0 +1,13 @@
+coverage/
+dist/
+build/
+out/
+public/
+pnpm-lock.yaml
+pnpm-workspace.yaml
+*.min.js
+*.min.css
+.next/
+.nuxt/
+node_modules/
+.pnpm-store/ 

@@ -1,0 +1,4 @@
+stripe 
+browserbasehq
+playwright 
+python-dotenv

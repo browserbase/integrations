@@ -1,0 +1,2 @@
+browserbase>=0.1.0
+crewai[tools]>=0.12.0

@@ -1,0 +1,4 @@
+browserbase
+langchain-community
+playwright
+poetry
