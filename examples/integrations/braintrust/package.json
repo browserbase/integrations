@@ -13,7 +13,7 @@
   "dependencies": {
     "@browserbasehq/sdk": "^2.6.0",
     "braintrust": "^0.0.205",
-    "next": "^15.1.8",
+    "next": "^15.2.4",
     "node": "^22.16.0",
     "playwright-core": "^1.52.0",
     "zod": "^3.25.28"
