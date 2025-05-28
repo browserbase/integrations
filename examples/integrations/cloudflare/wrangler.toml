@@ -1,0 +1,8 @@
+name = "browserbase-cloudflare-workers"
+main = "src/index.ts"
+compatibility_date = "2024-06-10"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+BROWSERBASE_API_KEY = "<your-api-key>"
+BROWSERBASE_PROJECT_ID = "<your-project-id>"

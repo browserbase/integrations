@@ -50,6 +50,15 @@ Enhance your Vercel applications with web-browsing capabilities. Build Generativ
 - **BrowseGPT** - A chat interface with real-time web search capabilities
 - **Vercel + Puppeteer** - Server-side browser automation on Fluid Compute
 
+#### [**Cloudflare Workers Integration**](./examples/integrations/cloudflare/README.md)
+**Serverless Browser Automation** - Utilize Browserbase with Cloudflare Workers for cost-effective, scalable browser automation. Leverage Cloudflare's fork of Puppeteer with Browserbase's enhanced developer tools in a serverless environment.
+
+**Key Features:**
+- Extremely cost-effective serverless compute
+- Global edge deployment for low latency
+- Full Puppeteer API compatibility
+- Enhanced with Browserbase developer tools
+
 ### 💳 E-commerce & Payments
 
 #### [**Stripe Integration**](./examples/integrations/stripe/README.md)
@@ -76,6 +85,7 @@ integrations/
 │   └── integrations/
 │       ├── crewai/              # CrewAI framework integration
 │       ├── vercel/              # Vercel AI SDK integration  
+│       ├── cloudflare/          # Cloudflare Workers integration
 │       ├── stripe/              # Stripe Issuing + automation
 │       ├── langchain/           # LangChain framework integration
 │       ├── browser-use/         # Simplified browser automation
