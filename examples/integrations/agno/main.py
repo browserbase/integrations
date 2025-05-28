@@ -40,11 +40,20 @@ agent = Agent(
 )
 
 # Content Extraction and SS
+
+# Hacker News Example
 # agent.print_response("""
 #     Go to https://news.ycombinator.com and extract:
 #     1. The page title
 #     2. Take a screenshot of the top stories section
-# """)
+#     3. Extract the first 5 stories and their links
+#     4. Then go to those links and extract the title and description of each story in JSON format
+#     {
+#         "title": "string",
+#         "description": "string",
+#         "link": "string"
+#     }
+#     """)
 
 agent.print_response("""
     Visit https://quotes.toscrape.com and:
