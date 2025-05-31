@@ -38,6 +38,16 @@ Powerful integrations for AgentKit workflows with both Browserbase and Stagehand
 #### [**LangChain Integration**](./examples/integrations/langchain/README.md)  
 Integrate Browserbase with LangChain's ecosystem for advanced AI applications. Build chains that can browse, extract, and interact with web content as part of larger AI workflows.
 
+#### [**Mastra Integration**](./examples/integrations/mastra/README.md)
+Powerful web automation combining Browserbase's Stagehand with Mastra's AI agent framework. Enable your Mastra agents to navigate websites, extract data, and perform complex web interactions through natural language commands.
+
+**Key Features:**
+- AI-powered web navigation and interaction
+- Smart element observation and data extraction  
+- Session management with automatic timeouts
+- Natural language interface to web automation
+- Integration with OpenAI models for intelligent decision-making
+
 #### [**Browser-Use Integration**](./examples/integrations/browser-use/README.md)
 Streamlined browser automation for AI applications with a focus on simplicity and reliability.
 
@@ -78,6 +88,7 @@ integrations/
 │       ├── vercel/              # Vercel AI SDK integration  
 │       ├── stripe/              # Stripe Issuing + automation
 │       ├── langchain/           # LangChain framework integration
+│       ├── mastra/              # Mastra AI agent integration
 │       ├── browser-use/         # Simplified browser automation
 │       ├── braintrust/          # Evaluation and testing tools
 │       └── agentkit/            # AgentKit implementations
