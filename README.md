@@ -63,7 +63,7 @@ Enhance your Vercel applications with web-browsing capabilities. Build Generativ
 
 ### 📊 Evaluation & Testing
 
-#### [**Braintrust Integration**](./examples/integrations/braintrust/)
+#### [**Braintrust Integration**](./examples/integrations/braintrust/README.md)
 Integrate Browserbase with Braintrust for evaluation and testing of AI agent performance in web environments. Monitor, measure, and improve your browser automation workflows.
 
 ## 🏗️ Monorepo Structure
