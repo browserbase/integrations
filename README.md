@@ -35,6 +35,16 @@ Powerful integrations for AgentKit workflows with both Browserbase and Stagehand
 - **[Browserbase Implementation](./examples/integrations/agentkit/browserbase/README.md)** - Direct Browserbase integration for AgentKit
 - **[Stagehand Implementation](./examples/integrations/agentkit/stagehand/README.md)** - AI-powered web automation using Stagehand
 
+#### [**Agno Integration**](./examples/integrations/agno/README.md)
+**Intelligent Web Scraping with AI Agents** - Natural language web scraping using Agno's AI agents powered by Browserbase's cloud browser infrastructure. Perfect for complex data extraction, market research, and automated content monitoring.
+
+**Key Features:**
+- Natural language scraping instructions
+- AI agents that adapt to page changes
+- Visual analysis and screenshot capabilities
+- Structured data extraction (JSON, CSV)
+- Automatic error recovery and retries
+
 #### [**LangChain Integration**](./examples/integrations/langchain/README.md)  
 Integrate Browserbase with LangChain's ecosystem for advanced AI applications. Build chains that can browse, extract, and interact with web content as part of larger AI workflows.
 
@@ -90,6 +100,7 @@ integrations/
 │       ├── langchain/           # LangChain framework integration
 │       ├── browser-use/         # Simplified browser automation
 │       ├── braintrust/          # Evaluation and testing tools
+│       ├── agno/                # AI-powered web scraping agents
 │       ├── mongodb/             # MongoDB data extraction & storage
 │       └── agentkit/            # AgentKit implementations
 └── README.md                    # This file
