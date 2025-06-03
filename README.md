@@ -61,6 +61,21 @@ Powerful web automation combining Browserbase's Stagehand with Mastra's AI agent
 #### [**Browser-Use Integration**](./examples/integrations/browser-use/README.md)
 Streamlined browser automation for AI applications with a focus on simplicity and reliability.
 
+#### [**Portia AI Integration**](./examples/integrations/portia/README.md)
+Build intelligent web agents with **persistent authentication** using Portia AI's multi-agent framework. Portia enables both multi-agent task planning with human feedback and stateful multi-agent task execution with human control.
+
+**Key Features:**
+- **Persistent Authentication** - Agents can authenticate once and reuse sessions
+- **Human-in-the-Loop** - Structured clarification system for authentication requests
+- **Multi-User Support** - Isolated browser sessions per end user
+- **Production-Ready** - Open-source framework designed for reliable agent deployment
+
+**Perfect for:**
+- LinkedIn automation with user authentication
+- E-commerce agents that need to log into shopping sites
+- Data extraction from authenticated dashboards
+- Any web task requiring persistent user sessions
+
 ### 🏗️ Development & Deployment Platforms
 
 #### [**Vercel AI Integration**](./examples/integrations/vercel/README.md)
@@ -111,6 +126,7 @@ integrations/
 │       ├── mastra/              # Mastra AI agent integration
 │       ├── browser-use/         # Simplified browser automation
 │       ├── braintrust/          # Evaluation and testing tools
+│       ├── portia/              # Portia AI multi-agent framework
 │       ├── agno/                # AI-powered web scraping agents
 │       ├── mongodb/             # MongoDB data extraction & storage
 │       └── agentkit/            # AgentKit implementations
