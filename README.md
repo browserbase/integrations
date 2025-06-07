@@ -61,6 +61,16 @@ Powerful web automation combining Browserbase's Stagehand with Mastra's AI agent
 #### [**Browser-Use Integration**](./examples/integrations/browser-use/README.md)
 Streamlined browser automation for AI applications with a focus on simplicity and reliability.
 
+#### [**Temporal Integration**](./examples/integrations/temporal/README.md)
+**Resilient Browser Automation with Workflow Orchestration** - Build fault-tolerant web automation that automatically recovers from failures using Temporal's durable execution engine. Perfect for mission-critical browser tasks that need guaranteed completion.
+
+**Key Features:**
+- Automatic retry logic with exponential backoff
+- Durable execution that survives crashes and restarts
+- Visual workflow monitoring and debugging
+- Clean separation of business logic from retry concerns
+- Production-ready error handling and recovery
+
 #### [**Portia AI Integration**](./examples/integrations/portia/README.md)
 Build intelligent web agents with **persistent authentication** using Portia AI's multi-agent framework. Portia enables both multi-agent task planning with human feedback and stateful multi-agent task execution with human control.
 
@@ -119,17 +129,18 @@ integrations/
 |   |
 │   └── community/               # WIP
 │   └── integrations/
+│       ├── agentkit/            # AgentKit implementations
+│       ├── agno/                # AI-powered web scraping agents
+│       ├── braintrust/          # Evaluation and testing tools
+│       ├── browser-use/         # Simplified browser automation
 │       ├── crewai/              # CrewAI framework integration
-│       ├── vercel/              # Vercel AI SDK integration  
-│       ├── stripe/              # Stripe Issuing + automation
 │       ├── langchain/           # LangChain framework integration
 │       ├── mastra/              # Mastra AI agent integration
-│       ├── browser-use/         # Simplified browser automation
-│       ├── braintrust/          # Evaluation and testing tools
-│       ├── portia/              # Portia AI multi-agent framework
-│       ├── agno/                # AI-powered web scraping agents
 │       ├── mongodb/             # MongoDB data extraction & storage
-│       └── agentkit/            # AgentKit implementations
+│       ├── portia/              # Portia AI multi-agent framework
+│       ├── stripe/              # Stripe Issuing + automation
+│       ├── temporal/            # Temporal workflow orchestration
+│       └── vercel/              # Vercel AI SDK integration
 └── README.md                    # This file
 ```
 
