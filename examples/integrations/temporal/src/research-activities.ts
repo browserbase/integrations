@@ -34,10 +34,8 @@ function validateSearchResults(results: any[]): SearchResult[] {
   // First try strict validation
   let validResults = results.filter(r => 
     r.title && 
-    r.url && 
     r.snippet &&
     r.title.length > 5 && 
-    r.url.startsWith('http') && 
     r.snippet.length > 10
   );
 
@@ -47,10 +45,9 @@ function validateSearchResults(results: any[]): SearchResult[] {
     validResults = results.filter(r => 
       r.title && 
       r.title.length > 2 &&
-      (r.url || r.link) // Sometimes extraction uses 'link' instead of 'url'
+      r.snippet
     ).map(r => ({
       title: r.title,
-      url: r.url || r.link || 'URL not available',
       snippet: r.snippet || r.description || 'Description not available'
     }));
   }
@@ -61,7 +58,7 @@ function validateSearchResults(results: any[]): SearchResult[] {
   }
 
   console.log(`Validated ${validResults.length} search results`);
-  return validResults.slice(0, 3);
+  return validResults;
 }
 
 export async function searchWeb(query: string): Promise<SearchResult[]> {
