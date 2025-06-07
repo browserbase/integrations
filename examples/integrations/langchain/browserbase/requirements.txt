@@ -1,4 +1,4 @@
 browserbase
-langchain-community
+langchain-community>=0.2.19
 playwright
 poetry
