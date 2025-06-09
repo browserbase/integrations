@@ -23,7 +23,7 @@
     "jsom": "^1.0.0",
     "lucide": "^0.451.0",
     "lucide-react": "^0.451.0",
-    "next": "15.2.2",
+    "next": "15.2.4",
     "playwright": "^1.48.0",
     "react": "^18",
     "react-dom": "^18",
