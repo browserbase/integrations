@@ -27,7 +27,20 @@ export class Browserbase implements ICredentialType {
 			type: 'string',
 			default: '',
 			required: true,
-			description: 'The Project ID for your Browserbase project. You can find this in your Browserbase dashboard.',
+			description:
+				'The Project ID for your Browserbase project. You can find this in your Browserbase dashboard.',
+		},
+		{
+			displayName: 'OpenAI API Key (Optional)',
+			name: 'aiApiKey',
+			type: 'string',
+			typeOptions: {
+				password: true,
+			},
+			default: '',
+			required: false,
+			description:
+				'Default AI API key for Stagehand operations. OpenAI keys start with "sk-". Can be overridden per operation.',
 		},
 	];
 
@@ -46,9 +59,9 @@ export class Browserbase implements ICredentialType {
 			baseURL: 'https://api.browserbase.com/v1',
 			url: '/sessions',
 			method: 'GET',
-            headers: {
-                'X-BB-API-Key': '={{$credentials.apiKey}}',
-            },
+			headers: {
+				'X-BB-API-Key': '={{$credentials.apiKey}}',
+			},
 		},
 	};
 }

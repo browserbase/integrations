@@ -18,24 +18,61 @@ export const browserOperations: INodeProperties[] = [
 				value: 'createSession',
 				description: 'Create a new browser session',
 				action: 'Create a new browser session',
+				routing: {
+					request: {
+						method: 'POST',
+						url: '/sessions',
+						body: {
+							projectId: '={{$credentials.projectId}}',
+						},
+					},
+					output: {
+						postReceive: [
+							{
+								type: 'set',
+								properties: {
+									value: '={{ { ...($response.body), sessionId: $response.body.id } }}',
+								},
+							},
+						],
+					},
+				},
 			},
 			{
 				name: 'Get Sessions',
 				value: 'getSessions',
 				description: 'List all browser sessions',
 				action: 'Get all browser sessions',
+				routing: {
+					request: {
+						method: 'GET',
+						url: '/sessions',
+					},
+				},
 			},
 			{
 				name: 'Get Session',
 				value: 'getSession',
 				description: 'Get details of a specific session',
 				action: 'Get session details',
+				routing: {
+					request: {
+						method: 'GET',
+						url: '=/sessions/{{$parameter.sessionId}}',
+					},
+				},
 			},
 			{
 				name: 'Delete Session',
 				value: 'deleteSession',
 				description: 'Delete a browser session',
 				action: 'Delete a browser session',
+				routing: {
+					request: {
+						method: 'DELETE',
+						url: '=/sessions/{{$parameter.sessionId}}',
+					},
+				},
 			},
 		],
 		default: 'createSession',
@@ -115,19 +152,6 @@ const createSessionOperation: INodeProperties[] = [
 						},
 						description: 'Whether to use proxies',
 					},
-					{
-						displayName: 'Fingerprint',
-						name: 'fingerprint',
-						type: 'boolean',
-						default: false,
-						routing: {
-							send: {
-								property: 'fingerprint',
-								type: 'body',
-							},
-						},
-						description: 'Whether to use fingerprinting',
-					},
 				],
 			},
 		],
@@ -175,6 +199,24 @@ export const browserActionOperations: INodeProperties[] = [
 				value: 'navigate',
 				description: 'Navigate to a URL',
 				action: 'Navigate to a URL',
+			},
+			{
+				name: 'Stagehand Act (AI)',
+				value: 'act',
+				description: 'Use AI to perform actions with natural language',
+				action: 'Stagehand AI action',
+			},
+			{
+				name: 'Stagehand Observe (AI)',
+				value: 'observe',
+				description: 'Use AI to observe and plan actions before executing',
+				action: 'Stagehand AI observe',
+			},
+			{
+				name: 'Stagehand Extract (AI)',
+				value: 'extract',
+				description: 'Use AI to extract structured data from the page',
+				action: 'Stagehand AI extract',
 			},
 			{
 				name: 'Take Screenshot',
@@ -289,6 +331,123 @@ const browserActionFields: INodeProperties[] = [
 		},
 	},
 	{
+		displayName: 'Instructions',
+		name: 'instructions',
+		type: 'string',
+		required: true,
+		default: '',
+		placeholder: 'Click the login button',
+		description: 'Natural language instructions for the AI to execute',
+		displayOptions: {
+			show: {
+				resource: ['browserAction'],
+				operation: ['act'],
+			},
+		},
+	},
+	{
+		displayName: 'Instructions',
+		name: 'instructions',
+		type: 'string',
+		required: true,
+		default: '',
+		placeholder: 'What actions can I take on this page?',
+		description: 'Natural language instructions for the AI to observe',
+		displayOptions: {
+			show: {
+				resource: ['browserAction'],
+				operation: ['observe'],
+			},
+		},
+	},
+	{
+		displayName: 'Instructions',
+		name: 'instructions',
+		type: 'string',
+		required: true,
+		default: '',
+		placeholder: 'Extract the product name and price from this page',
+		description: 'Natural language instructions for what to extract',
+		displayOptions: {
+			show: {
+				resource: ['browserAction'],
+				operation: ['extract'],
+			},
+		},
+	},
+	{
+		displayName: 'Schema (Zod)',
+		name: 'schema',
+		type: 'json',
+		required: true,
+		default: '{\n  "name": "z.string()",\n  "price": "z.number()"\n}',
+		description: 'Zod schema definition for the data to extract (object fields only, z.object wrapper added automatically)',
+		displayOptions: {
+			show: {
+				resource: ['browserAction'],
+				operation: ['extract'],
+			},
+		},
+		typeOptions: {
+			editor: 'codeNodeEditor',
+			editorLanguage: 'json',
+		},
+	},
+	{
+		displayName: 'AI Options',
+		name: 'aiOptions',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['browserAction'],
+				operation: ['act', 'observe', 'extract'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Model Provider',
+				name: 'modelName',
+				type: 'options',
+				options: [
+					{
+						name: 'OpenAI GPT-4o',
+						value: 'gpt-4o',
+						description: 'OpenAI GPT-4o (recommended)',
+					},
+					{
+						name: 'OpenAI GPT-4o Mini',
+						value: 'gpt-4o-mini',
+						description: 'OpenAI GPT-4o Mini (faster, less accurate)',
+					},
+					{
+						name: 'Anthropic Claude 3.5 Sonnet',
+						value: 'claude-3-5-sonnet-20241022',
+						description: 'Anthropic Claude 3.5 Sonnet',
+					},
+					{
+						name: 'Anthropic Claude 3.5 Sonnet Latest',
+						value: 'claude-3-5-sonnet-latest',
+						description: 'Anthropic Claude 3.5 Sonnet (Latest)',
+					},
+				],
+				default: 'gpt-4o',
+				description: 'AI model to use for the operation',
+			},
+			{
+				displayName: 'AI API Key',
+				name: 'apiKey',
+				type: 'string',
+				typeOptions: { password: true },
+				default: '',
+				placeholder: 'sk-... or sk-ant-...',
+				description:
+					'API key for the AI model (OpenAI starts with sk-, Anthropic starts with sk-ant-). If not provided, will use the key from credentials.',
+			},
+		],
+	},
+	{
 		displayName: 'Screenshot Options',
 		name: 'screenshotOptions',
 		type: 'collection',
@@ -331,4 +490,4 @@ export const browserFields: INodeProperties[] = [
 	/*                            browserAction operations                        */
 	/* -------------------------------------------------------------------------- */
 	...browserActionFields,
-]; 
+];
