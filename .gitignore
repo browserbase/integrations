@@ -124,3 +124,6 @@ temp/
 # Test artifacts
 test-results/
 playwright-report/ 
+
+# Claude Code
+.claude/
