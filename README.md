@@ -85,6 +85,22 @@ Enhance your Vercel applications with web-browsing capabilities. Build Generativ
 - **BrowseGPT** - A chat interface with real-time web search capabilities
 - **Vercel + Puppeteer** - Server-side browser automation on Fluid Compute
 
+#### [**Trigger.dev Integration**](./examples/integrations/trigger/README.md)
+**Background Jobs & Web Automation** - Build robust background task workflows with Trigger.dev's job orchestration platform. Combine Browserbase's web automation capabilities with scheduled tasks, retry logic, and complex multi-step workflows.
+
+**Key Features:**
+- **Scheduled Web Scraping** - Automated data collection with cron-based scheduling
+- **PDF Processing Pipelines** - Convert documents and upload to cloud storage
+- **AI-Powered Content Workflows** - Scrape, summarize, and distribute content via email
+- **Task Hierarchies** - Complex parent-child job relationships with batch processing
+- **Production-Grade Reliability** - Built-in retries, error handling, and observability
+
+**Perfect for:**
+- Automated market research and competitive analysis
+- Document processing and content generation workflows  
+- Scheduled reporting and email automation
+- Complex web automation pipelines that require orchestration
+
 ### 💳 E-commerce & Payments
 
 #### [**Stripe Integration**](./examples/integrations/stripe/README.md)
@@ -121,6 +137,7 @@ integrations/
 │   └── integrations/
 │       ├── crewai/              # CrewAI framework integration
 │       ├── vercel/              # Vercel AI SDK integration  
+│       ├── trigger/             # Trigger.dev background jobs & automation
 │       ├── stripe/              # Stripe Issuing + automation
 │       ├── langchain/           # LangChain framework integration
 │       ├── mastra/              # Mastra AI agent integration
