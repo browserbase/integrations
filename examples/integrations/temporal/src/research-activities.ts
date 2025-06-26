@@ -6,6 +6,11 @@ export interface SearchResult {
   snippet: string;
 }
 
+export interface BrowserSession {
+  sessionId: string;
+  attemptId: string;
+}
+
 // Simulate network disconnection with lower failure rate for better success
 function simulateNetworkDisconnect(stage: string): void {
   // 15% chance of network failure - more realistic and allows eventual success
@@ -36,7 +41,9 @@ function validateSearchResults(results: any[]): SearchResult[] {
     r.title && 
     r.snippet &&
     r.title.length > 5 && 
-    r.snippet.length > 10
+    r.snippet.length > 10 &&
+    r.title !== 'null' &&  // Reject 'null' string values
+    r.snippet !== 'null'
   );
 
   // Fallback to more lenient validation if strict fails
@@ -45,7 +52,9 @@ function validateSearchResults(results: any[]): SearchResult[] {
     validResults = results.filter(r => 
       r.title && 
       r.title.length > 2 &&
-      r.snippet
+      r.snippet &&
+      r.title !== 'null' &&  // Still reject 'null' string values
+      r.snippet !== 'null'
     ).map(r => ({
       title: r.title,
       snippet: r.snippet || r.description || 'Description not available'
@@ -54,6 +63,14 @@ function validateSearchResults(results: any[]): SearchResult[] {
 
   if (validResults.length === 0) {
     console.error('Raw extraction data:', JSON.stringify(results, null, 2));
+    // Check if we hit a CAPTCHA or other blocking page
+    const hasNullValues = results.some(r => 
+      r.title === 'null' || r.snippet === 'null' || 
+      r.title === null || r.snippet === null
+    );
+    if (hasNullValues) {
+      throw new Error('Extraction returned null values - likely hit CAPTCHA or blocking page. Retrying...');
+    }
     throw new Error('No valid search results found - extracted data was completely malformed');
   }
 
@@ -61,122 +78,225 @@ function validateSearchResults(results: any[]): SearchResult[] {
   return validResults;
 }
 
-export async function searchWeb(query: string): Promise<SearchResult[]> {
+// Store active sessions for reuse
+const activeSessions = new Map<string, Stagehand>();
+
+/**
+ * Activity 1: Initialize browser session
+ * Atomic: Only responsible for creating and initializing a browser session
+ * Idempotent: If called with same sessionId, returns existing session
+ */
+export async function initializeBrowser(sessionId: string): Promise<BrowserSession> {
   const attemptId = Math.random().toString(36).substring(2, 8);
-  console.log(`\n[${attemptId}] Starting search for: "${query}"`);
+  console.log(`\n[${attemptId}] Initializing browser session: ${sessionId}`);
+  
+  // Check if session already exists (idempotency)
+  if (activeSessions.has(sessionId)) {
+    console.log(`[${attemptId}] Reusing existing session: ${sessionId}`);
+    return { sessionId, attemptId };
+  }
   
   try {
     // Network failure during initialization (15% chance)
     simulateNetworkDisconnect('browser initialization');
 
-    let stagehand: Stagehand | null = null;
-    
-    try {
-      const config: ConstructorParams = {
-        verbose: 1,
-        domSettleTimeoutMs: 8000, 
-        env: "BROWSERBASE",
-        apiKey: process.env.BROWSERBASE_API_KEY,
-        browserbaseSessionCreateParams: {
-          proxies: true,
-          projectId: process.env.BROWSERBASE_PROJECT_ID!,
-          browserSettings: {
-            viewport: {
-              width: 1024,
-              height: 768
-            },
-            advancedStealth: true
-          }
-        },
-      };
-
-      console.log(`[${attemptId}] Initializing browser...`);
-      stagehand = new Stagehand(config);
-      await stagehand.init();
-      console.log(`[${attemptId}] Browser session initialized`);
-      
-      // Network failure during navigation (15% chance)
-      simulateNetworkDisconnect('page navigation');
-      
-      console.log(`[${attemptId}] Navigating to Google...`);
-      await stagehand.page.goto('https://www.google.com');
-      console.log(`[${attemptId}] Successfully navigated to Google`);
-      
-      // Network failure during search (15% chance)
-      simulateNetworkDisconnect('search execution');
-      
-      console.log(`[${attemptId}] Performing search...`);
-      await stagehand.page.act({
-        action: `Type "${query}" in the search box`
-      });
-
-      await stagehand.page.act({
-        action: "Click the enter button"
-      });
-      
-      // Wait for search results to load
-      console.log(`[${attemptId}] Waiting for results to load...`);
-      await stagehand.page.waitForTimeout(4000);
-
-      // Network failure during extraction (15% chance)
-      simulateNetworkDisconnect('data extraction');
-      
-      console.log(`[${attemptId}] Extracting search results...`);
-      
-      // Try primary extraction first
-      let extraction;
-      try {
-        extraction = await stagehand.page.extract({
-          instruction: `Extract the top 3 organic search results from Google. 
-          For each result, get:
-          - title: The main headline/title text
-          - snippet: The description text below the title
-          Ignore ads, images, shopping results, and featured snippets.`,
-          schema: z.object({
-            results: z.array(z.object({
-              title: z.string().describe('The main headline of the search result'),
-              snippet: z.string().describe('The description text'),
-            })).min(1)
-          })
-        });
-      } catch (extractError) {
-        console.log(`[${attemptId}] Primary extraction failed, trying fallback...`);
-        throw extractError;
-      }
-      
-      console.log(`[${attemptId}] Raw extraction:`, JSON.stringify(extraction, null, 2));
-      
-      // Validate the extracted data
-      const validResults = validateSearchResults(extraction.results);
-      
-      console.log(`[${attemptId}] Successfully extracted ${validResults.length} search results!`);
-      return validResults;
-      
-    } finally {
-      if (stagehand) {
-        try {
-          await stagehand.page.close();
-          console.log(`[${attemptId}] Browser session cleaned up`);
-        } catch (e) {
-          console.warn(`[${attemptId}] Failed to close browser:`, e);
+    const config: ConstructorParams = {
+      verbose: 1,
+      domSettleTimeoutMs: 8000, 
+      env: "BROWSERBASE",
+      apiKey: process.env.BROWSERBASE_API_KEY,
+      browserbaseSessionCreateParams: {
+        proxies: true,
+        projectId: process.env.BROWSERBASE_PROJECT_ID!,
+        browserSettings: {
+          viewport: {
+            width: 1024,
+            height: 768
+          },
+          advancedStealth: true
         }
-      }
-    }
+      },
+    };
+
+    console.log(`[${attemptId}] Creating new browser session...`);
+    const stagehand = new Stagehand(config);
+    await stagehand.init();
     
+    activeSessions.set(sessionId, stagehand);
+    console.log(`[${attemptId}] Browser session ${sessionId} initialized`);
+    
+    return { sessionId, attemptId };
   } catch (error: any) {
-    console.error(`[${attemptId}] Search attempt failed:`, error.message);
-    console.error(`[${attemptId}] Error details:`, {
-      name: error.name,
-      message: error.message,
-      stack: error.stack?.substring(0, 200) + '...'
-    });
-    
-    // All errors are retryable - let Temporal handle the retry logic
+    console.error(`[${attemptId}] Failed to initialize browser:`, error.message);
     throw error;
   }
 }
 
-// No need for complex report generation - just return the results
+/**
+ * Activity 2: Navigate to search page
+ * Atomic: Only responsible for navigation
+ * Idempotent: Multiple calls result in same state (on Google homepage)
+ */
+export async function navigateToSearchPage(session: BrowserSession): Promise<void> {
+  console.log(`\n[${session.attemptId}] Navigating to search page for session: ${session.sessionId}`);
+  
+  const stagehand = activeSessions.get(session.sessionId);
+  if (!stagehand) {
+    throw new Error(`Session ${session.sessionId} not found - may have been cleaned up`);
+  }
+  
+  try {
+    // Network failure during navigation (15% chance)
+    simulateNetworkDisconnect('page navigation');
+    
+    console.log(`[${session.attemptId}] Navigating to Google...`);
+    await stagehand.page.goto('https://www.google.com');
+    console.log(`[${session.attemptId}] Successfully navigated to Google`);
+    
+  } catch (error: any) {
+    console.error(`[${session.attemptId}] Navigation failed:`, error.message);
+    throw error;
+  }
+}
+
+/**
+ * Activity 3: Execute search
+ * Atomic: Only responsible for performing the search
+ * Idempotent: Same query produces same search action
+ */
+export async function executeSearch(session: BrowserSession, query: string): Promise<void> {
+  console.log(`\n[${session.attemptId}] Executing search for: "${query}"`);
+  
+  const stagehand = activeSessions.get(session.sessionId);
+  if (!stagehand) {
+    throw new Error(`Session ${session.sessionId} not found - may have been cleaned up`);
+  }
+  
+  try {
+    // Network failure during search (15% chance)
+    simulateNetworkDisconnect('search execution');
+    
+    console.log(`[${session.attemptId}] Typing search query...`);
+    await stagehand.page.act({
+      action: `Type "${query}" in the search box`
+    });
+
+    await stagehand.page.act({
+      action: "Click the enter button"
+    });
+    
+    // Wait for search results to load
+    console.log(`[${session.attemptId}] Waiting for results to load...`);
+    await stagehand.page.waitForTimeout(4000);
+    
+  } catch (error: any) {
+    console.error(`[${session.attemptId}] Search execution failed:`, error.message);
+    throw error;
+  }
+}
+
+/**
+ * Activity 4: Extract search results
+ * Atomic: Only responsible for extraction and validation
+ * Idempotent: Multiple extractions from same page state produce same results
+ */
+export async function extractSearchResults(session: BrowserSession): Promise<SearchResult[]> {
+  console.log(`\n[${session.attemptId}] Extracting search results...`);
+  
+  const stagehand = activeSessions.get(session.sessionId);
+  if (!stagehand) {
+    throw new Error(`Session ${session.sessionId} not found - may have been cleaned up`);
+  }
+  
+  try {
+    // Network failure during extraction (15% chance)
+    simulateNetworkDisconnect('data extraction');
+    
+    // Check if we've been redirected to a CAPTCHA or blocking page
+    const currentUrl = stagehand.page.url();
+    console.log(`[${session.attemptId}] Current URL: ${currentUrl}`);
+    
+    if (currentUrl.includes('/sorry/') || currentUrl.includes('captcha')) {
+      throw new Error('Detected CAPTCHA/blocking page - need to retry with new session');
+    }
+    
+    console.log(`[${session.attemptId}] Performing extraction...`);
+    
+    const extraction = await stagehand.page.extract({
+      instruction: `Extract the top 3 organic search results from Google. 
+      For each result, get:
+      - title: The main headline/title text
+      - snippet: The description text below the title
+      Ignore ads, images, shopping results, and featured snippets.`,
+      schema: z.object({
+        results: z.array(z.object({
+          title: z.string().describe('The main headline of the search result'),
+          snippet: z.string().describe('The description text'),
+        })).min(1)
+      })
+    });
+    
+    console.log(`[${session.attemptId}] Raw extraction:`, JSON.stringify(extraction, null, 2));
+    
+    // Validate the extracted data
+    const validResults = validateSearchResults(extraction.results);
+    
+    console.log(`[${session.attemptId}] Successfully extracted ${validResults.length} search results!`);
+    return validResults;
+    
+  } catch (error: any) {
+    console.error(`[${session.attemptId}] Extraction failed:`, error.message);
+    throw error;
+  }
+}
+
+/**
+ * Activity 5: Cleanup browser session
+ * Atomic: Only responsible for cleanup
+ * Idempotent: Multiple calls safely handle already-closed sessions
+ */
+export async function cleanupBrowser(session: BrowserSession, forceCleanup: boolean = false): Promise<void> {
+  console.log(`\n[${session.attemptId}] Cleaning up browser session: ${session.sessionId} (force: ${forceCleanup})`);
+  
+  const stagehand = activeSessions.get(session.sessionId);
+  if (!stagehand) {
+    console.log(`[${session.attemptId}] Session already cleaned up: ${session.sessionId}`);
+    return; // Already cleaned up - idempotent
+  }
+  
+  try {
+    await stagehand.page.close();
+    activeSessions.delete(session.sessionId);
+    console.log(`[${session.attemptId}] Browser session ${session.sessionId} cleaned up`);
+  } catch (e) {
+    console.warn(`[${session.attemptId}] Failed to close browser:`, e);
+    // Still remove from map to prevent memory leak
+    activeSessions.delete(session.sessionId);
+  }
+}
+
+/**
+ * Helper to invalidate a session when we detect issues like CAPTCHAs
+ * This ensures the next retry will use a fresh session
+ */
+export async function invalidateSession(sessionId: string): Promise<void> {
+  console.log(`Invalidating session: ${sessionId}`);
+  const stagehand = activeSessions.get(sessionId);
+  if (stagehand) {
+    try {
+      await stagehand.page.close();
+    } catch (e) {
+      // Ignore errors during invalidation
+    }
+    activeSessions.delete(sessionId);
+  }
+}
+
+/**
+ * Activity 6: Format results
+ * Atomic: Only responsible for formatting
+ * Idempotent: Same input produces same output
+ */
 export async function formatResults(results: SearchResult[]): Promise<string> {
   if (results.length === 0) {
     throw new Error('Cannot format empty results - this indicates a data extraction issue');

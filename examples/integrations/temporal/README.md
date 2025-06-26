@@ -1,13 +1,37 @@
 # Temporal + Stagehand Integration
 
-A simplified example showing how Temporal handles browser automation failures with automatic retries.
+A best practices example showing how Temporal handles browser automation failures with automatic retries using atomic, idempotent activities.
 
 ## What it does
 
 - Uses Stagehand to perform Google searches in a real browser
-- Temporal automatically retries when browser sessions fail
-- No artificial failure simulation - relies on real network/browser issues
-- Clean, simple code focused on the retry pattern
+- Demonstrates Temporal best practices with atomic activities
+- Each activity handles a single responsibility
+- Temporal automatically retries individual steps on failure
+- Clean, maintainable code following Temporal patterns
+
+## Temporal Best Practices Demonstrated
+
+### Atomic Activities
+Each activity performs a single, well-defined task:
+1. **initializeBrowser** - Creates and initializes browser session
+2. **navigateToSearchPage** - Navigates to Google
+3. **executeSearch** - Types query and submits search
+4. **extractSearchResults** - Extracts and validates results
+5. **cleanupBrowser** - Closes browser session
+6. **formatResults** - Formats results for display
+
+### Why Atomic Activities?
+- **Efficient retries**: If extraction fails after search succeeds, only extraction is retried
+- **Better performance**: No need to repeat successful steps
+- **Clearer debugging**: Each activity's purpose is obvious
+- **Flexible retry policies**: Different activities can have different retry strategies
+
+### Idempotent Design
+- Browser sessions are reused if already initialized
+- Cleanup handles already-closed sessions gracefully
+- Navigation always results in the same state
+- Formatting produces consistent output
 
 ## Setup
 
@@ -43,38 +67,39 @@ npm run demo "your search term" # Custom search
 
 ## How it Works
 
-1. **Activities** (`research-activities.ts`):
-   - `searchWeb`: Opens browser, searches Google, extracts results
-   - `formatResults`: Formats results as readable text
-   - Natural failures from network issues, timeouts, or page changes
+### Activities (`research-activities.ts`)
+Each activity is designed to be:
+- **Atomic**: Does one thing only
+- **Idempotent**: Can be safely retried
+- **Focused**: Clear single responsibility
 
-2. **Workflow** (`workflows.ts`):
-   - `searchWithRetry`: Orchestrates the search with retry logic
-   - Configured for up to 10 retries with exponential backoff
-   - 2-minute timeout per attempt
+### Workflow (`workflows.ts`)
+- Orchestrates the atomic activities in sequence
+- Uses tailored retry policies for each activity type
+- Handles cleanup in a finally block
+- Provides clear progress logging
 
-3. **Worker** (`research-worker.ts`):
-   - Processes workflow tasks
-   - Limits to 2 concurrent browser sessions
-   - Simple configuration focused on essentials
+### Worker (`research-worker.ts`)
+- Processes workflow tasks
+- Limits to 2 concurrent browser sessions
+- Simple configuration focused on essentials
 
 ## Retry Behavior
 
-Temporal automatically retries on failures like:
-- Network timeouts
-- Browser session crashes  
-- Page load failures
-- Element not found errors
+Each activity has a custom retry policy based on its characteristics:
 
-The retry policy uses:
-- Initial interval: 2 seconds
-- Maximum interval: 20 seconds
-- Backoff coefficient: 1.8x
-- Maximum attempts: 10
+- **Initialize Browser**: 5 attempts, 2-10 second intervals
+- **Navigate**: 8 attempts, 1-5 second intervals (fast retries)
+- **Execute Search**: 10 attempts, 2-15 second intervals
+- **Extract Results**: 10 attempts, 3-20 second intervals (most likely to fail)
+- **Cleanup**: 3 attempts, 1-3 second intervals
+- **Format**: 2 attempts, minimal retry (deterministic)
 
 ## Benefits
 
 - **Simplicity**: Clean code without complex error handling
+- **Efficiency**: Only failed steps are retried
 - **Reliability**: Temporal ensures tasks complete or fail definitively
 - **Visibility**: Monitor progress in Temporal Web UI at http://localhost:8233
-- **Real-world**: Tests actual browser issues, not simulated failures
+- **Maintainability**: Each activity can be tested and updated independently
+- **Flexibility**: Easy to add new steps or modify retry behavior
