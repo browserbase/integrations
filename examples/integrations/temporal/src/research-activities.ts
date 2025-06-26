@@ -284,7 +284,7 @@ export async function invalidateSession(sessionId: string): Promise<void> {
   const stagehand = activeSessions.get(sessionId);
   if (stagehand) {
     try {
-      await stagehand.page.close();
+      await stagehand.close();
     } catch (e) {
       // Ignore errors during invalidation
     }

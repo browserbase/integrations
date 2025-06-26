@@ -6,12 +6,12 @@ async function run() {
     workflowsPath: require.resolve('./workflows'),
     activities,
     taskQueue: 'browser-automation',
-    maxConcurrentActivityTaskExecutions: 2, // Limit concurrent browser sessions
+    maxConcurrentActivityTaskExecutions: 2, 
   });
 
   // Handle worker shutdown gracefully
   process.on('SIGINT', async () => {
-    await worker.shutdown();
+    worker.shutdown();
     process.exit(0);
   });
 

@@ -5,8 +5,6 @@ export async function searchWithRetry(query: string): Promise<string> {
   // Get workflow info to use in session ID generation
   const info = workflowInfo();
   
-  // Create different retry policies for different activity types
-  
   // Quick retry for initialization - might fail due to network
   const { initializeBrowser } = proxyActivities<typeof activities>({
     retry: {
