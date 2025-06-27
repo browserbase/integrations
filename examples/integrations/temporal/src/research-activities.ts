@@ -7,7 +7,7 @@ export interface SearchResult {
 }
 
 export interface BrowserSession {
-  sessionId: string;
+  browserbaseSessionId: string;
   attemptId: string;
 }
 
@@ -78,23 +78,14 @@ function validateSearchResults(results: any[]): SearchResult[] {
   return validResults;
 }
 
-// Store active sessions for reuse
-const activeSessions = new Map<string, Stagehand>();
-
 /**
  * Activity 1: Initialize browser session
  * Atomic: Only responsible for creating and initializing a browser session
- * Idempotent: If called with same sessionId, returns existing session
+ * Idempotent: Returns session data that can be used to reconnect
  */
-export async function initializeBrowser(sessionId: string): Promise<BrowserSession> {
+export async function initializeBrowser(): Promise<BrowserSession> {
   const attemptId = Math.random().toString(36).substring(2, 8);
-  console.log(`\n[${attemptId}] Initializing browser session: ${sessionId}`);
-  
-  // Check if session already exists (idempotency)
-  if (activeSessions.has(sessionId)) {
-    console.log(`[${attemptId}] Reusing existing session: ${sessionId}`);
-    return { sessionId, attemptId };
-  }
+  console.log(`\n[${attemptId}] Initializing new browser session`);
   
   try {
     // Network failure during initialization (15% chance)
@@ -122,14 +113,47 @@ export async function initializeBrowser(sessionId: string): Promise<BrowserSessi
     const stagehand = new Stagehand(config);
     await stagehand.init();
     
-    activeSessions.set(sessionId, stagehand);
-    console.log(`[${attemptId}] Browser session ${sessionId} initialized`);
+    // Get the Browserbase session ID to reconnect later
+    const browserbaseSessionId = stagehand.browserbaseSessionID;
+    if (!browserbaseSessionId) {
+      throw new Error('Failed to get Browserbase session ID');
+    }
     
-    return { sessionId, attemptId };
+    console.log(`[${attemptId}] Browser session initialized with ID: ${browserbaseSessionId}`);
+    
+    
+    return { browserbaseSessionId, attemptId };
   } catch (error: any) {
     console.error(`[${attemptId}] Failed to initialize browser:`, error.message);
     throw error;
   }
+}
+
+/**
+ * Helper function to reconnect to an existing Browserbase session
+ */
+async function reconnectToSession(session: BrowserSession): Promise<Stagehand> {
+  console.log(`[${session.attemptId}] Reconnecting to session: ${session.browserbaseSessionId}`);
+  
+  const config: ConstructorParams = {
+    verbose: 1,
+    domSettleTimeoutMs: 8000,
+    env: "BROWSERBASE",
+    apiKey: process.env.BROWSERBASE_API_KEY,
+    browserbaseSessionID: session.browserbaseSessionId,
+  };
+  
+  const stagehand = new Stagehand(config);
+  await stagehand.init();
+  
+  // Browserbase requires at least one page in the session
+  // If reconnecting to a session with no pages, we need to create one
+  if (!stagehand.page) {
+    console.log(`[${session.attemptId}] No page found in session, creating new page...`);
+    throw new Error('Failed to create page in Browserbase session');
+  }
+  
+  return stagehand;
 }
 
 /**
@@ -138,16 +162,15 @@ export async function initializeBrowser(sessionId: string): Promise<BrowserSessi
  * Idempotent: Multiple calls result in same state (on Google homepage)
  */
 export async function navigateToSearchPage(session: BrowserSession): Promise<void> {
-  console.log(`\n[${session.attemptId}] Navigating to search page for session: ${session.sessionId}`);
+  console.log(`\n[${session.attemptId}] Navigating to search page for session: ${session.browserbaseSessionId}`);
   
-  const stagehand = activeSessions.get(session.sessionId);
-  if (!stagehand) {
-    throw new Error(`Session ${session.sessionId} not found - may have been cleaned up`);
-  }
+  let stagehand: Stagehand | null = null;
   
   try {
     // Network failure during navigation (15% chance)
     simulateNetworkDisconnect('page navigation');
+    
+    stagehand = await reconnectToSession(session);
     
     console.log(`[${session.attemptId}] Navigating to Google...`);
     await stagehand.page.goto('https://www.google.com');
@@ -156,7 +179,7 @@ export async function navigateToSearchPage(session: BrowserSession): Promise<voi
   } catch (error: any) {
     console.error(`[${session.attemptId}] Navigation failed:`, error.message);
     throw error;
-  }
+  } 
 }
 
 /**
@@ -167,14 +190,13 @@ export async function navigateToSearchPage(session: BrowserSession): Promise<voi
 export async function executeSearch(session: BrowserSession, query: string): Promise<void> {
   console.log(`\n[${session.attemptId}] Executing search for: "${query}"`);
   
-  const stagehand = activeSessions.get(session.sessionId);
-  if (!stagehand) {
-    throw new Error(`Session ${session.sessionId} not found - may have been cleaned up`);
-  }
+  let stagehand: Stagehand | null = null;
   
   try {
     // Network failure during search (15% chance)
     simulateNetworkDisconnect('search execution');
+    
+    stagehand = await reconnectToSession(session);
     
     console.log(`[${session.attemptId}] Typing search query...`);
     await stagehand.page.act({
@@ -203,14 +225,13 @@ export async function executeSearch(session: BrowserSession, query: string): Pro
 export async function extractSearchResults(session: BrowserSession): Promise<SearchResult[]> {
   console.log(`\n[${session.attemptId}] Extracting search results...`);
   
-  const stagehand = activeSessions.get(session.sessionId);
-  if (!stagehand) {
-    throw new Error(`Session ${session.sessionId} not found - may have been cleaned up`);
-  }
+  let stagehand: Stagehand | null = null;
   
   try {
     // Network failure during extraction (15% chance)
     simulateNetworkDisconnect('data extraction');
+    
+    stagehand = await reconnectToSession(session);
     
     // Check if we've been redirected to a CAPTCHA or blocking page
     const currentUrl = stagehand.page.url();
@@ -247,7 +268,7 @@ export async function extractSearchResults(session: BrowserSession): Promise<Sea
   } catch (error: any) {
     console.error(`[${session.attemptId}] Extraction failed:`, error.message);
     throw error;
-  }
+  } 
 }
 
 /**
@@ -255,40 +276,16 @@ export async function extractSearchResults(session: BrowserSession): Promise<Sea
  * Atomic: Only responsible for cleanup
  * Idempotent: Multiple calls safely handle already-closed sessions
  */
-export async function cleanupBrowser(session: BrowserSession, forceCleanup: boolean = false): Promise<void> {
-  console.log(`\n[${session.attemptId}] Cleaning up browser session: ${session.sessionId} (force: ${forceCleanup})`);
-  
-  const stagehand = activeSessions.get(session.sessionId);
-  if (!stagehand) {
-    console.log(`[${session.attemptId}] Session already cleaned up: ${session.sessionId}`);
-    return; // Already cleaned up - idempotent
-  }
+export async function cleanupBrowser(session: BrowserSession): Promise<void> {
+  console.log(`\n[${session.attemptId}] Cleaning up browser session: ${session.browserbaseSessionId}`);
   
   try {
-    await stagehand.page.close();
-    activeSessions.delete(session.sessionId);
-    console.log(`[${session.attemptId}] Browser session ${session.sessionId} cleaned up`);
+    const stagehand = await reconnectToSession(session);
+    await stagehand.close();
+    console.log(`[${session.attemptId}] Browser session ${session.browserbaseSessionId} cleaned up`);
   } catch (e) {
-    console.warn(`[${session.attemptId}] Failed to close browser:`, e);
-    // Still remove from map to prevent memory leak
-    activeSessions.delete(session.sessionId);
-  }
-}
-
-/**
- * Helper to invalidate a session when we detect issues like CAPTCHAs
- * This ensures the next retry will use a fresh session
- */
-export async function invalidateSession(sessionId: string): Promise<void> {
-  console.log(`Invalidating session: ${sessionId}`);
-  const stagehand = activeSessions.get(sessionId);
-  if (stagehand) {
-    try {
-      await stagehand.close();
-    } catch (e) {
-      // Ignore errors during invalidation
-    }
-    activeSessions.delete(sessionId);
+    console.warn(`[${session.attemptId}] Failed to close browser session:`, e);
+    // Session might already be closed or expired - that's ok
   }
 }
 

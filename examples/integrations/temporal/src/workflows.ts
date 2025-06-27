@@ -2,7 +2,7 @@ import { proxyActivities, workflowInfo } from '@temporalio/workflow';
 import type * as activities from './research-activities';
 
 export async function searchWithRetry(query: string): Promise<string> {
-  // Get workflow info to use in session ID generation
+  // Get workflow info for logging
   const info = workflowInfo();
   
   // Quick retry for initialization - might fail due to network
@@ -54,7 +54,7 @@ export async function searchWithRetry(query: string): Promise<string> {
   });
 
   // Cleanup should always succeed quickly
-  const { cleanupBrowser, invalidateSession } = proxyActivities<typeof activities>({
+  const { cleanupBrowser } = proxyActivities<typeof activities>({
     retry: {
       initialInterval: '1 second',
       maximumInterval: '3 seconds',
@@ -86,80 +86,47 @@ export async function searchWithRetry(query: string): Promise<string> {
   console.log(`- Extract results: up to 10 attempts (most likely to fail)`);
   console.log(`- Cleanup: up to 3 attempts\n`);
 
-  let attemptNumber = 0;
-  const maxAttempts = 3; // Overall workflow retry attempts
+  let browserSession;
+  let searchResults;
   
-  while (attemptNumber < maxAttempts) {
-    attemptNumber++;
+  try {
+    // Step 1: Initialize browser
+    console.log('Step 1: Initializing browser session...');
+    browserSession = await initializeBrowser();
     
-    // Generate a unique session ID for each attempt
-    const sessionId = `search-${info.runId}-attempt-${attemptNumber}-${Date.now()}`;
-    console.log(`\nWorkflow attempt ${attemptNumber}/${maxAttempts} with session: ${sessionId}`);
+    // Step 2: Navigate to search page
+    console.log('Step 2: Navigating to search page...');
+    await navigateToSearchPage(browserSession);
     
-    let browserSession;
-    let searchResults;
+    // Step 3: Execute search
+    console.log(`Step 3: Executing search for "${query}"...`);
+    await executeSearch(browserSession, query);
     
-    try {
-      // Step 1: Initialize browser
-      console.log('Step 1: Initializing browser session...');
-      browserSession = await initializeBrowser(sessionId);
-      
-      // Step 2: Navigate to search page
-      console.log('Step 2: Navigating to search page...');
-      await navigateToSearchPage(browserSession);
-      
-      // Step 3: Execute search
-      console.log(`Step 3: Executing search for "${query}"...`);
-      await executeSearch(browserSession, query);
-      
-      // Step 4: Extract results
-      console.log('Step 4: Extracting search results...');
-      searchResults = await extractSearchResults(browserSession);
-      
-      // Step 5: Format results
-      console.log('Step 5: Formatting results...');
-      const formatted = await formatResults(searchResults);
-      
-      console.log('Workflow completed successfully!');
-      return formatted;
-      
-    } catch (error: any) {
-      console.error(`Workflow attempt ${attemptNumber} failed:`, error.message);
-      
-      // If we hit a CAPTCHA, invalidate the session to force a new one
-      if (error.message.includes('CAPTCHA') || error.message.includes('blocking page')) {
-        console.log('Detected CAPTCHA/blocking - invalidating session for fresh retry');
-        if (browserSession) {
-          try {
-            await invalidateSession(browserSession.sessionId);
-          } catch (e) {
-            console.warn('Failed to invalidate session:', e);
-          }
-        }
-      }
-      
-      // If this was our last attempt, throw the error
-      if (attemptNumber >= maxAttempts) {
-        console.error('All workflow attempts failed');
-        throw error;
-      }
-      
-      // Otherwise, continue to next attempt
-      console.log(`Retrying workflow (attempt ${attemptNumber + 1}/${maxAttempts})...`);
-      
-    } finally {
-      // Always try to cleanup the browser session
-      if (browserSession) {
-        try {
-          console.log('Cleaning up browser session...');
-          await cleanupBrowser(browserSession, false);
-        } catch (cleanupError) {
-          console.warn('Failed to cleanup browser session:', cleanupError);
-          // Don't rethrow - cleanup failure shouldn't fail the workflow
-        }
+    // Step 4: Extract results
+    console.log('Step 4: Extracting search results...');
+    searchResults = await extractSearchResults(browserSession);
+    
+    // Step 5: Format results
+    console.log('Step 5: Formatting results...');
+    const formatted = await formatResults(searchResults);
+    
+    console.log('Workflow completed successfully!');
+    return formatted;
+    
+  } catch (error: any) {
+    console.error(`Workflow failed:`, error.message);
+    throw error;
+    
+  } finally {
+    // Always try to cleanup the browser session
+    if (browserSession) {
+      try {
+        console.log('Cleaning up browser session...');
+        await cleanupBrowser(browserSession);
+      } catch (cleanupError) {
+        console.warn('Failed to cleanup browser session:', cleanupError);
+        // Don't rethrow - cleanup failure shouldn't fail the workflow
       }
     }
   }
-  
-  throw new Error(`Search workflow failed after ${maxAttempts} attempts`);
 } 

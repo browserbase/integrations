@@ -5,15 +5,14 @@ A best practices example showing how Temporal handles browser automation failure
 ## What it does
 
 - Uses Stagehand to perform Google searches in a real browser
-- Demonstrates Temporal best practices with atomic activities
-- Each activity handles a single responsibility
-- Temporal automatically retries individual steps on failure
+- Each individual task is encapsulated within a Temporal Activity following best practices for atomicity and idempotency
+- If any individual task fails, Temporal will automatically retry it, resulting in reliable browser automation
 - Clean, maintainable code following Temporal patterns
 
 ## Temporal Best Practices Demonstrated
 
 ### Atomic Activities
-Each activity performs a single, well-defined task:
+Each Temporal activity performs a single, well-defined task:
 1. **initializeBrowser** - Creates and initializes browser session
 2. **navigateToSearchPage** - Navigates to Google
 3. **executeSearch** - Types query and submits search
