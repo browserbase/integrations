@@ -38,6 +38,7 @@ form_submission_task = Task(
     3. Submit the form
     4. Confirm the submission was successful
     """,
+    expected_output="The form should be submitted successfully",
     agent=researcher,
 )
 
