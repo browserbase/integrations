@@ -157,6 +157,32 @@ const getSessionOperation: INodeProperties[] = [
 	},
 ];
 
+// Options for Get Sessions operation
+const getSessionsOptions: INodeProperties[] = [
+	{
+		displayName: 'Options',
+		name: 'options',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['browserSession'],
+				operation: ['getSessions'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Simplify',
+				name: 'simplify',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to return a simplified version of the response instead of the raw data',
+			},
+		],
+	},
+];
+
 // Browser Actions resource operations
 export const browserActionOperations: INodeProperties[] = [
 	{
@@ -381,6 +407,7 @@ export const browserFields: INodeProperties[] = [
 	/* -------------------------------------------------------------------------- */
 	...createSessionOperation,
 	...getSessionOperation,
+	...getSessionsOptions,
 
 	/* -------------------------------------------------------------------------- */
 	/*                            browserAction operations                        */

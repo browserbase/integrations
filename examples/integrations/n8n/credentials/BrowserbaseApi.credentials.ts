@@ -37,7 +37,7 @@ export class BrowserbaseApi implements ICredentialType {
 				password: true,
 			},
 			default: '',
-			required: true,
+			required: false,
 			description: 'The OpenAI API key required for AI operations (act, observe, extract). You can get this from your OpenAI dashboard.',
 		},
 	];

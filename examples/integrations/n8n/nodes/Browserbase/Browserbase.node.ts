@@ -191,6 +191,8 @@ export class BrowserbaseNode implements INodeType {
 						const apiKey = credentials.apiKey as string;
 						
 						const sessionId = operation !== 'getSessions' ? this.getNodeParameter('sessionId', i) as string : '';
+						const options = this.getNodeParameter('options', i, {}) as any;
+						const simplify = options.simplify || false;
 						
 						let url = 'https://api.browserbase.com/v1/sessions';
 						if (sessionId) {
@@ -203,7 +205,8 @@ export class BrowserbaseNode implements INodeType {
 							operation,
 							url,
 							method,
-							sessionId
+							sessionId,
+							simplify
 						});
 						
 						result = await this.helpers.httpRequest({
@@ -214,6 +217,18 @@ export class BrowserbaseNode implements INodeType {
 								'X-BB-API-Key': apiKey,
 							},
 						});
+
+						// Apply simplify if requested for getSessions
+						if (operation === 'getSessions' && simplify && Array.isArray(result)) {
+							result = result.map((session: any) => ({
+								id: session.id,
+								status: session.status,
+								createdAt: session.createdAt,
+								projectId: session.projectId,
+								keepAlive: session.keepAlive,
+								proxies: session.proxies,
+							}));
+						}
 
 						console.log('🐛 DEBUG - Session Operation Response:', result);
 					
@@ -251,9 +266,9 @@ export class BrowserbaseNode implements INodeType {
 							},
 						});
 						
-						// Add success message
+						// Add success message following n8n UX guidelines for deletion confirmation
 						result = {
-							...result,
+							deleted: true,
 							operation: 'closeSession',
 							sessionId,
 							status: 'completed',
@@ -298,7 +313,7 @@ export class BrowserbaseNode implements INodeType {
 					if (['act', 'observe', 'extract'].includes(operation) && !openaiApiKey) {
 						throw new NodeOperationError(
 							this.getNode(),
-							'OpenAI API key is required for AI operations (act, observe, extract). Please add it to your Browserbase credentials.',
+							'OpenAI API key is required for AI operations (act, observe, extract). Please add it to your Browserbase credentials configuration.',
 							{ itemIndex: i }
 						);
 					}
