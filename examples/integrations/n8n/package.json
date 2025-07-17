@@ -40,9 +40,11 @@
     ]
   },
   "dependencies": {
-    "playwright-core": "^1.49.0"
+    "@browserbasehq/stagehand": "^2.4.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "~8.32.0",
     "@typescript-eslint/parser": "~8.32.0",
     "eslint": "^8.57.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.3",

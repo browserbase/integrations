@@ -5,9 +5,9 @@ import {
 	INodeProperties,
 } from 'n8n-workflow';
 
-export class Browserbase implements ICredentialType {
-	name = 'Browserbase';
-	displayName = 'Browserbase';
+export class BrowserbaseApi implements ICredentialType {
+	name = 'browserbaseApi';
+	displayName = 'Browserbase API';
 	documentationUrl = 'https://docs.browserbase.com/';
 	properties: INodeProperties[] = [
 		{
@@ -29,9 +29,20 @@ export class Browserbase implements ICredentialType {
 			required: true,
 			description: 'The Project ID for your Browserbase project. You can find this in your Browserbase dashboard.',
 		},
+		{
+			displayName: 'OpenAI API Key',
+			name: 'openaiApiKey',
+			type: 'string',
+			typeOptions: {
+				password: true,
+			},
+			default: '',
+			required: true,
+			description: 'The OpenAI API key required for AI operations (act, observe, extract). You can get this from your OpenAI dashboard.',
+		},
 	];
 
-	authenticate = {
+	authenticate: IAuthenticateGeneric = {
 		type: 'generic',
 		properties: {
 			headers: {
@@ -39,7 +50,7 @@ export class Browserbase implements ICredentialType {
 				'X-BB-Project-ID': '={{$credentials.projectId}}',
 			},
 		},
-	} as IAuthenticateGeneric;
+	};
 
 	test: ICredentialTestRequest = {
 		request: {

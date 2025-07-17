@@ -5,39 +5,74 @@ import type {
 	INodeTypeDescription,
 } from 'n8n-workflow';
 import { NodeConnectionType, NodeOperationError } from 'n8n-workflow';
-import { chromium } from 'playwright-core';
+import { Stagehand } from '@browserbasehq/stagehand';
+import { z } from 'zod';
 import { browserOperations, browserFields, browserActionOperations } from './BrowserDescription';
 
 /**
- * Helper function to get session details including connectUrl
+ * Helper function to connect to Browserbase session with Stagehand
  */
-async function getSessionDetails(sessionId: string, apiKey: string): Promise<any> {
-	const response = await fetch(`https://api.browserbase.com/v1/sessions/${sessionId}`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-			'X-BB-API-Key': apiKey,
+async function connectToBrowserbaseSession(sessionId: string, apiKey: string, projectId: string, openaiApiKey: string) {
+	const stagehand = new Stagehand({
+		env: "BROWSERBASE",
+		apiKey,
+		projectId,
+		browserbaseSessionID: sessionId,
+		modelName: "gpt-4o",
+		modelClientOptions: {
+			apiKey: openaiApiKey,
 		},
 	});
-	
-	if (!response.ok) {
-		throw new Error(`Failed to get session details: ${response.statusText}`);
-	}
-	
-	return response.json();
-}
-
-/**
- * Helper function to connect to Browserbase session with Playwright
- */
-async function connectToBrowserbaseSession(connectUrl: string) {
-	const browser = await chromium.connectOverCDP(connectUrl);
-	const defaultContext = browser.contexts()[0];
-	const page = defaultContext?.pages()?.[0] || await defaultContext.newPage();
-	return { browser, page };
+	await stagehand.init();
+	return stagehand;
 }
 
 export class BrowserbaseNode implements INodeType {
+	
+	/**
+	 * Convert JSON Schema to Zod schema
+	 */
+	private static convertJsonSchemaToZod(jsonSchema: any): z.ZodObject<any> {
+		if (jsonSchema.type === 'object' && jsonSchema.properties) {
+			const shape: Record<string, z.ZodSchema<any>> = {};
+			
+			for (const [key, value] of Object.entries(jsonSchema.properties)) {
+				const prop = value as any;
+				let zodField: z.ZodSchema<any>;
+				
+				if (prop.type === 'string') {
+					zodField = z.string();
+				} else if (prop.type === 'number') {
+					zodField = z.number();
+				} else if (prop.type === 'boolean') {
+					zodField = z.boolean();
+				} else if (prop.type === 'array') {
+					zodField = z.array(z.any());
+				} else {
+					zodField = z.any();
+				}
+				
+				// Add description if available
+				if (prop.description) {
+					zodField = zodField.describe(prop.description);
+				}
+				
+				// Handle optional fields
+				if (!jsonSchema.required || !jsonSchema.required.includes(key)) {
+					zodField = zodField.optional();
+				}
+				
+				shape[key] = zodField;
+			}
+			
+			return z.object(shape);
+		}
+		
+		// Default to a simple object schema
+		return z.object({
+			result: z.any().describe('Extracted data')
+		});
+	}
 
 	description: INodeTypeDescription = {
 		displayName: 'Browserbase',
@@ -46,7 +81,7 @@ export class BrowserbaseNode implements INodeType {
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Interact with websites using Browserbase cloud browsers',
+		description: 'Interact with websites using Stagehand AI automation - navigate, screenshot, and use AI to act, observe, and extract data from web pages (OpenAI API key required for AI operations)',
 		defaults: {
 			name: 'Browserbase',
 		},
@@ -55,7 +90,7 @@ export class BrowserbaseNode implements INodeType {
 		usableAsTool: true,
 		credentials: [
 			{
-				name: 'Browserbase',
+				name: 'BrowserbaseApi',
 				required: true,
 			},
 		],
@@ -150,7 +185,7 @@ export class BrowserbaseNode implements INodeType {
 							sessionId: sessionResponse.id, // Add sessionId alias for easier access
 						};
 
-					} else if (['getSessions', 'getSession', 'deleteSession'].includes(operation)) {
+					} else if (['getSessions', 'getSession'].includes(operation)) {
 						// Get credentials for API authentication
 						const credentials = await this.getCredentials('Browserbase');
 						const apiKey = credentials.apiKey as string;
@@ -162,7 +197,7 @@ export class BrowserbaseNode implements INodeType {
 							url += `/${sessionId}`;
 						}
 
-						const method = operation === 'deleteSession' ? 'DELETE' : 'GET';
+						const method = 'GET';
 
 						console.log('🐛 DEBUG - Session Operation Request:', {
 							operation,
@@ -181,6 +216,51 @@ export class BrowserbaseNode implements INodeType {
 						});
 
 						console.log('🐛 DEBUG - Session Operation Response:', result);
+					
+					} else if (operation === 'closeSession') {
+						// Close session automatically using previous node's session ID
+						const credentials = await this.getCredentials('Browserbase');
+						const apiKey = credentials.apiKey as string;
+						
+						// Try to get session ID from input data
+						const inputData = items[i].json as Record<string, any>;
+						const sessionId = (inputData.id || inputData.sessionId || '') as string;
+						
+						if (!sessionId) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'No session ID found in input data. Please ensure a "Create Session" or other session node is connected before this node.',
+								{ itemIndex: i }
+							);
+						}
+						
+						const url = `https://api.browserbase.com/v1/sessions/${sessionId}`;
+						
+						console.log('🐛 DEBUG - Close Session Request:', {
+							operation,
+							url,
+							sessionId
+						});
+						
+						result = await this.helpers.httpRequest({
+							method: 'DELETE',
+							url,
+							headers: {
+								'Content-Type': 'application/json',
+								'X-BB-API-Key': apiKey,
+							},
+						});
+						
+						// Add success message
+						result = {
+							...result,
+							operation: 'closeSession',
+							sessionId,
+							status: 'completed',
+							message: `Successfully closed session ${sessionId}`,
+						};
+						
+						console.log('🐛 DEBUG - Close Session Response:', result);
 					}
 
 				} else if (resource === 'browserAction') {
@@ -207,33 +287,33 @@ export class BrowserbaseNode implements INodeType {
 						sessionId = this.getNodeParameter('sessionId', i) as string;
 					}
 
-					// Get session details to retrieve connectUrl
-					console.log('🐛 DEBUG - Getting session details for:', sessionId);
-					const sessionDetails = await getSessionDetails(sessionId, apiKey);
-					const connectUrl = sessionDetails.connectUrl;
-
-					if (!connectUrl) {
+					console.log('🐛 DEBUG - Connecting to browser session:', sessionId);
+					
+					// Get credentials for Stagehand connection
+					const stagecredentials = await this.getCredentials('Browserbase');
+					const projectId = stagecredentials.projectId as string;
+					const openaiApiKey = stagecredentials.openaiApiKey as string;
+					
+					// Validate OpenAI API key for AI operations
+					if (['act', 'observe', 'extract'].includes(operation) && !openaiApiKey) {
 						throw new NodeOperationError(
 							this.getNode(),
-							`Session ${sessionId} does not have a valid connectUrl. The session may be expired or invalid.`,
+							'OpenAI API key is required for AI operations (act, observe, extract). Please add it to your Browserbase credentials.',
 							{ itemIndex: i }
 						);
 					}
-
-					console.log('🐛 DEBUG - Connecting to browser session:', connectUrl);
 					
+					const stagehand = await connectToBrowserbaseSession(sessionId, apiKey, projectId, openaiApiKey);
+
 					if (operation === 'navigate') {
 						const url = this.getNodeParameter('url', i) as string;
 
-						const { browser, page } = await connectToBrowserbaseSession(connectUrl);
-						console.log(browser)
-
 						try {
 							console.log('🐛 DEBUG - Navigating to:', url);
-							await page.goto(url, { waitUntil: 'networkidle' });
+							await stagehand.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 0 });
 
-							const currentUrl = page.url();
-							const title = await page.title();
+							const currentUrl = stagehand.page.url();
+							const title = await stagehand.page.title();
 
 							result = {
 								operation: 'navigate',
@@ -244,124 +324,120 @@ export class BrowserbaseNode implements INodeType {
 								message: `Successfully navigated to ${currentUrl}`,
 							};
 						} finally {
-							// Don't close the browser as other nodes might use the same session
-							// await browser.close();
+							// Don't close the stagehand as other nodes might use the same session
+							// await stagehand.close();
 						}
 
 					} else if (operation === 'screenshot') {
 						const screenshotOptions = this.getNodeParameter('screenshotOptions', i, {}) as any;
 						
-						const { browser, page } = await connectToBrowserbaseSession(connectUrl);
-						console.log(browser)
-						
 						try {
 							console.log('🐛 DEBUG - Taking screenshot with options:', screenshotOptions);
-							
-							const screenshotBuffer = await page.screenshot({
+
+							const screenshotBuffer = await stagehand.page.screenshot({
 								fullPage: screenshotOptions.fullPage || false,
 								type: 'png',
+								timeout: 0,
 							});
-
-							// Convert buffer to base64 for n8n
-							const screenshotBase64 = screenshotBuffer.toString('base64');
 
 							result = {
 								operation: 'screenshot',
 								sessionId,
-								screenshot: `data:image/png;base64,${screenshotBase64}`,
 								options: screenshotOptions,
 								status: 'completed',
 								message: `Screenshot captured successfully`,
+								binary: {
+									screenshot: {
+										data: screenshotBuffer.toString('base64'),
+										mimeType: 'image/png',
+										fileExtension: 'png',
+										fileName: `screenshot_${Date.now()}.png`,
+									},
+								},
 							};
 						} finally {
-							// await browser.close();
+							// await stagehand.close();
 						}
 
-					} else if (operation === 'getContent') {
-						const selector = this.getNodeParameter('selector', i) as string;
-						
-						const { browser, page } = await connectToBrowserbaseSession(connectUrl);
-						console.log(browser)
-						
+					} else if (operation === 'act') {
+						const action = this.getNodeParameter('action', i) as string;
+
 						try {
-							console.log('🐛 DEBUG - Getting content for selector:', selector);
+							console.log('🐛 DEBUG - Performing action:', action);
 							
-							let content: string;
-							
-							if (selector && selector.trim() !== '') {
-								// Get content from specific element
-								const element = await page.locator(selector).first();
-								content = await element.textContent() || '';
-							} else {
-								// Get full page content
-								content = await page.textContent('body') || '';
-							}
+							await stagehand.page.act({ action });
 
 							result = {
-								operation: 'getContent',
+								operation: 'act',
 								sessionId,
-								selector: selector || 'body',
-								content,
+								action,
 								status: 'completed',
-								message: `Content extracted successfully (${content.length} characters)`,
+								message: `Successfully performed action: ${action}`,
 							};
 						} finally {
-							// await browser.close();
+							// await stagehand.close();
 						}
 
-					} else if (operation === 'click') {
-						const selector = this.getNodeParameter('selector', i) as string;
-						
-						const { browser, page } = await connectToBrowserbaseSession(connectUrl);
-						console.log(browser)
+					} else if (operation === 'observe') {
+						const instruction = this.getNodeParameter('instruction', i) as string;
+						const returnActions = this.getNodeParameter('returnActions', i, false) as boolean;
 
 						try {
-							console.log('🐛 DEBUG - Clicking element:', selector);
+							console.log('🐛 DEBUG - Observing page with instruction:', instruction);
 							
-							await page.locator(selector).first().click();
-							
-							// Wait a bit for any page changes
-							await page.waitForTimeout(1000);
+							const observations = await stagehand.page.observe({
+								instruction,
+								returnAction: returnActions,
+							});
 
 							result = {
-								operation: 'click',
+								operation: 'observe',
 								sessionId,
-								selector,
+								instruction,
+								returnActions,
+								observations,
 								status: 'completed',
-								message: `Successfully clicked element: ${selector}`,
+								message: `Successfully observed page with ${observations.length} results`,
 							};
 						} finally {
-							// await browser.close();
+							// await stagehand.close();
 						}
 
-					} else if (operation === 'type') {
-						const selector = this.getNodeParameter('selector', i) as string;
-						const text = this.getNodeParameter('text', i) as string;
-						
-						const { browser, page } = await connectToBrowserbaseSession(connectUrl);
-						console.log(browser)
-						
+					} else if (operation === 'extract') {
+						const instruction = this.getNodeParameter('instruction', i) as string;
+						const schemaJson = this.getNodeParameter('schema', i) as string;
+
 						try {
-							console.log('🐛 DEBUG - Typing text into:', selector);
+							console.log('🐛 DEBUG - Extracting data with instruction:', instruction);
 							
-							await page.locator(selector).first().fill(text);
+							// Parse the JSON schema and convert to Zod schema
+							const parsedSchema = JSON.parse(schemaJson);
+							const zodSchema = BrowserbaseNode.convertJsonSchemaToZod(parsedSchema);
+
+							const extractedData = await stagehand.page.extract({
+								instruction,
+								schema: zodSchema,
+							});
 
 							result = {
-								operation: 'type',
+								operation: 'extract',
 								sessionId,
-								selector,
-								text,
+								instruction,
+								schema: parsedSchema,
+								extractedData,
 								status: 'completed',
-								message: `Successfully typed "${text}" into ${selector}`,
+								message: `Successfully extracted data matching schema`,
 							};
 						} finally {
-							// await browser.close();
+							// await stagehand.close();
 						}
 					}
 				}
 
+				const { binary, ...jsonResult } = result;
 				returnData.push({
-					json: result,
+					json: jsonResult,
+					binary: binary,
 					pairedItem: { item: i },
 				});
 

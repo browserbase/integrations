@@ -32,10 +32,10 @@ export const browserOperations: INodeProperties[] = [
 				action: 'Get session details',
 			},
 			{
-				name: 'Delete Session',
-				value: 'deleteSession',
-				description: 'Delete a browser session',
-				action: 'Delete a browser session',
+				name: 'Close Session',
+				value: 'closeSession',
+				description: 'Close a browser session (automatically uses previous node\'s session)',
+				action: 'Close a browser session',
 			},
 		],
 		default: 'createSession',
@@ -151,7 +151,7 @@ const getSessionOperation: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['browserSession'],
-				operation: ['getSession', 'deleteSession'],
+				operation: ['getSession'],
 			},
 		},
 	},
@@ -171,34 +171,34 @@ export const browserActionOperations: INodeProperties[] = [
 		},
 		options: [
 			{
+				name: 'Act',
+				value: 'act',
+				description: 'Perform an action on the page using natural language (requires OpenAI API key)',
+				action: 'Act on page',
+			},
+			{
+				name: 'Extract',
+				value: 'extract',
+				description: 'Extract structured data from the page (requires OpenAI API key)',
+				action: 'Extract data',
+			},
+			{
 				name: 'Navigate',
 				value: 'navigate',
 				description: 'Navigate to a URL',
-				action: 'Navigate to a URL',
+				action: 'Navigate to URL',
 			},
 			{
-				name: 'Take Screenshot',
+				name: 'Observe',
+				value: 'observe',
+				description: 'Observe the page and get available actions (requires OpenAI API key)',
+				action: 'Observe page',
+			},
+			{
+				name: 'Screenshot',
 				value: 'screenshot',
-				description: 'Take a screenshot',
-				action: 'Take a screenshot',
-			},
-			{
-				name: 'Get Page Content',
-				value: 'getContent',
-				description: 'Get page content',
-				action: 'Get page content',
-			},
-			{
-				name: 'Click Element',
-				value: 'click',
-				description: 'Click on an element',
-				action: 'Click element',
-			},
-			{
-				name: 'Type Text',
-				value: 'type',
-				description: 'Type text into an element',
-				action: 'Type text',
+				description: 'Take a screenshot of the page',
+				action: 'Take screenshot',
 			},
 		],
 		default: 'navigate',
@@ -261,34 +261,6 @@ const browserActionFields: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Selector',
-		name: 'selector',
-		type: 'string',
-		default: '',
-		placeholder: '.my-element, #button, input[name="username"]',
-		description: 'CSS selector for the element',
-		displayOptions: {
-			show: {
-				resource: ['browserAction'],
-				operation: ['click', 'type', 'getContent'],
-			},
-		},
-	},
-	{
-		displayName: 'Text',
-		name: 'text',
-		type: 'string',
-		required: true,
-		default: '',
-		description: 'The text to type',
-		displayOptions: {
-			show: {
-				resource: ['browserAction'],
-				operation: ['type'],
-			},
-		},
-	},
-	{
 		displayName: 'Screenshot Options',
 		name: 'screenshotOptions',
 		type: 'collection',
@@ -314,9 +286,92 @@ const browserActionFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				placeholder: '.screenshot-area',
-				description: 'CSS selector for element to screenshot',
+				description: 'CSS selector for element to screenshot (optional)',
 			},
 		],
+	},
+	{
+		displayName: 'Action',
+		name: 'action',
+		type: 'string',
+		required: true,
+		default: '',
+		placeholder: 'Click the login button',
+		typeOptions: {
+			rows: 3,
+		},
+		displayOptions: {
+			show: {
+				resource: ['browserAction'],
+				operation: ['act'],
+			},
+		},
+	},
+	{
+		displayName: 'Instruction',
+		name: 'instruction',
+		type: 'string',
+		required: true,
+		default: '',
+		placeholder: 'Find all clickable buttons on the page',
+		description: 'Instruction for what to observe on the page',
+		typeOptions: {
+			rows: 3,
+		},
+		displayOptions: {
+			show: {
+				resource: ['browserAction'],
+				operation: ['observe'],
+			},
+		},
+	},
+	{
+		displayName: 'Return Actions',
+		name: 'returnActions',
+		type: 'boolean',
+		default: false,
+		description: 'Whether to return actionable elements that can be used with the act operation',
+		displayOptions: {
+			show: {
+				resource: ['browserAction'],
+				operation: ['observe'],
+			},
+		},
+	},
+	{
+		displayName: 'Instruction',
+		name: 'instruction',
+		type: 'string',
+		required: true,
+		default: '',
+		placeholder: 'Extract all product information from this page',
+		description: 'Instruction for what data to extract from the page',
+		typeOptions: {
+			rows: 3,
+		},
+		displayOptions: {
+			show: {
+				resource: ['browserAction'],
+				operation: ['extract'],
+			},
+		},
+	},
+	{
+		displayName: 'Schema (JSON)',
+		name: 'schema',
+		type: 'json',
+		required: true,
+		default: '{\n  "type": "object",\n  "properties": {\n    "title": {\n      "type": "string",\n      "description": "Page title"\n    }\n  },\n  "required": ["title"]\n}',
+		description: 'JSON Schema defining the structure of data to extract. Use Zod-compatible schema format.',
+		typeOptions: {
+			rows: 10,
+		},
+		displayOptions: {
+			show: {
+				resource: ['browserAction'],
+				operation: ['extract'],
+			},
+		},
 	},
 ];
 
