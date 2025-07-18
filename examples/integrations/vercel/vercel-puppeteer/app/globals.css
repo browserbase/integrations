@@ -68,7 +68,8 @@ body {
 }
 
 /* Re-enable text selection for specific elements that need it */
-input, textarea {
+input,
+textarea {
   -webkit-user-select: text;
   user-select: text;
 }

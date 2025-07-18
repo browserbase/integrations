@@ -33,7 +33,7 @@ export const summarizeHackerNews = schedules.task({
       const items = document.querySelectorAll(".athing");
       return Array.from(items)
         .slice(0, 3)
-        .map((item) => {
+        .map(item => {
           const titleElement = item.querySelector(".titleline > a");
           const link = titleElement?.getAttribute("href");
           const title = titleElement?.textContent;
@@ -48,14 +48,12 @@ export const summarizeHackerNews = schedules.task({
     // Use batchTriggerAndWait to process articles
     const summaries = await scrapeAndSummarizeArticle
       .batchTriggerAndWait(
-        articles.map((article) => ({
+        articles.map(article => ({
           payload: { title: article.title!, link: article.link! },
           idempotencyKey: article.link,
         }))
       )
-      .then((batch) =>
-        batch.runs.filter((run) => run.ok).map((run) => run.output)
-      );
+      .then(batch => batch.runs.filter(run => run.ok).map(run => run.output));
 
     // Send email using Resend
     await resend.emails.send({
@@ -89,7 +87,7 @@ export const scrapeAndSummarizeArticle = task({
 
     // Prevent all assets from loading, images, stylesheets etc
     await page.setRequestInterception(true);
-    page.on("request", (request) => {
+    page.on("request", request => {
       if (
         ["script", "stylesheet", "image", "media", "font"].includes(
           request.resourceType()

@@ -20,12 +20,14 @@ A web scraping project that uses Stagehand to extract structured data from e-com
 ## Installation
 
 1. Clone the repository:
+
    ```
    git clone <repository-url>
    cd stagehand-mongodb-scraper
    ```
 
 2. Install dependencies:
+
    ```
    npm install
    ```
@@ -40,11 +42,13 @@ A web scraping project that uses Stagehand to extract structured data from e-com
 ## Usage
 
 1. Start MongoDB locally:
+
    ```
    mongod
    ```
 
 2. Run the scraper:
+
    ```
    npm start
    ```

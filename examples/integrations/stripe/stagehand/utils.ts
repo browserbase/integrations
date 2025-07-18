@@ -44,13 +44,13 @@ export function validateZodSchema(schema: z.ZodTypeAny, data: unknown) {
 
 export async function drawObserveOverlay(page: Page, results: ObserveResult[]) {
   // Convert single xpath to array for consistent handling
-  const xpathList = results.map((result) => result.selector);
+  const xpathList = results.map(result => result.selector);
 
   // Filter out empty xpaths
-  const validXpaths = xpathList.filter((xpath) => xpath !== "xpath=");
+  const validXpaths = xpathList.filter(xpath => xpath !== "xpath=");
 
-  await page.evaluate((selectors) => {
-    selectors.forEach((selector) => {
+  await page.evaluate(selectors => {
+    selectors.forEach(selector => {
       let element;
       if (selector.startsWith("xpath=")) {
         const xpath = selector.substring(6);
@@ -87,7 +87,7 @@ export async function clearOverlays(page: Page) {
   // remove existing stagehandObserve attributes
   await page.evaluate(() => {
     const elements = document.querySelectorAll('[stagehandObserve="true"]');
-    elements.forEach((el) => {
+    elements.forEach(el => {
       const parent = el.parentNode;
       while (el.firstChild) {
         parent?.insertBefore(el.firstChild, el);

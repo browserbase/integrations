@@ -13,9 +13,11 @@ Trigger.dev is a background job framework that enables you to create, run, and m
 ## Task Examples
 
 ### 1. PDF to Image Conversion (`pdf-to-image.tsx`)
+
 Converts PDF documents to PNG images using MuPDF and uploads them to Cloudflare R2 storage.
 
 **Features:**
+
 - Downloads PDF from URL
 - Converts each page to PNG using `mutool`
 - Uploads images to R2 bucket
@@ -25,31 +27,40 @@ Converts PDF documents to PNG images using MuPDF and uploads them to Cloudflare 
 ### 2. Puppeteer Web Scraping (`puppeteer-*.tsx`)
 
 #### Basic Page Title Extraction
+
 Simple example that launches Puppeteer, navigates to Google, and logs the page title.
 
 #### Scraping with Browserbase Proxy
+
 Uses Browserbase's cloud browser infrastructure to scrape data through a proxy:
+
 - Connects to Browserbase WebSocket endpoint
 - Scrapes GitHub star count from trigger.dev website
 - Handles errors gracefully
 
 #### Webpage to PDF Generation
+
 Converts web pages to PDF documents:
+
 - Navigates to target URL
 - Generates PDF from webpage
 - Uploads PDF to cloud storage
 
 ### 3. React PDF Generation (`react-pdf.tsx`)
+
 Creates PDF documents using React components and @react-pdf/renderer:
+
 - Accepts text payload
 - Renders PDF using React components
 - Uploads generated PDF to cloud storage
 - Returns PDF URL
 
 ### 4. Hacker News Summarization (`summarize-hn.tsx`)
+
 Scheduled task that runs weekdays at 9 AM (London time):
 
 **Workflow:**
+
 1. **Scrapes Hacker News** - Gets top 3 articles
 2. **Batch Processing** - Triggers child tasks for each article
 3. **Content Extraction** - Scrapes full article content
@@ -57,6 +68,7 @@ Scheduled task that runs weekdays at 9 AM (London time):
 5. **Email Delivery** - Sends formatted email with summaries
 
 **Features:**
+
 - Scheduled execution with cron syntax
 - Batch task processing with `batchTriggerAndWait`
 - Retry logic with exponential backoff
@@ -64,7 +76,9 @@ Scheduled task that runs weekdays at 9 AM (London time):
 - Email templates using React Email
 
 ### 5. Task Hierarchy (`taskHierarchy.ts`)
+
 Demonstrates complex task workflows with parent-child relationships:
+
 - **Root Task** → **Child Task** → **Grandchild Task** → **Great-grandchild Task**
 - Shows both synchronous (`triggerAndWait`) and asynchronous (`trigger`) patterns
 - Batch processing capabilities
@@ -73,8 +87,8 @@ Demonstrates complex task workflows with parent-child relationships:
 ## Configuration
 
 ### Trigger.dev Config (`trigger.config.ts`)
-```typescript
 
+```typescript
 export default defineConfig({
   project: "proj_ljbidlufugyxuhjxzkyy", // your Trigger Project ID
   logLevel: "log",
@@ -89,15 +103,13 @@ export default defineConfig({
     },
   },
   build: {
-    extensions: [
-      aptGet({ packages: ["mupdf-tools", "curl"] }),
-      puppeteer(),
-    ],
+    extensions: [aptGet({ packages: ["mupdf-tools", "curl"] }), puppeteer()],
   },
 });
 ```
 
 **Key Features:**
+
 - **System Dependencies**: Installs MuPDF tools and curl via `aptGet` extension
 - **Puppeteer Extension**: Automatically sets up Puppeteer with Chrome
 - **Retry Configuration**: Global retry settings with exponential backoff
@@ -149,19 +161,22 @@ RESEND_API_KEY=your-resend-api-key
 ## Getting Started
 
 1. **Install dependencies:**
+
 ```bash
 npm install
 ```
 
 2. **Set up environment variables:**
-Copy the environment variables above into a `.env.local` file and fill in your actual values.
+   Copy the environment variables above into a `.env.local` file and fill in your actual values.
 
 3. **Start development server:**
+
 ```bash
 npm run dev
 ```
 
 4. **Deploy to Trigger.dev:**
+
 ```bash
 npx trigger.dev@latest deploy
 ```
@@ -169,6 +184,7 @@ npx trigger.dev@latest deploy
 ## Machine Presets
 
 Tasks can specify machine requirements:
+
 ```typescript
 export const puppeteerBasicTask = task({
   id: "puppeteer-log-title",
@@ -184,6 +200,7 @@ Available presets provide different CPU/memory configurations for resource-inten
 ## Error Handling & Retries
 
 All tasks include comprehensive error handling:
+
 - **Automatic retries** with exponential backoff
 - **Resource cleanup** (browser instances, temporary files)
 - **Detailed logging** for debugging
@@ -192,6 +209,7 @@ All tasks include comprehensive error handling:
 ## Integration Services
 
 This example integrates with several external services:
+
 - **Browserbase**: Cloud browser infrastructure for web scraping
 - **Cloudflare R2**: Object storage for files
 - **OpenAI**: AI-powered content summarization
@@ -201,6 +219,7 @@ This example integrates with several external services:
 ## Use Cases
 
 Perfect for:
+
 - **Document processing workflows**
 - **Web scraping and data extraction**
 - **Automated content generation**

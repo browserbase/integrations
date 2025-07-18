@@ -21,18 +21,20 @@ This project enables AI agents to interact with web pages through the Mastra fra
 
 - Node.js (v18+)
 - npm or yarn
-- Browserbase account 
+- Browserbase account
 - OpenAI API access
 
 ### Setup
 
 1. Clone the repository:
+
    ```
    git clone https://github.com/browserbase/Stagehand-Mastra-App.git
    cd Stagehand-Mastra-App
    ```
 
 2. Install dependencies:
+
    ```
    npm install
    ```
@@ -59,11 +61,13 @@ This will start the Mastra development server, giving you access to the integrat
 ### Core Components
 
 1. **Stagehand Session Manager**
+
    - Handles browser session initialization and management
    - Implements automatic session timeouts
    - Provides error recovery and reconnection logic
 
 2. **Mastra Tools**
+
    - `stagehandActTool`: Performs actions on web pages
    - `stagehandObserveTool`: Identifies elements on web pages
    - `stagehandExtractTool`: Extracts data from web pages
@@ -86,6 +90,7 @@ The project can be configured through the `.env` file and by modifying the agent
 ## Credits
 
 This project is built with:
+
 - [Mastra](https://mastra.ai) - AI Agent framework
 - [Stagehand by Browserbase](https:/stagehand.dev) - Browser automation
 - [OpenAI](https://openai.com/) - AI models

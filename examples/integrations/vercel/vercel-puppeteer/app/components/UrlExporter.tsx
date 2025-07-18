@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ExportedContent from "./ExportedContent";
 import FormatToggle from "./FormatToggle";
-import ExistingUrl from './ExistingUrl';
+import ExistingUrl from "./ExistingUrl";
 
 export type ExportFormat = "html" | "screenshot";
 
@@ -23,9 +23,12 @@ const UrlExporter = () => {
     setExportedContent("");
 
     try {
-      const response = await fetch(`/api/${format}?url=${encodeURIComponent(url)}`, {
-        method: "GET",
-      });
+      const response = await fetch(
+        `/api/${format}?url=${encodeURIComponent(url)}`,
+        {
+          method: "GET",
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -61,7 +64,7 @@ const UrlExporter = () => {
           <input
             type="url"
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={e => setUrl(e.target.value)}
             placeholder="Enter URL to export"
             className="w-full px-4 py-2 border border-black/[.08] bg-transparent focus:outline-none focus:ring-2 focus:ring-foreground/20 h-10"
           />

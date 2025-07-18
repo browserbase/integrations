@@ -76,7 +76,7 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
         dpr,
       };
     },
-    [squareSize, gridGap, width, height, maxOpacity],
+    [squareSize, gridGap, width, height, maxOpacity]
   );
 
   const updateSquares = useCallback(
@@ -87,7 +87,7 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
         }
       }
     },
-    [flickerChance, maxOpacity],
+    [flickerChance, maxOpacity]
   );
 
   const drawGrid = useCallback(
@@ -98,7 +98,7 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
       cols: number,
       rows: number,
       squares: Float32Array,
-      dpr: number,
+      dpr: number
     ) => {
       ctx.clearRect(0, 0, width, height);
 
@@ -110,12 +110,12 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
             i * (squareSize + gridGap) * dpr,
             j * (squareSize + gridGap) * dpr,
             squareSize * dpr,
-            squareSize * dpr,
+            squareSize * dpr
           );
         }
       }
     },
-    [memoizedColor, squareSize, gridGap],
+    [memoizedColor, squareSize, gridGap]
   );
 
   useEffect(() => {
@@ -148,7 +148,7 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
       ([entry]) => {
         setIsInView(entry.isIntersecting);
       },
-      { threshold: 0 },
+      { threshold: 0 }
     );
 
     observer.observe(canvas);
@@ -171,8 +171,8 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
       ref={canvasRef}
       className={`pointer-events-none ${className}`}
       style={{
-        width: width ? `${width}px` : '100%',
-        height: height ? `${height}px` : '100%',
+        width: width ? `${width}px` : "100%",
+        height: height ? `${height}px` : "100%",
       }}
     />
   );

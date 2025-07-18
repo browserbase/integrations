@@ -33,7 +33,7 @@ export async function GET() {
 
     // Clean up
     fs.unlinkSync(pdfPath);
-    images.forEach((img) => fs.unlinkSync(path.join(outputDir, img)));
+    images.forEach(img => fs.unlinkSync(path.join(outputDir, img)));
     fs.rmdirSync(outputDir);
 
     return NextResponse.json({

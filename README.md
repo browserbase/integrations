@@ -10,7 +10,7 @@ Browserbase is headless browser infrastructure designed specifically for AI agen
 
 - **Browser sessions** that scale automatically
 - **Anti-detection capabilities** to bypass bot protection
-- **Visual debugging** with session recordings and screenshots  
+- **Visual debugging** with session recordings and screenshots
 - **Global infrastructure** for low-latency access worldwide
 - **Stealth technology** to ensure reliable web interaction
 
@@ -21,56 +21,68 @@ Our integrations are organized by platform and use case, each with comprehensive
 ### 🤖 AI Agent Frameworks
 
 #### [**CrewAI Integration**](./examples/integrations/crewai/README.md)
+
 Enable your CrewAI agents to browse the web like humans with the `BrowserbaseLoadTool`. Perfect for creating intelligent agent crews that need to gather real-time web data, extract content from complex pages, and interact with modern web applications.
 
 **Key Features:**
+
 - Extract text from JavaScript-heavy websites
-- Capture screenshots and visual content  
+- Capture screenshots and visual content
 - Bypass anti-bot mechanisms
 - Seamless integration with CrewAI's tool ecosystem
 
 #### [**AgentKit Integration**](./examples/integrations/agentkit/)
+
 Powerful integrations for AgentKit workflows with both Browserbase and Stagehand implementations:
 
 - **[Browserbase Implementation](./examples/integrations/agentkit/browserbase/README.md)** - Direct Browserbase integration for AgentKit
 - **[Stagehand Implementation](./examples/integrations/agentkit/stagehand/README.md)** - AI-powered web automation using Stagehand
 
 #### [**Agno Integration**](./examples/integrations/agno/README.md)
+
 **Intelligent Web Scraping with AI Agents** - Natural language web scraping using Agno's AI agents powered by Browserbase's cloud browser infrastructure. Perfect for complex data extraction, market research, and automated content monitoring.
 
 **Key Features:**
+
 - Natural language scraping instructions
 - AI agents that adapt to page changes
 - Visual analysis and screenshot capabilities
 - Structured data extraction (JSON, CSV)
 - Automatic error recovery and retries
 
-#### [**LangChain Integration**](./examples/integrations/langchain/README.md)  
+#### [**LangChain Integration**](./examples/integrations/langchain/README.md)
+
 Integrate Browserbase with LangChain's ecosystem for advanced AI applications. Build chains that can browse, extract, and interact with web content as part of larger AI workflows.
 
 #### [**Mastra Integration**](./examples/integrations/mastra/README.md)
+
 Powerful web automation combining Browserbase's Stagehand with Mastra's AI agent framework. Enable your Mastra agents to navigate websites, extract data, and perform complex web interactions through natural language commands.
 
 **Key Features:**
+
 - AI-powered web navigation and interaction
-- Smart element observation and data extraction  
+- Smart element observation and data extraction
 - Session management with automatic timeouts
 - Natural language interface to web automation
 - Integration with OpenAI models for intelligent decision-making
 
 #### [**Browser-Use Integration**](./examples/integrations/browser-use/README.md)
+
 Streamlined browser automation for AI applications with a focus on simplicity and reliability.
 
 #### [**Portia AI Integration**](./examples/integrations/portia/README.md)
+
 Build intelligent web agents with **persistent authentication** using Portia AI's multi-agent framework. Portia enables both multi-agent task planning with human feedback and stateful multi-agent task execution with human control.
 
 **Key Features:**
+
 - **Persistent Authentication** - Agents can authenticate once and reuse sessions
 - **Human-in-the-Loop** - Structured clarification system for authentication requests
 - **Multi-User Support** - Isolated browser sessions per end user
 - **Production-Ready** - Open-source framework designed for reliable agent deployment
 
 **Perfect for:**
+
 - LinkedIn automation with user authentication
 - E-commerce agents that need to log into shopping sites
 - Data extraction from authenticated dashboards
@@ -79,16 +91,20 @@ Build intelligent web agents with **persistent authentication** using Portia AI'
 ### 🏗️ Development & Deployment Platforms
 
 #### [**Vercel AI Integration**](./examples/integrations/vercel/README.md)
+
 Enhance your Vercel applications with web-browsing capabilities. Build Generative User Interfaces that can access real-time web data and create dynamic, AI-powered experiences.
 
 **Examples Include:**
+
 - **BrowseGPT** - A chat interface with real-time web search capabilities
 - **Vercel + Puppeteer** - Server-side browser automation on Fluid Compute
 
 #### [**Trigger.dev Integration**](./examples/integrations/trigger/README.md)
+
 **Background Jobs & Web Automation** - Build robust background task workflows with Trigger.dev's job orchestration platform. Combine Browserbase's web automation capabilities with scheduled tasks, retry logic, and complex multi-step workflows.
 
 **Key Features:**
+
 - **Scheduled Web Scraping** - Automated data collection with cron-based scheduling
 - **PDF Processing Pipelines** - Convert documents and upload to cloud storage
 - **AI-Powered Content Workflows** - Scrape, summarize, and distribute content via email
@@ -96,17 +112,20 @@ Enhance your Vercel applications with web-browsing capabilities. Build Generativ
 - **Production-Grade Reliability** - Built-in retries, error handling, and observability
 
 **Perfect for:**
+
 - Automated market research and competitive analysis
-- Document processing and content generation workflows  
+- Document processing and content generation workflows
 - Scheduled reporting and email automation
 - Complex web automation pipelines that require orchestration
 
 ### 💳 E-commerce & Payments
 
 #### [**Stripe Integration**](./examples/integrations/stripe/README.md)
+
 **Agentic Credit Card Automation** - Create virtual cards with Stripe Issuing and automate online purchases with Browserbase. Perfect for programmatic commerce, testing payment flows, and building AI shopping agents.
 
 **Capabilities:**
+
 - Create virtual cards with spending controls
 - Automate secure online purchases
 - Available in Node.js, Python, and Stagehand implementations
@@ -115,12 +134,15 @@ Enhance your Vercel applications with web-browsing capabilities. Build Generativ
 ### 📊 Evaluation & Testing
 
 #### [**Braintrust Integration**](./examples/integrations/braintrust/README.md)
+
 Integrate Browserbase with Braintrust for evaluation and testing of AI agent performance in web environments. Monitor, measure, and improve your browser automation workflows.
 
 #### [**MongoDB Integration**](./examples/integrations/mongodb/README.md)
+
 **Intelligent Web Scraping & Data Storage** - Extract structured data from e-commerce websites using Stagehand and store it in MongoDB for analysis. Perfect for building data pipelines, market research, and competitive analysis workflows.
 
 **Capabilities:**
+
 - AI-powered web scraping with Stagehand
 - Structured data extraction with schema validation
 - MongoDB storage for persistence and querying
@@ -136,7 +158,7 @@ integrations/
 │   └── community/               # WIP
 │   └── integrations/
 │       ├── crewai/              # CrewAI framework integration
-│       ├── vercel/              # Vercel AI SDK integration  
+│       ├── vercel/              # Vercel AI SDK integration
 │       ├── trigger/             # Trigger.dev background jobs & automation
 │       ├── stripe/              # Stripe Issuing + automation
 │       ├── langchain/           # LangChain framework integration
@@ -158,8 +180,9 @@ integrations/
 4. **Review the code samples** to understand implementation patterns
 
 Each integration includes:
+
 - ✅ Complete setup instructions
-- ✅ Environment configuration guides  
+- ✅ Environment configuration guides
 - ✅ Working code examples
 - ✅ Best practices and tips
 - ✅ Troubleshooting guides
@@ -167,6 +190,7 @@ Each integration includes:
 ## 🔧 Prerequisites
 
 Most integrations require:
+
 - A [Browserbase account](https://browserbase.com) and API key
 - Node.js 18+ or Python 3.8+ (depending on implementation)
 - Framework-specific dependencies (detailed in each integration)
@@ -180,11 +204,14 @@ For comprehensive documentation, tutorials, and API references, visit:
 ## 🤝 Community & Support
 
 ### Get Help
+
 - **📧 Email Support**: [support@browserbase.com](mailto:support@browserbase.com)
 - **📚 Documentation**: [docs.browserbase.com](https://docs.browserbase.com)
 
 ### Contributing
+
 We welcome contributions! Each integration has its own contribution guidelines. Feel free to:
+
 - Report bugs and request features
 - Submit pull requests with improvements
 - Share your own integration examples

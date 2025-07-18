@@ -28,7 +28,7 @@ This tool integrates the Stagehand Python SDK with CrewAI, allowing agents to in
 The StagehandTool wraps the Stagehand Python SDK to provide CrewAI agents with the ability to control a real web browser and interact with websites using three core primitives:
 
 - **Act**: Perform actions like clicking, typing, or navigating
-- **Extract**: Extract structured data from web pages  
+- **Extract**: Extract structured data from web pages
 - **Observe**: Identify and analyze elements on the page
 
 ### Requirements

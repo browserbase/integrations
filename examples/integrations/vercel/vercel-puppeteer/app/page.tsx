@@ -1,4 +1,4 @@
-import UrlExporter from './components/UrlExporter';
+import UrlExporter from "./components/UrlExporter";
 
 export default function Home() {
   return (
@@ -11,7 +11,7 @@ export default function Home() {
           </main>
         </div>
       </div>
-      
+
       <footer className="text-center text-sm text-foreground/60 pb-8">
         Choose a URL and export format to get started
       </footer>

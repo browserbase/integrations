@@ -30,13 +30,7 @@
   },
   "include": [
     "examples/integrations/src/**/*",
-    "examples/integrations/tests/**/*",
+    "examples/integrations/tests/**/*"
   ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    "out",
-    "coverage"
-  ]
-} 
+  "exclude": ["node_modules", "dist", "build", "out", "coverage"]
+}

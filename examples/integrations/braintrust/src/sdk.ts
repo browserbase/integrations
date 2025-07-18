@@ -5,8 +5,8 @@ import Browserbase from "@browserbasehq/sdk";
 import { chromium } from "playwright-core";
 import { z } from "zod";
 
-const BROWSERBASE_API_KEY = process.env.BROWSERBASE_API_KEY!;
-const BROWSERBASE_PROJECT_ID = process.env.BROWSERBASE_PROJECT_ID!;
+const BROWSERBASE_API_KEY = process.env.BROWSERBASE_API_KEY;
+const BROWSERBASE_PROJECT_ID = process.env.BROWSERBASE_PROJECT_ID;
 
 async function load({ url }: { url: string }): Promise<{
   page: string;
@@ -15,7 +15,7 @@ async function load({ url }: { url: string }): Promise<{
     apiKey: BROWSERBASE_API_KEY,
   });
   const session = await bb.sessions.create({
-    projectId: BROWSERBASE_PROJECT_ID,
+    projectId: BROWSERBASE_PROJECT_ID || "",
   });
   const browser = await chromium.connectOverCDP(session.connectUrl);
   const context = browser.contexts()[0];

@@ -9,7 +9,7 @@ Langchain is a Python framework to build applications on top of large-language m
 Building on top of LLMs comes with many challenges:
 
 - Gathering and preparing the data (context) and providing memory to models
-- Orchestrating tasks to match LLM API requirements (ex, rate limiting, chunking) 
+- Orchestrating tasks to match LLM API requirements (ex, rate limiting, chunking)
 - Parse the different LLM result format
 
 Langchain comes with a set of high-level concepts and tools to cope with those challenges:

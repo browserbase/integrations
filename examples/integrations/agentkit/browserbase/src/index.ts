@@ -1,4 +1,3 @@
-/* eslint-disable */
 import "dotenv/config";
 import {
   anthropic,
@@ -45,7 +44,7 @@ const searchReddit = createTool({
         // Extract search results
         const results = await page.evaluate(() => {
           const posts = document.querySelectorAll("div.results div:has(h1)");
-          return Array.from(posts).map((post) => ({
+          return Array.from(posts).map(post => ({
             title: post.querySelector("h1")?.textContent?.trim(),
             content: post.querySelector("div")?.textContent?.trim(),
           }));

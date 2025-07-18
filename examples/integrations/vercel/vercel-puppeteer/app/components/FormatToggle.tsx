@@ -10,7 +10,7 @@ const FormatToggle: React.FC<FormatToggleProps> = ({ value, onChange }) => {
 
   return (
     <div className="flex w-full sm:w-auto border border-black/[.08] h-10">
-      {formats.map((format) => (
+      {formats.map(format => (
         <button
           key={format}
           onClick={() => onChange(format)}

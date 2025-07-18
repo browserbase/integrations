@@ -18,6 +18,7 @@ For more details on this integration and how to work with Langchain, see the off
 ## Remote Browsers (Browserbase)
 
 Instead of `env: "LOCAL"`, specify `env: "BROWSERBASE"` and pass in your Browserbase credentials through environment variables:
+
 - `BROWSERBASE_API_KEY`
 - `BROWSERBASE_PROJECT_ID`
 

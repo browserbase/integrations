@@ -9,16 +9,16 @@ export interface MagicCardProps extends React.HTMLAttributes<HTMLDivElement> {
   gradientSize?: number;
   gradientColor?: string;
   gradientOpacity?: number;
-  onClick?: () => void;  
+  onClick?: () => void;
 }
 
 export function MagicCard({
   children,
   className,
   gradientSize = 200,
-  gradientColor = "#ff0000", 
-  gradientOpacity = 1, 
-  onClick,  
+  gradientColor = "#ff0000",
+  gradientOpacity = 1,
+  onClick,
 }: MagicCardProps) {
   const mouseX = useMotionValue(-gradientSize);
   const mouseY = useMotionValue(-gradientSize);
@@ -29,7 +29,7 @@ export function MagicCard({
       mouseX.set(e.clientX - left);
       mouseY.set(e.clientY - top);
     },
-    [mouseX, mouseY],
+    [mouseX, mouseY]
   );
 
   const handleMouseLeave = useCallback(() => {
@@ -49,7 +49,7 @@ export function MagicCard({
       onClick={onClick} // Add this line
       className={cn(
         "group relative flex size-full overflow-hidden bg-white dark:bg-white border-2 border-[#E5E7EB] text-black",
-        className,
+        className
       )}
     >
       <div className="relative z-10">{children}</div>

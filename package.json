@@ -20,7 +20,9 @@
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
     "clean": "pnpm -r clean",
-    "publish:packages": "pnpm -r publish"
+    "publish:packages": "pnpm -r publish",
+    "prepare": "husky",
+    "pre-commit": "lint-staged"
   },
   "keywords": [
     "browserbase",
@@ -39,9 +41,20 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "globals": "^15.11.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.12.2",
     "vitest": "^2.1.4"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }

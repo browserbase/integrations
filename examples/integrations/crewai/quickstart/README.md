@@ -1,3 +1,3 @@
 # Quickstart
 
-Get started quickly using the BrowserbaseLoadTool from CrewAI 
+Get started quickly using the BrowserbaseLoadTool from CrewAI

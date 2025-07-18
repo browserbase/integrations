@@ -6,7 +6,7 @@ import { Stagehand, ObserveResult, LogLine } from "@browserbasehq/stagehand";
 export async function GET() {
   try {
     const url = "https://file.1040.com/estimate/";
-    
+
     if (!url) {
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
     }
@@ -34,7 +34,7 @@ export async function GET() {
     await stagehand.init();
 
     // Block manifest worker to prevent PWA installation popup if needed
-    await stagehand.page.route("**/manifest.json", (route) => route.abort());
+    await stagehand.page.route("**/manifest.json", route => route.abort());
 
     // Go to the provided URL and wait for it to load
     await stagehand.page.goto(url, {
@@ -67,7 +67,7 @@ export async function GET() {
       };
 
       for (const [key, terms] of Object.entries(keywords)) {
-        if (terms.some((term) => description.toLowerCase().includes(term))) {
+        if (terms.some(term => description.toLowerCase().includes(term))) {
           return key;
         }
       }
@@ -114,7 +114,7 @@ export async function GET() {
     // Return the url and the fields that were filled
     return NextResponse.json({
       url: url,
-      fields: updatedFields.map((field) => ({
+      fields: updatedFields.map(field => ({
         name: field.description,
         value: field.arguments?.[0] || null,
       })),

@@ -9,7 +9,7 @@ Braintrust is a platform for building AI applications, making it more efficient 
 ### Key Features
 
 - Prototyping with different prompts and LLMs in a sandboxed environment
-- Real-time monitoring and performance insights  
+- Real-time monitoring and performance insights
 - Data management through intuitive UI
 
 ## Tool Calling Support

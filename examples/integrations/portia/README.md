@@ -17,7 +17,7 @@ Portia incorporates the concept of end users with the [`EndUser`](https://docs.p
 Here are some examples of the kinds of queries that can be handled in 20 lines of code with the Portia / Browserbase integration:
 
 - Send a message to Bob Smith on LinkedIn asking him if he's free on Tuesday for a meeting
-- Get my Google Doc shopping list and add all items in it to my shopping trolley on the Walmart website  
+- Get my Google Doc shopping list and add all items in it to my shopping trolley on the Walmart website
 - Book me unto the 8am hot yoga class
 - Star a GitHub repository after authenticating
 - Extract data from authenticated dashboards

@@ -1,12 +1,16 @@
-import { openai } from '@ai-sdk/openai';
-import { Agent } from '@mastra/core/agent';
-import { stagehandActTool, stagehandObserveTool, stagehandExtractTool } from '../tools';
-import { Memory } from '@mastra/memory';
+import { openai } from "@ai-sdk/openai";
+import { Agent } from "@mastra/core/agent";
+import {
+  stagehandActTool,
+  stagehandObserveTool,
+  stagehandExtractTool,
+} from "../tools";
+import { Memory } from "@mastra/memory";
 
 const memory = new Memory();
 
 export const webAgent = new Agent({
-  name: 'Web Assistant',
+  name: "Web Assistant",
   instructions: `
       You are a helpful web assistant that can navigate websites and extract information.
 
@@ -25,7 +29,7 @@ export const webAgent = new Agent({
       Use the stagehandObserveTool to find elements on webpages.
       Use the stagehandExtractTool to extract data from webpages.
 `,
-  model: openai('gpt-4o'),
+  model: openai("gpt-4o"),
   tools: { stagehandActTool, stagehandObserveTool, stagehandExtractTool },
-  memory: memory
+  memory: memory,
 });

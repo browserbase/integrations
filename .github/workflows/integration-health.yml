@@ -1,0 +1,132 @@
+name: Integration Health Check
+
+on:
+  schedule:
+    # Run every week on Wednesday at 10:00 AM UTC
+    - cron: "0 10 * * 3"
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  check-integration-health:
+    name: Check Integration Health
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for outdated Node.js dependencies
+        run: |
+          echo "## Node.js Dependencies Health Check" >> health-report.md
+          echo "" >> health-report.md
+
+          # Find all package.json files (excluding node_modules)
+          find examples -name "package.json" -not -path "*/node_modules/*" | while read -r pkg; do
+            echo "### $(dirname "$pkg")" >> health-report.md
+            echo "" >> health-report.md
+            cd "$(dirname "$pkg")" || continue
+            
+            # Check for outdated dependencies
+            if pnpm outdated --format json > outdated.json 2>/dev/null && [ -s outdated.json ]; then
+              echo "⚠️ **Outdated dependencies found:**" >> ../../health-report.md
+              echo "\`\`\`json" >> ../../health-report.md
+              cat outdated.json >> ../../health-report.md
+              echo "\`\`\`" >> ../../health-report.md
+            else
+              echo "✅ All dependencies are up to date" >> ../../health-report.md
+            fi
+            echo "" >> ../../health-report.md
+            
+            rm -f outdated.json
+            cd - > /dev/null
+          done
+
+      - name: Check for outdated Python dependencies
+        run: |
+          echo "## Python Dependencies Health Check" >> health-report.md
+          echo "" >> health-report.md
+
+          # Find all requirements.txt files
+          find examples -name "requirements.txt" | while read -r req; do
+            echo "### $(dirname "$req")" >> health-report.md
+            echo "" >> health-report.md
+            
+            # Install pip-outdated for checking
+            pip install pip-outdated > /dev/null 2>&1 || true
+            
+            cd "$(dirname "$req")" || continue
+            
+            # Check for outdated Python packages
+            if pip-outdated requirements.txt > outdated.txt 2>/dev/null && [ -s outdated.txt ]; then
+              echo "⚠️ **Outdated Python packages found:**" >> ../../health-report.md
+              echo "\`\`\`" >> ../../health-report.md
+              cat outdated.txt >> ../../health-report.md
+              echo "\`\`\`" >> ../../health-report.md
+            else
+              echo "✅ All Python packages are up to date" >> ../../health-report.md
+            fi
+            echo "" >> ../../health-report.md
+            
+            rm -f outdated.txt
+            cd - > /dev/null
+          done
+
+      - name: Check integration documentation freshness
+        run: |
+          echo "## Documentation Health Check" >> health-report.md
+          echo "" >> health-report.md
+
+          # Check for README files that haven't been updated in 90 days
+          find examples -name "README.md" | while read -r readme; do
+            if [ -f "$readme" ]; then
+              # Get last modified date
+              last_modified=$(stat -c %Y "$readme" 2>/dev/null || stat -f %m "$readme" 2>/dev/null || echo "0")
+              current_time=$(date +%s)
+              days_old=$(( (current_time - last_modified) / 86400 ))
+              
+              if [ $days_old -gt 90 ]; then
+                echo "⚠️ **$(dirname "$readme")/README.md** - Last updated $days_old days ago" >> health-report.md
+              fi
+            fi
+          done
+
+      - name: Create Issue with Health Report
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "Integration Health Report - $(date +%Y-%m-%d)"
+          content-filepath: health-report.md
+          labels: |
+            maintenance
+            dependencies
+            integrations

@@ -11,7 +11,7 @@ async function createSession() {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      projectId: process.env.BROWSERBASE_PROJECT_ID!,
+      projectId: process.env.BROWSERBASE_PROJECT_ID,
       proxies: true,
     }),
   });
@@ -23,7 +23,7 @@ async function createSession() {
 async function loadPage({ url }: { url: string }) {
   const { id } = await createSession();
   const browser = await chromium.connectOverCDP(
-    `wss://connect.browserbase.com?apiKey=${process.env.BROWSERBASE_API_KEY}&sessionId=${id}`,
+    `wss://connect.browserbase.com?apiKey=${process.env.BROWSERBASE_API_KEY}&sessionId=${id}`
   );
 
   const defaultContext = browser.contexts()[0];

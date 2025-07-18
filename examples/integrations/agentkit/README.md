@@ -11,7 +11,7 @@ By the end of this guide, you'll have an AI agent built with AgentKit that can b
 ### You'll learn how to:
 
 - Create AgentKit tools that leverage Browserbase's managed headless browsers
-- Build autonomous web browsing agents that can search, extract data, and interact with websites 
+- Build autonomous web browsing agents that can search, extract data, and interact with websites
 - Use Stagehand, Browserbase's AI-powered browser automation library, to create resilient web agents
 
 ### This integration is useful for:
@@ -33,7 +33,7 @@ There are two approaches to using Browserbase with AgentKit:
 Before you start, make sure you have:
 
 - AgentKit installed
-- Browserbase Project ID & API key  
+- Browserbase Project ID & API key
 - (Optional) LLM API key of your choice to use with Stagehand
 
 Next, let's dive into building web browsing agents with AgentKit and Browserbase.
