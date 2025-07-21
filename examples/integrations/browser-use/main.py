@@ -6,8 +6,7 @@ from browserbase import Browserbase
 from browser_use import Agent
 from browser_use.browser.session import BrowserSession
 from browser_use.browser import BrowserProfile
-from langchain_anthropic import ChatAnthropic
-
+from browser_use.llm import ChatOpenAI
 
 class ManagedBrowserSession:
     """Context manager for proper BrowserSession lifecycle management"""
@@ -107,7 +106,7 @@ def create_browser_profile() -> BrowserProfile:
 
 
 async def run_automation_task(browser_session: BrowserSession, task: str) -> str:
-    llm = ChatAnthropic(model="claude-3-5-sonnet-20240620", temperature=0.0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0.0)
     
     agent = Agent(
         task=task,
