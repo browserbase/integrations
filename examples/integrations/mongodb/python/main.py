@@ -312,9 +312,9 @@ class ProductScraper:
                 {"name": "Portable Laptop Lite", "price": "$699.99", "rating": 4.2}
             ]
             
-            for sample in sample_products[:3]:  # Create 3 sample products
+            for i, sample in enumerate(sample_products[:3]):  # Create 3 sample products
                 product = Product(
-                    url=category_url,
+                    url=f"{category_url}&sample_product={i+1}",
                     date_scraped=current_time,
                     name=sample["name"],
                     price=sample["price"],
