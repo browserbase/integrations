@@ -122,20 +122,23 @@ Enhance your Vercel applications with web-browsing capabilities. Build Generativ
 - Available in Node.js, Python, and Stagehand implementations
 - Production-ready with comprehensive examples
 
-### 📊 Evaluation & Testing
-
-#### [**Braintrust Integration**](./examples/integrations/braintrust/README.md)
-Integrate Browserbase with Braintrust for evaluation and testing of AI agent performance in web environments. Monitor, measure, and improve your browser automation workflows.
+### 📊 Data Storage, Searching and Analysis
 
 #### [**MongoDB Integration**](./examples/integrations/mongodb/README.md)
-**Intelligent Web Scraping & Data Storage** - Extract structured data from e-commerce websites using Stagehand and store it in MongoDB for analysis. Perfect for building data pipelines, market research, and competitive analysis workflows.
+**Intelligent Web Scraping & Data Storage** - Extract semi-structured data from e-commerce websites using Stagehand and store it in MongoDB for analysis. Perfect for building data pipelines, market research, and competitive analysis workflows.
 
 **Capabilities:**
+- Document-based model and advanced features like Vector Search and Real-Time Stream Processing make it the perfect foundation for advanced search and data pipelines
 - AI-powered web scraping with Stagehand
 - Structured data extraction with schema validation
 - MongoDB storage for persistence and querying
 - Built-in data analysis and reporting
 - Robust error handling for production use
+
+### 📊 Evaluation & Testing
+
+#### [**Braintrust Integration**](./examples/integrations/braintrust/README.md)
+Integrate Browserbase with Braintrust for evaluation and testing of AI agent performance in web environments. Monitor, measure, and improve your browser automation workflows.
 
 ## 🏗️ Monorepo Structure
 
