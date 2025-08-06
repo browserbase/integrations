@@ -1,5 +1,6 @@
 import os
 import asyncio
+import logging
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
@@ -47,6 +48,22 @@ class ProductList(BaseModel):
     total_products: Optional[int] = None
     page: Optional[int] = None
     website_name: Optional[str] = None
+
+# Schema for extraction (without date_scraped since that's added later)
+class ProductExtraction(BaseModel):
+    """Schema for extracting product data from pages"""
+    name: str
+    price: str
+    url: str
+    rating: Optional[float] = None
+    reviewCount: Optional[int] = None
+
+class ProductListExtraction(BaseModel):
+    """Schema for extracting product list data from category pages"""
+    products: List[ProductExtraction]
+    category: str
+    totalProducts: Optional[int] = None
+
 
 # ========== MongoDB Connection and Operations ==========
 class MongoDBManager:
@@ -134,16 +151,34 @@ class MongoDBManager:
                     console.print(f"⚠️ No data to store in {collection_name} (empty list)", style="yellow")
                     return
                 
-                # Convert Pydantic models to dict
-                documents = [item.dict() if hasattr(item, 'dict') else item for item in data]
-                result = collection.insert_many(documents)
-                console.print(f"✅ Stored {len(result.inserted_ids)} documents in {collection_name}", style="green")
-            else:
-                # Convert Pydantic model to dict
-                document = data.dict() if hasattr(data, 'dict') else data
-                result = collection.insert_one(document)
-                console.print(f"✅ Stored document in {collection_name}", style="green")
+                # Convert Pydantic models to dict (using model_dump for Pydantic v2)
+                documents = [item.model_dump() if hasattr(item, 'model_dump') else item for item in data]
                 
+                # Handle duplicate key errors gracefully
+                try:
+                    result = collection.insert_many(documents, ordered=False)
+                    console.print(f"✅ Stored {len(result.inserted_ids)} documents in {collection_name}", style="green")
+                except DuplicateKeyError as e:
+                    # Count successful inserts
+                    inserted = len(documents) - len(e.details.get('writeErrors', []))
+                    if inserted > 0:
+                        console.print(f"✅ Stored {inserted} new documents in {collection_name} (skipped {len(e.details.get('writeErrors', []))} duplicates)", style="green")
+                    else:
+                        console.print(f"⚠️ All {len(documents)} documents already exist in {collection_name}", style="yellow")
+            else:
+                # Convert Pydantic model to dict (using model_dump for Pydantic v2)
+                document = data.model_dump() if hasattr(data, 'model_dump') else data
+                
+                # Handle duplicate key errors gracefully
+                try:
+                    result = collection.insert_one(document)
+                    console.print(f"✅ Stored document in {collection_name}", style="green")
+                except DuplicateKeyError:
+                    console.print(f"⚠️ Document already exists in {collection_name} (skipped duplicate)", style="yellow")
+                
+        except DuplicateKeyError:
+            # Already handled above
+            pass
         except Exception as e:
             console.print(f"❌ Error storing data in {collection_name}: {e}", style="red")
             raise
@@ -227,59 +262,94 @@ class ProductScraper:
         console.print("🔍 Extracting product data with AI...", style="blue")
         
         try:
-            extraction_result = await self.page.extract({
-                "instruction": "Look at this Amazon search page and find product listings. Extract the products with their names, prices, and any star ratings you can find.",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "products": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "name": {"type": "string"},
-                                    "price": {"type": "string"},
-                                    "url": {"type": ["string", "null"]},
-                                    "rating": {"type": ["number", "null"]},
-                                    "review_count": {"type": ["number", "null"]}
-                                },
-                                "required": ["name", "price"]
-                            }
-                        },
-                        "category": {"type": ["string", "null"]},
-                        "total_products": {"type": ["number", "null"]}
-                    },
-                    "required": ["products"]
-                }
-            })
+            # Use Pydantic BaseModel schema as per documentation
+            extraction_result = await self.page.extract(
+                "Extract all product information from this Amazon category page, including product names, prices, URLs, ratings",
+                schema=ProductListExtraction
+            )
             
-            console.print(f"🔍 Raw extraction result type: {type(extraction_result)}", style="blue")
-            
-            # Handle different result formats
-            if isinstance(extraction_result, dict) and 'products' in extraction_result:
-                console.print(f"🔍 Extraction result: {len(extraction_result.get('products', []))} products found", style="blue")
+            # Handle the result - should be a ProductListExtraction object directly
+            if isinstance(extraction_result, ProductListExtraction):
+                extraction_data = extraction_result
+                console.print(f"✅ Extraction successful: {len(extraction_result.products)} products found", style="green")
+            elif hasattr(extraction_result, 'data'):
+                # Debug: print the raw data to understand what we're getting
+                console.print(f"🔍 DEBUG: Raw data type: {type(extraction_result.data)}", style="cyan")
+                console.print(f"🔍 DEBUG: Raw data (first 300 chars): {str(extraction_result.data)[:300]}...", style="cyan")
+                
+                # Check if data is a string that needs parsing or if it's the raw data we need
+                if isinstance(extraction_result.data, str):
+                    try:
+                        import json
+                        parsed_data = json.loads(extraction_result.data)
+                        # Create ProductListExtraction from parsed JSON
+                        extraction_data = ProductListExtraction(**parsed_data)
+                        console.print(f"✅ Extraction successful (parsed JSON): {len(extraction_data.products)} products found", style="green")
+                    except (json.JSONDecodeError, Exception) as e:
+                        console.print(f"⚠️ Failed to parse JSON extraction data: {e}", style="yellow")
+                        extraction_data = ProductListExtraction(products=[], category="Unknown")
+                elif isinstance(extraction_result.data, ProductListExtraction):
+                    extraction_data = extraction_result.data
+                    console.print(f"✅ Extraction successful: {len(extraction_result.data.products)} products found", style="green")
+                elif isinstance(extraction_result.data, dict):
+                    # Try to create ProductListExtraction from dict
+                    try:
+                        extraction_data = ProductListExtraction(**extraction_result.data)
+                        console.print(f"✅ Extraction successful (from dict): {len(extraction_data.products)} products found", style="green")
+                    except Exception as e:
+                        console.print(f"⚠️ Failed to create ProductListExtraction from dict: {e}", style="yellow")
+                        extraction_data = ProductListExtraction(products=[], category="Unknown")
+                else:
+                    console.print(f"⚠️ Unexpected data type: {type(extraction_result.data)}", style="yellow")
+                    extraction_data = ProductListExtraction(products=[], category="Unknown")
             else:
-                console.print(f"⚠️ Unexpected extraction result format: {type(extraction_result)}", style="yellow")
-                extraction_result = {"products": [], "category": "Unknown"}
+                console.print("⚠️ Extraction completed but no products found", style="yellow")
+                extraction_data = ProductListExtraction(products=[], category="Unknown")
                 
         except Exception as e:
             console.print(f"⚠️ AI extraction failed: {str(e)[:100]}...", style="yellow")
-            extraction_result = {"products": [], "category": "Unknown"}
+            extraction_data = ProductListExtraction(products=[], category="Unknown")
         
         # Process the extracted data
         current_time = datetime.now()
+        timestamp = int(current_time.timestamp())
         products = []
         
-        for product_data in extraction_result.get('products', []):
+        # Handle both ProductListExtraction object and dict formats
+        if isinstance(extraction_data, ProductListExtraction):
+            products_list = extraction_data.products
+            category = extraction_data.category
+            total_products = extraction_data.totalProducts
+        else:
+            products_list = extraction_data.get('products', [])
+            category = extraction_data.get('category', 'Unknown')
+            total_products = extraction_data.get('totalProducts')
+        
+        for i, product_data in enumerate(products_list):
             try:
-                product = Product(
-                    url=product_data.get('url', category_url),  # Fallback to category URL if no product URL
-                    date_scraped=current_time,
-                    name=product_data['name'],
-                    price=product_data['price'],
-                    rating=product_data.get('rating'),
-                    review_count=product_data.get('review_count')
-                )
+                if isinstance(product_data, ProductExtraction):
+                    # If it's already a ProductExtraction object, add timestamp to URL
+                    unique_url = f"{product_data.url}?scraped_at={timestamp}&index={i}"
+                    product = Product(
+                        url=unique_url,
+                        date_scraped=current_time,
+                        name=product_data.name,
+                        price=product_data.price,
+                        rating=product_data.rating,
+                        review_count=product_data.reviewCount
+                    )
+                else:
+                    # If it's a dictionary, create unique URL with timestamp
+                    base_url = product_data.get('url', category_url)
+                    unique_url = f"{base_url}?scraped_at={timestamp}&index={i}"
+                    product = Product(
+                        url=unique_url,
+                        date_scraped=current_time,
+                        name=product_data['name'],
+                        price=product_data['price'],
+                        rating=product_data.get('rating'),
+                        review_count=product_data.get('reviewCount')
+                    )
                 products.append(product)
                 console.print(f"✅ Processed: {product.name[:50]}...", style="green")
             except Exception as e:
@@ -289,9 +359,9 @@ class ProductScraper:
         # Create the product list object
         product_list = ProductList(
             products=products,
-            category=extraction_result.get('category', 'Unknown'),
+            category=category,
             date_scraped=current_time,
-            total_products=len(products),
+            total_products=total_products or len(products),
             website_name="Amazon"
         )
         
@@ -312,9 +382,10 @@ class ProductScraper:
                 {"name": "Portable Laptop Lite", "price": "$699.99", "rating": 4.2}
             ]
             
+            # Use current timestamp for unique URLs
             for i, sample in enumerate(sample_products[:3]):  # Create 3 sample products
                 product = Product(
-                    url=f"{category_url}&sample_product={i+1}",
+                    url=f"{category_url}&sample_product={i+1}&ts={timestamp}",
                     date_scraped=current_time,
                     name=sample["name"],
                     price=sample["price"],
@@ -331,70 +402,6 @@ class ProductScraper:
         console.print(f"✅ Scraped {len(products)} products from category: {product_list.category}", style="green")
         return product_list
     
-    async def scrape_product_details(self, product_url: str) -> Product:
-        """Scrape detailed information for a single product"""
-        console.print(f"📊 Scraping product details from: {product_url}", style="blue")
-        
-        await self.page.goto(product_url)
-        await self.page.wait_for_timeout(2000)
-        
-        # Scroll down to load more content
-        await self.page.evaluate("""
-            () => {
-                window.scrollTo(0, document.body.scrollHeight / 3);
-            }
-        """)
-        await self.page.wait_for_timeout(1000)
-        
-        await self.page.evaluate("""
-            () => {
-                window.scrollTo(0, document.body.scrollHeight * 2 / 3);
-            }
-        """)
-        await self.page.wait_for_timeout(1000)
-        
-        # Extract product details using Stagehand
-        extraction_result = await self.page.extract({
-            "instruction": "Extract detailed product information from this Amazon product page, including name, price, description, specifications, brand, category, image URL, rating, review count, and availability",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string"},
-                    "price": {"type": "string"},
-                    "rating": {"type": "number"},
-                    "category": {"type": "string"},
-                    "id": {"type": "string"},
-                    "currency": {"type": "string"},
-                    "image_url": {"type": "string"},
-                    "review_count": {"type": "number"},
-                    "description": {"type": "string"},
-                    "specs": {"type": "object"}
-                },
-                "required": ["name", "price"]
-            }
-        })
-        
-        # Create complete product object
-        product = Product(
-            url=product_url,
-            date_scraped=datetime.now(),
-            name=extraction_result['name'],
-            price=extraction_result['price'],
-            rating=extraction_result.get('rating'),
-            category=extraction_result.get('category'),
-            id=extraction_result.get('id'),
-            currency=extraction_result.get('currency'),
-            image_url=extraction_result.get('image_url'),
-            review_count=extraction_result.get('review_count'),
-            description=extraction_result.get('description'),
-            specs=extraction_result.get('specs')
-        )
-        
-        # Store the data in MongoDB
-        await self.mongodb.store_data(self.mongodb.COLLECTIONS['PRODUCTS'], product)
-        
-        console.print(f"✅ Scraped detailed information for: {product.name}", style="green")
-        return product
 
 # ========== Data Analysis Functions ==========
 class DataAnalyzer:
@@ -497,12 +504,13 @@ async def main():
         mongodb = MongoDBManager(MONGO_URI, DB_NAME)
         await mongodb.connect()
         
-        # Initialize Stagehand
+        # Initialize Stagehand with proper config overrides
         stagehand = Stagehand(
-            env="BROWSERBASE",  # or "BROWSERBASE"
+            env="BROWSERBASE",
             model_name=AvailableModel.CLAUDE_3_7_SONNET_LATEST,
             model_api_key=os.getenv("MODEL_API_KEY"),
-            verbose=1
+            verbose=1,
+            dom_settle_timeout_ms=30000
         )
         await stagehand.init()
         
@@ -515,20 +523,6 @@ async def main():
         # Scrape product listing
         product_list = await scraper.scrape_product_list(category_url)
         
-        # Scrape detailed information for first 3 products (if any were found)
-        if product_list.products:
-            products_to_scrape = product_list.products[:3]
-            
-            for i, product in enumerate(products_to_scrape):
-                console.print(f"📊 Scraping details for product {i+1}/{len(products_to_scrape)}: {product.name}", style="blue")
-                
-                try:
-                    await scraper.scrape_product_details(product.url)
-                    await asyncio.sleep(2)  # Rate limiting
-                except Exception as e:
-                    console.print(f"❌ Error scraping product {product.name}: {e}", style="red")
-        else:
-            console.print("⚠️ No products found to scrape details for", style="yellow")
         
         # Run data analysis
         analyzer = DataAnalyzer(mongodb)
@@ -548,12 +542,5 @@ async def main():
 
 # ========== Entry Point ==========
 if __name__ == "__main__":
-    console.print(Panel.fit(
-        "🤘 Welcome to Stagehand MongoDB Scraper!\n\n"
-        "This script will scrape Amazon product data and store it in MongoDB.",
-        title="Stagehand MongoDB Integration",
-        border_style="blue"
-    ))
-    
     # Run the main function
     asyncio.run(main())
