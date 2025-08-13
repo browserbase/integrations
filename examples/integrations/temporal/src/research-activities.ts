@@ -96,14 +96,20 @@ export async function initializeBrowser(): Promise<BrowserSession> {
       domSettleTimeoutMs: 8000, 
       env: "BROWSERBASE",
       apiKey: process.env.BROWSERBASE_API_KEY,
+      modelName: "openai/gpt-4o",
+      modelClientOptions: {
+        apiKey: process.env.OPENAI_API_KEY,
+      },
       browserbaseSessionCreateParams: {
-        proxies: true,
+        // Only available in paid plans
+        proxies: true, 
         projectId: process.env.BROWSERBASE_PROJECT_ID!,
         browserSettings: {
           viewport: {
             width: 1024,
             height: 768
           },
+          // Only available on Scale Plans
           advancedStealth: true
         }
       },
