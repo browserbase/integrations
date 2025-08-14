@@ -92,7 +92,7 @@ export async function initializeBrowser(): Promise<BrowserSession> {
     simulateNetworkDisconnect('browser initialization');
 
     const config: ConstructorParams = {
-      verbose: 1,
+      verbose: 0,
       domSettleTimeoutMs: 8000, 
       env: "BROWSERBASE",
       apiKey: process.env.BROWSERBASE_API_KEY,
@@ -102,7 +102,7 @@ export async function initializeBrowser(): Promise<BrowserSession> {
       },
       browserbaseSessionCreateParams: {
         // Only available in paid plans
-        proxies: true, 
+        // proxies: true, 
         projectId: process.env.BROWSERBASE_PROJECT_ID!,
         browserSettings: {
           viewport: {
@@ -110,7 +110,7 @@ export async function initializeBrowser(): Promise<BrowserSession> {
             height: 768
           },
           // Only available on Scale Plans
-          advancedStealth: true
+          // advancedStealth: true
         }
       },
     };
@@ -178,9 +178,9 @@ export async function navigateToSearchPage(session: BrowserSession): Promise<voi
     
     stagehand = await reconnectToSession(session);
     
-    console.log(`[${session.attemptId}] Navigating to Google...`);
-    await stagehand.page.goto('https://www.google.com');
-    console.log(`[${session.attemptId}] Successfully navigated to Google`);
+    console.log(`[${session.attemptId}] Navigating to Brave...`);
+    await stagehand.page.goto('https://search.brave.com/');
+    console.log(`[${session.attemptId}] Successfully navigated to Brave`);
     
   } catch (error: any) {
     console.error(`[${session.attemptId}] Navigation failed:`, error.message);
