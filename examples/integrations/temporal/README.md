@@ -43,7 +43,7 @@ npm install
 ```
 BROWSERBASE_API_KEY=your_api_key
 BROWSERBASE_PROJECT_ID=your_project_id
-ANTHROPIC_API_KEY=your_anthropic_key  # or OPENAI_API_KEY
+OPENAI_API_KEY=your_openai_key # or ANTHROPIC_API_KEY depending on the model you choose
 ```
 
 3. Start Temporal (if not already running):
