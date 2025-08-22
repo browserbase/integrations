@@ -57,6 +57,8 @@ class ProductExtraction(BaseModel):
     url: str
     rating: Optional[float] = None
     reviewCount: Optional[int] = None
+    description: Optional[str] = None
+    specs: Optional[Dict[str, Any]] = None
 
 class ProductListExtraction(BaseModel):
     """Schema for extracting product list data from category pages"""
@@ -265,13 +267,20 @@ class ProductScraper:
             # Use Pydantic BaseModel schema as per documentation
             extraction_result = await self.page.extract(
                 """Extract all product information from this Amazon category page. For each product, extract:
-                - name: The product title/name
+                - name: ONLY the main product title/name (e.g., "HP 14 Laptop" or "Dell Inspiron 15")
                 - price: The current price (if available)
                 - url: The actual clickable link/href to the product detail page (NOT the product name)
                 - rating: The star rating (if available)
                 - reviewCount: Number of reviews (if available)
+                - description: The detailed product description with features, specifications, and details (e.g., "Intel Celeron N4020, 4 GB RAM, 64 GB Storage, 14-inch Micro-edge HD Display, Windows 11 Home, Thin & Portable, 4K Graphics, One Year of Microsoft 365")
+                - specs: Technical specifications as a dictionary/object with key-value pairs like {"RAM": "16GB", "Storage": "512GB SSD", "Processor": "Intel i7", "Screen": "15.6 inch"} (if available)
 
-                IMPORTANT: The 'url' field must contain the actual product link/href, not the product name.""",
+                IMPORTANT:
+                - The 'url' field must contain the actual product link/href, not the product name.
+                - The 'name' field should be SHORT and concise (just the brand and model).
+                - The 'description' field should contain the DETAILED product information, features, and specifications.
+                - For 'specs', extract any technical details you can see and structure them as key-value pairs.
+                - DO NOT put promotional text like "1K+ bought" or "Limited time deal" in the description field.""",
                 schema=ProductListExtraction
             )
             
@@ -349,7 +358,9 @@ class ProductScraper:
                         name=product_data.name,
                         price=product_data.price,
                         rating=product_data.rating,
-                        review_count=product_data.reviewCount
+                        review_count=product_data.reviewCount,
+                        description=product_data.description,
+                        specs=product_data.specs
                     )
                 else:
                     # If it's a dictionary, validate and fix URL
@@ -366,7 +377,9 @@ class ProductScraper:
                         name=product_data['name'],
                         price=product_data['price'],
                         rating=product_data.get('rating'),
-                        review_count=product_data.get('reviewCount')
+                        review_count=product_data.get('reviewCount'),
+                        description=product_data.get('description'),
+                        specs=product_data.get('specs')
                     )
                 products.append(product)
                 console.print(f"✅ Processed: {product.name[:50]}...", style="green")
