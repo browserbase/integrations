@@ -37,3 +37,5 @@ build/
 
 # Editor / OS files
 .DS_Store
+
+.cartesia/
