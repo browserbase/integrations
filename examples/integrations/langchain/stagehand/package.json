@@ -11,7 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@browserbasehq/stagehand": "^1.14.0",
+    "@browserbasehq/stagehand": "^2.4.4",
     "@langchain/community": "^0.3.44",
     "@langchain/core": "^0.3.57",
     "@langchain/langgraph": "^0.2.73"

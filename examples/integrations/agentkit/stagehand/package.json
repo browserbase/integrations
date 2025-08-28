@@ -6,8 +6,8 @@
     "start": "tsc; node dist/index.js"
   },
   "dependencies": {
-    "@browserbasehq/sdk": "^2.3.0",
-    "@browserbasehq/stagehand": "^1.13.1",
+    "@browserbasehq/sdk": "^2.6.0",
+    "@browserbasehq/stagehand": "^2.4.4",
     "@inngest/agent-kit": "^0.8.0",
     "dotenv": "^16.4.7",
     "inngest": "latest",
