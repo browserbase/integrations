@@ -1,4 +1,3 @@
-/* eslint-disable */
 import "dotenv/config";
 import {
   anthropic,
