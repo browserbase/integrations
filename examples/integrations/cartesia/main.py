@@ -33,7 +33,7 @@ async def handle_new_call(system: VoiceAgentSystem, call_request: CallRequest):
         system_prompt=SYSTEM_PROMPT,
         gemini_client=gemini_client,
         form_url=FORM_URL,
-        headless=False,  # Show browser for demo (set True for production)
+        headless=True,  # Run browser in background for production
     )
     
     # Set up bridge for event handling
@@ -65,6 +65,6 @@ if __name__ == "__main__":
     print("🚀 Starting Voice Agent with Web Form Automation")
     print(f"📝 Will fill form at: {FORM_URL}")
     print("📞 Ready to receive calls...")
-    print("\nNote: The browser will open when the first call is received.")
-    print("Set headless=True in production to run in background.\n")
+    print("\nNote: The browser will run in background (headless mode).")
+    print("Form filling happens invisibly while processing voice calls.\n")
     app.run()

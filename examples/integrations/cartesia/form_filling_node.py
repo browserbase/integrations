@@ -238,25 +238,33 @@ class FormFillingNode(ReasoningNode):
         
         return form_questions
     
+    async def _fill_form_field_async(self, field_name: str, value: str):
+        """Fill a form field asynchronously in background (non-blocking)"""
+        try:
+            await self._fill_form_field(field_name, value)
+        except Exception as e:
+            logger.error(f"❌ Background form filling error for {field_name}: {e}")
+
     async def _fill_form_field(self, field_name: str, value: str):
         """Fill a form field in the browser in real-time"""
         if not self.stagehand_filler:
             logger.warning("⚠️ Browser not initialized yet")
             return
-        
+
         try:
-            logger.info(f"🖊️ Filling field '{field_name}' with: {value} in real-time")
-            
+            logger.info(f"🖊️ Filling field '{field_name}' with: {value} in background")
+
             # Use StagehandFormFiller's fill_field method which handles the mapping
             success = await self.stagehand_filler.fill_field(field_name, value)
-            
+
             if success:
                 logger.info(f"✅ Successfully filled field: {field_name} in the browser")
             else:
                 logger.warning(f"⚠️ Failed to fill field: {field_name}")
-            
+
         except Exception as e:
             logger.error(f"Error filling field {field_name}: {e}")
+            raise  # Re-raise so background task can catch it
     
     async def _submit_form(self):
         """Submit the completed form"""
@@ -416,29 +424,29 @@ class FormFillingNode(ReasoningNode):
                         value = function_call.args.get("value", "")
                         
                         logger.info(f"📝 Recording: {field_name} = {value}")
-                        
+
                         # Store data first
                         self.collected_data[field_name] = value
-                        
-                        # Fill the form field immediately in real-time
-                        await self._fill_form_field(field_name, value)
-                        
+
+                        # Fill the form field asynchronously in background (non-blocking)
+                        asyncio.create_task(self._fill_form_field_async(field_name, value))
+
                         # Log the collected data
                         logger.info(f"📊 Collected: {field_name}={value}")
-                        
-                        # Move to next question
+
+                        # Move to next question immediately (don't wait for form filling)
                         self.current_question_index += 1
                         field_recorded = True
-                        
+
                         # Clear context
                         self.clear_context()
-                        
+
                         # Get next question
                         next_question = self.get_current_question()
                         if next_question:
                             yield AgentResponse(content=f"Great! {next_question.question}")
-                        
-                        # Yield tool result
+
+                        # Yield tool result immediately
                         yield ToolResult(
                             tool_name="record_form_field",
                             tool_args={"field_name": field_name, "value": value},

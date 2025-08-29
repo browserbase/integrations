@@ -8,7 +8,7 @@ This project demonstrates an advanced voice agent that conducts phone questionna
 - **Real-time Form Filling**: Automatically fills web forms as answers are collected
 - **Browser Automation**: Uses Stagehand AI to interact with any web form
 - **Intelligent Mapping**: AI-powered mapping of voice answers to form fields
-- **Async Processing**: Non-blocking form filling maintains conversation flow
+- **Async Processing**: Non-blocking form filling maintains conversation flow - form fields are filled in background tasks without delaying voice responses
 - **Auto-submission**: Submits forms automatically when complete
 
 ## Architecture
@@ -68,7 +68,7 @@ The system can be configured through:
 
 - `form.yaml`: Define questionnaire structure
 - `FORM_URL`: Target web form to fill
-- `headless`: Run browser in background (True) or visible (False)
+- `headless`: Run browser in background (True) or visible (False) - currently set to True for production use
 - `enable_browser`: Toggle browser automation on/off
 
 ## Example Flow
@@ -87,7 +87,7 @@ The system can be configured through:
 
 ## Advanced Features
 
-- **Background Processing**: Form filling happens asynchronously
+- **Background Processing**: Form filling happens asynchronously using background tasks - conversation remains smooth and responsive
 - **Error Recovery**: Continues conversation even if form filling fails
 - **Progress Tracking**: Monitor form completion status
 - **Screenshot Debugging**: Captures screenshots after each field
@@ -104,7 +104,7 @@ Test with different scenarios:
 
 ## Production Considerations
 
-- Set `headless=True` for production
+- Set `headless=True` for production (currently configured this way)
 - Configure proper error logging
 - Add retry logic for form submission
 - Implement form validation checks
