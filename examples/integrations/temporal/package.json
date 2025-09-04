@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",
-    "@browserbasehq/stagehand": "^2.3.0",
+    "@browserbasehq/stagehand": "^2.4.4",
     "@temporalio/activity": "^1.11.8",
     "@temporalio/client": "^1.11.8",
     "@temporalio/common": "^1.11.8",
