@@ -108,11 +108,13 @@ class FormFillingNode(ReasoningNode):
         # Form state
         self.form_fields: Dict[str, Any] = {}
         self.collected_data: Dict[str, str] = {}
-        self.questions: list[FormQuestion] = []
+        # Pre-initialize questions so conversation can start immediately
+        self.questions: list[FormQuestion] = self._create_questions_from_analysis({})
         self.current_question_index = 0
         
         # Browser initialization
         self.browser_init_task = None
+        self.browser_initializing = False
         
         # Enhanced prompt for form filling
         enhanced_prompt = system_prompt + """
@@ -137,6 +139,12 @@ class FormFillingNode(ReasoningNode):
     
     async def _initialize_browser(self):
         """Initialize browser and extract form fields"""
+        # Prevent multiple initializations
+        if self.browser_initializing or self.stagehand_filler:
+            logger.info("🔒 Browser already initializing or initialized, skipping")
+            return
+        
+        self.browser_initializing = True
         try:
             logger.info("🌐 Initializing browser and analyzing form")
             self.stagehand_filler = StagehandFormFiller(
@@ -159,14 +167,15 @@ class FormFillingNode(ReasoningNode):
                 except Exception as e:
                     logger.warning(f"Could not extract form fields: {e}")
             
-            # Always create questions - don't depend on form extraction
-            self.questions = self._create_questions_from_analysis({})
-            
-            logger.info(f"✅ Browser ready with {len(self.questions)} questions")
+            # Questions already initialized in __init__, no need to recreate
+            logger.info(f"✅ Browser ready, form can now be filled")
             
         except Exception as e:
             logger.error(f"❌ Failed to initialize browser: {e}")
+            self.browser_initializing = False
             raise
+        finally:
+            self.browser_initializing = False
     
     def _create_questions_from_analysis(self, form_analysis: Dict[str, Any]) -> list[FormQuestion]:
         """Create questions based on form analysis"""
@@ -241,19 +250,12 @@ class FormFillingNode(ReasoningNode):
     async def _fill_form_field_async(self, field_name: str, value: str):
         """Fill a form field asynchronously in background (non-blocking)"""
         try:
-            await self._fill_form_field(field_name, value)
-        except Exception as e:
-            logger.error(f"❌ Background form filling error for {field_name}: {e}")
-
-    async def _fill_form_field(self, field_name: str, value: str):
-        """Fill a form field in the browser in real-time"""
-        if not self.stagehand_filler:
-            logger.warning("⚠️ Browser not initialized yet")
-            return
-
-        try:
+            # Wait for browser initialization if needed
+            if self.browser_init_task:
+                logger.info(f"⏳ Waiting for browser to initialize before filling {field_name}")
+                await self.browser_init_task
+            
             logger.info(f"🖊️ Filling field '{field_name}' with: {value} in background")
-
             # Use StagehandFormFiller's fill_field method which handles the mapping
             success = await self.stagehand_filler.fill_field(field_name, value)
 
@@ -264,10 +266,15 @@ class FormFillingNode(ReasoningNode):
 
         except Exception as e:
             logger.error(f"Error filling field {field_name}: {e}")
-            raise  # Re-raise so background task can catch it
-    
+            raise  # Re-raise so background task can catch it 
+            
     async def _submit_form(self):
         """Submit the completed form"""
+        # Wait for browser initialization if needed
+        if self.browser_init_task and not self.stagehand_filler:
+            logger.info("⏳ Waiting for browser to initialize before submitting form")
+            await self.browser_init_task
+        
         if not self.stagehand_filler:
             return False
         
@@ -309,12 +316,10 @@ class FormFillingNode(ReasoningNode):
             AgentResponse: Text responses to the user
             EndCall: Call termination when form is complete
         """
-        # Initialize browser on first call
-        if not self.browser_init_task:
+        # Initialize browser on first call (non-blocking)
+        if not self.browser_init_task and not self.stagehand_filler:
             self.browser_init_task = asyncio.create_task(self._initialize_browser())
-            # Wait for initialization to complete
-            await self.browser_init_task
-            logger.info(f"📝 Initialization complete. Questions loaded: {len(self.questions)}")
+            logger.info("🚀 Browser initialization started in background")
         
         # Get current question after initialization 
         current_question = self.get_current_question()
@@ -388,7 +393,6 @@ class FormFillingNode(ReasoningNode):
         Then acknowledge their answer naturally.
         """
         
-        # Enhanced config
         enhanced_config = gemini_types.GenerateContentConfig(
             system_instruction=self.generation_config.system_instruction + question_context,
             temperature=self.temperature,
@@ -427,13 +431,10 @@ class FormFillingNode(ReasoningNode):
 
                         # Store data first
                         self.collected_data[field_name] = value
-
                         # Fill the form field asynchronously in background (non-blocking)
                         asyncio.create_task(self._fill_form_field_async(field_name, value))
-
                         # Log the collected data
                         logger.info(f"📊 Collected: {field_name}={value}")
-
                         # Move to next question immediately (don't wait for form filling)
                         self.current_question_index += 1
                         field_recorded = True

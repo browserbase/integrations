@@ -33,7 +33,7 @@ async def handle_new_call(system: VoiceAgentSystem, call_request: CallRequest):
         system_prompt=SYSTEM_PROMPT,
         gemini_client=gemini_client,
         form_url=FORM_URL,
-        headless=True,  # Run browser in background for production
+        headless=False
     )
     
     # Set up bridge for event handling
