@@ -1,6 +1,6 @@
 import { createTool } from '@mastra/core/tools';
-import { z } from 'zod';
-import { Stagehand } from "@browserbasehq/stagehand";
+import { z } from 'zod/v3';
+import { Stagehand } from '@browserbasehq/stagehand';
 
 class StagehandSessionManager {
   private static instance: StagehandSessionManager;

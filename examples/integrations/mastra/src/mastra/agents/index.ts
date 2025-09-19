@@ -25,7 +25,7 @@ export const webAgent = new Agent({
       Use the stagehandObserveTool to find elements on webpages.
       Use the stagehandExtractTool to extract data from webpages.
 `,
-  model: openai('gpt-4o'),
+  model: openai('gpt-4.1'),
   tools: { stagehandActTool, stagehandObserveTool, stagehandExtractTool },
   memory: memory
 });
