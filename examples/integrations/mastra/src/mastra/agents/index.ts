@@ -1,9 +1,6 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
-import { stagehandActTool, stagehandObserveTool, stagehandExtractTool } from '../tools';
-import { Memory } from '@mastra/memory';
-
-const memory = new Memory();
+import { stagehandActTool, stagehandObserveTool, stagehandExtractTool, stagehandNavigateTool } from '../tools';
 
 export const webAgent = new Agent({
   name: 'Web Assistant',
@@ -26,6 +23,5 @@ export const webAgent = new Agent({
       Use the stagehandExtractTool to extract data from webpages.
 `,
   model: openai('gpt-4o'),
-  tools: { stagehandActTool, stagehandObserveTool, stagehandExtractTool },
-  memory: memory
+  tools: { stagehandActTool, stagehandObserveTool, stagehandExtractTool, stagehandNavigateTool },
 });
