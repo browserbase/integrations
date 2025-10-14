@@ -93,6 +93,12 @@ The system can be configured through:
 - **Screenshot Debugging**: Captures screenshots after each field
 - **Flexible Mapping**: AI interprets answers for different field types
 
+## Deployment
+
+Note: you need to set env variables in the Cartesia Platform to properly deploy.
+
+[Here's how to deploy an agent from the Cartesia Docs.](https://docs.cartesia.ai/line/start-building/talk-to-your-first-agent)
+
 ## Testing
 
 Test with different scenarios:

@@ -2,7 +2,7 @@
 name = "form-filling"
 
 [build]
-cmd = "echo 'No build cmd specified'"
+cmd = "pip install -r requirements.txt"
 
 [run]
-cmd = "echo 'No run cmd specified'"
+cmd = "python main.py"
