@@ -28,8 +28,8 @@ This project enables AI agents to interact with web pages through the Mastra fra
 
 1. Clone the repository:
    ```
-   git clone https://github.com/browserbase/Stagehand-Mastra-App.git
-   cd Stagehand-Mastra-App
+   npx degit browserbase/integrations/examples/integrations/mastra browserbase-mastra
+   cd browserbase-mastra
    ```
 
 2. Install dependencies:
@@ -67,9 +67,10 @@ This will start the Mastra development server, giving you access to the integrat
    - `stagehandActTool`: Performs actions on web pages
    - `stagehandObserveTool`: Identifies elements on web pages
    - `stagehandExtractTool`: Extracts data from web pages
+   - `stagehandNavigateTool` : Navigates to given URLs
 
 3. **Web Agent**
-   - AI-powered agent using OpenAI's GPT-4
+   - AI-powered agent using OpenAI's GPT-4o
    - Provides natural language interface to web automation
    - Integrates all tools into a unified experience
 
