@@ -106,10 +106,9 @@ class FormFillingNode(ReasoningNode):
         self.stagehand_filler: Optional[StagehandFormFiller] = None
         
         # Form state
-        self.form_fields: Dict[str, Any] = {}
         self.collected_data: Dict[str, str] = {}
         # Pre-initialize questions so conversation can start immediately
-        self.questions: list[FormQuestion] = self._create_questions_from_analysis({})
+        self.questions: list[FormQuestion] = self._create_questions()
         self.current_question_index = 0
         
         # Browser initialization
@@ -136,6 +135,23 @@ class FormFillingNode(ReasoningNode):
         )
         
         logger.info(f"🚀 FormFillingNode initialized for form: {form_url}")
+        
+        # Track if form was submitted
+        self.form_submitted = False
+    
+    async def cleanup_and_submit(self):
+        """Ensure form is submitted and cleanup when call ends"""
+        # Submit form if we have any data and haven't submitted yet
+        if not self.form_submitted and self.collected_data and self.stagehand_filler:
+            logger.info("🔄 Call ending - auto-submitting form with collected data")
+            try:
+                await self._submit_form()
+            except Exception as e:
+                logger.error(f"Error during cleanup submission: {e}")
+        
+        # Clean up browser
+        if self.stagehand_filler:
+            await self.stagehand_filler.cleanup()
     
     async def _initialize_browser(self):
         """Initialize browser and extract form fields"""
@@ -153,21 +169,6 @@ class FormFillingNode(ReasoningNode):
             )
             await self.stagehand_filler.initialize()
             
-            # Extract form fields using Stagehand (optional for dynamic forms)
-            # For now, we'll use predefined questions for the known form
-            if self.stagehand_filler.page:
-                try:
-                    form_analysis = await self.stagehand_filler.page.extract({
-                        "form_fields": "list of all form fields with their labels and types",
-                        "required_fields": "list of required field names",
-                        "form_title": "the title or heading of the form",
-                    })
-                    logger.info(f"📋 Form analysis: {form_analysis}")
-                    self.form_fields = form_analysis
-                except Exception as e:
-                    logger.warning(f"Could not extract form fields: {e}")
-            
-            # Questions already initialized in __init__, no need to recreate
             logger.info(f"✅ Browser ready, form can now be filled")
             
         except Exception as e:
@@ -177,9 +178,8 @@ class FormFillingNode(ReasoningNode):
         finally:
             self.browser_initializing = False
     
-    def _create_questions_from_analysis(self, form_analysis: Dict[str, Any]) -> list[FormQuestion]:
-        """Create questions based on form analysis"""
-        
+    def _create_questions(self) -> list[FormQuestion]:
+        """Create questions for the form"""
         # Define questions for the form fields we know about
         # This matches the form at https://forms.fillout.com/t/34ccsqafUFus
         form_questions = [
@@ -200,12 +200,6 @@ class FormFillingNode(ReasoningNode):
                 question="What is your phone number?",
                 field_type="phone",
                 required=False
-            ),
-            FormQuestion(
-                field_name="address",
-                question="What is your current address? Please include street address, city, state, and zip code.",
-                field_type="address",
-                required=True
             ),
             FormQuestion(
                 field_name="work_eligibility",
@@ -359,6 +353,7 @@ class FormFillingNode(ReasoningNode):
             logger.info(f"📊 Collected data for {len(self.collected_data)} fields")
             
             submission_success = await self._submit_form()
+            self.form_submitted = True
             
             if submission_success:
                 goodbye = "Perfect! I've submitted your application. Thank you!"
@@ -366,8 +361,7 @@ class FormFillingNode(ReasoningNode):
                 goodbye = "Thank you for providing all the information. Your responses have been recorded."
             
             # Clean up
-            if self.stagehand_filler:
-                await self.stagehand_filler.cleanup()
+            await self.cleanup_and_submit()
             
             # End call
             args = EndCallArgs(goodbye_message=goodbye)

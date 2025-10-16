@@ -12,7 +12,7 @@ from line import Bridge, CallRequest, VoiceAgentApp, VoiceAgentSystem
 from line.events import UserStartedSpeaking, UserStoppedSpeaking, UserTranscriptionReceived
 
 # Target form URL - the actual web form to fill
-FORM_URL = "https://forms.fillout.com/t/34ccsqafUFus"
+FORM_URL = "https://forms.fillout.com/t/rff6XZTSApus"
 
 # Initialize Gemini client
 gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -54,8 +54,11 @@ async def handle_new_call(system: VoiceAgentSystem, call_request: CallRequest):
     # Start the system
     await system.start()
     
-    # Send initial greeting (will be handled by form_node)
+    # Wait for call to end
     await system.wait_for_shutdown()
+    
+    # Ensure form is submitted when call ends
+    await form_node.cleanup_and_submit()
 
 
 # Create the voice agent application
