@@ -1,4 +1,4 @@
-import {
+import type {
 	IAuthenticateGeneric,
 	ICredentialTestRequest,
 	ICredentialType,
@@ -7,38 +7,37 @@ import {
 
 export class BrowserbaseApi implements ICredentialType {
 	name = 'browserbaseApi';
+
 	displayName = 'Browserbase API';
-	documentationUrl = 'https://docs.browserbase.com/';
+
+	documentationUrl = 'https://docs.browserbase.com';
+
 	properties: INodeProperties[] = [
 		{
 			displayName: 'Browserbase API Key',
-			name: 'apiKey',
+			name: 'browserbaseApiKey',
 			type: 'string',
-			typeOptions: {
-				password: true,
-			},
+			typeOptions: { password: true },
 			default: '',
 			required: true,
-			description: 'The API key for Browserbase. You can find this in your Browserbase dashboard.',
+			description: 'Your Browserbase API key',
 		},
 		{
 			displayName: 'Browserbase Project ID',
-			name: 'projectId',
+			name: 'browserbaseProjectId',
 			type: 'string',
 			default: '',
 			required: true,
-			description: 'The Project ID for your Browserbase project. You can find this in your Browserbase dashboard.',
+			description: 'Your Browserbase project ID',
 		},
 		{
-			displayName: 'OpenAI API Key',
-			name: 'openaiApiKey',
+			displayName: 'Model API Key',
+			name: 'modelApiKey',
 			type: 'string',
-			typeOptions: {
-				password: true,
-			},
+			typeOptions: { password: true },
 			default: '',
-			required: false,
-			description: 'The OpenAI API key required for AI operations (act, observe, extract). You can get this from your OpenAI dashboard.',
+			required: true,
+			description: 'API key for the AI model (e.g., OpenAI API key)',
 		},
 	];
 
@@ -46,20 +45,21 @@ export class BrowserbaseApi implements ICredentialType {
 		type: 'generic',
 		properties: {
 			headers: {
-				'X-BB-API-Key': '={{$credentials.apiKey}}',
-				'X-BB-Project-ID': '={{$credentials.projectId}}',
+				'x-bb-api-key': '={{$credentials.browserbaseApiKey}}',
+				'x-bb-project-id': '={{$credentials.browserbaseProjectId}}',
+				'x-model-api-key': '={{$credentials.modelApiKey}}',
 			},
 		},
 	};
 
 	test: ICredentialTestRequest = {
 		request: {
-			baseURL: 'https://api.browserbase.com/v1',
-			url: '/sessions',
-			method: 'GET',
-            headers: {
-                'X-BB-API-Key': '={{$credentials.apiKey}}',
-            },
+			baseURL: 'https://api.stagehand.browserbase.com',
+			url: '/v1/sessions/start',
+			method: 'POST',
+			body: {
+				modelName: 'openai/gpt-4o',
+			},
 		},
 	};
 }

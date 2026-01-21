@@ -1,19 +1,12 @@
 {
-	"node": "n8n-nodes-base.Browserbase",
+	"node": "n8n-nodes-browserbase",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
-	"categories": [
-		"Browser Automation"
-	],
+	"categories": ["Development", "Developer Tools"],
 	"resources": {
-		"credentialDocumentation": [
-			{
-				"url": "https://docs.browserbase.com/"
-			}
-		],
 		"primaryDocumentation": [
 			{
-				"url": "https://docs.browserbase.com/"
+				"url": "https://docs.browserbase.com"
 			}
 		]
 	}

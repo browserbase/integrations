@@ -1,8 +1,14 @@
-node_modules
-.DS_Store
-.tmp
-tmp
-dist
-npm-debug.log*
-yarn.lock
-.vscode/launch.json
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Node modules
+/node_modules
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
