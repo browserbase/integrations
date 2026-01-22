@@ -3,6 +3,7 @@ import { actDescription } from './act';
 import { observeDescription } from './observe';
 import { extractDescription } from './extract';
 import { agentExecuteDescription } from './agentExecute';
+import { sessionIdPassthrough } from '../../shared/routing';
 
 const showOnlyForAI = {
 	resource: ['ai'],
@@ -40,6 +41,7 @@ export const aiDescription: INodeProperties[] = [
 							streamResponse: false,
 						},
 					},
+					output: sessionIdPassthrough,
 				},
 			},
 			{
@@ -55,6 +57,7 @@ export const aiDescription: INodeProperties[] = [
 							streamResponse: false,
 						},
 					},
+					output: sessionIdPassthrough,
 				},
 			},
 			{
@@ -70,6 +73,7 @@ export const aiDescription: INodeProperties[] = [
 							streamResponse: false,
 						},
 					},
+					output: sessionIdPassthrough,
 				},
 			},
 			{
@@ -85,6 +89,7 @@ export const aiDescription: INodeProperties[] = [
 							streamResponse: false,
 						},
 					},
+					output: sessionIdPassthrough,
 				},
 			},
 		],

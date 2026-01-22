@@ -1,6 +1,7 @@
 import type { INodeProperties } from 'n8n-workflow';
 import { sessionStartDescription } from './start';
 import { sessionEndDescription } from './end';
+import { sessionIdFromResponse, sessionIdPassthrough } from '../../shared/routing';
 
 const showOnlyForSession = {
 	resource: ['session'],
@@ -41,6 +42,7 @@ export const sessionDescription: INodeProperties[] = [
 							streamResponse: false,
 						},
 					},
+					output: sessionIdFromResponse,
 				},
 			},
 			{
@@ -56,6 +58,7 @@ export const sessionDescription: INodeProperties[] = [
 							streamResponse: false,
 						},
 					},
+					output: sessionIdPassthrough,
 				},
 			},
 		],

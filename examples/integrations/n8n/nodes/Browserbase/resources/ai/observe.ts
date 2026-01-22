@@ -10,7 +10,7 @@ export const observeDescription: INodeProperties[] = [
 		displayName: 'Session ID',
 		name: 'sessionId',
 		type: 'string',
-		default: '={{ $json.data.sessionId }}',
+		default: '={{ $json.value }}',
 		required: true,
 		displayOptions: {
 			show: showOnlyForObserve,

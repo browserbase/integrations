@@ -7,7 +7,7 @@ export const sessionIdField: INodeProperties = {
 	default: '',
 	required: true,
 	description: 'The session ID returned from Start Session operation',
-	placeholder: 'e.g., ={{ $json.sessionId }}',
+	placeholder: 'e.g., ={{ $json.value }}',
 };
 
 export const modelNameField: INodeProperties = {

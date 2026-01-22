@@ -1,6 +1,7 @@
 import type { INodeProperties } from 'n8n-workflow';
 import { navigateDescription } from './navigate';
 import { screenshotDescription } from './screenshot';
+import { sessionIdPassthrough } from '../../shared/routing';
 
 const showOnlyForBrowser = {
 	resource: ['browser'],
@@ -38,6 +39,7 @@ export const browserDescription: INodeProperties[] = [
 							streamResponse: false,
 						},
 					},
+					output: sessionIdPassthrough,
 				},
 			},
 			{
@@ -53,6 +55,7 @@ export const browserDescription: INodeProperties[] = [
 							streamResponse: false,
 						},
 					},
+					output: sessionIdPassthrough,
 				},
 			},
 		],

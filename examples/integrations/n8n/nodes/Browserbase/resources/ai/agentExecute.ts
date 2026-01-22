@@ -10,7 +10,7 @@ export const agentExecuteDescription: INodeProperties[] = [
 		displayName: 'Session ID',
 		name: 'sessionId',
 		type: 'string',
-		default: '={{ $json.data.sessionId }}',
+		default: '={{ $json.value }}',
 		required: true,
 		displayOptions: {
 			show: showOnlyForAgentExecute,
