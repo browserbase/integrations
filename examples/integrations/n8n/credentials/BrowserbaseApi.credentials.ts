@@ -12,6 +12,8 @@ export class BrowserbaseApi implements ICredentialType {
 
 	documentationUrl = 'https://docs.browserbase.com';
 
+	icon = 'file:browserbase.svg' as const;
+
 	properties: INodeProperties[] = [
 		{
 			displayName: 'Browserbase API Key',
@@ -37,7 +39,7 @@ export class BrowserbaseApi implements ICredentialType {
 			typeOptions: { password: true },
 			default: '',
 			required: true,
-			description: 'API key for the AI model (e.g., OpenAI API key)',
+			description: 'API key for the AI model (e.g., Gemini API key)',
 		},
 	];
 

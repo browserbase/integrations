@@ -4,12 +4,6 @@ This is an n8n community node that lets you automate browsers using [Browserbase
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/sustainable-use-license/) workflow automation platform.
 
-[Installation](#installation)
-[Operations](#operations)
-[Credentials](#credentials)
-[Compatibility](#compatibility)
-[Resources](#resources)
-
 ## Installation
 
 Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
@@ -34,45 +28,120 @@ To rebuild after changes:
 npm run build && docker-compose up --build
 ```
 
-## Operations
+## How It Works
 
-### Session
-- **Start** - Start a new Browserbase session with Stagehand
-- **End** - End an existing browser session
+The Browserbase Agent node is a single, self-contained node that:
+1. Creates a browser session
+2. Navigates to your starting URL
+3. Executes an AI agent to complete your task
+4. Closes the session automatically
 
-### Browser
-- **Navigate** - Navigate the browser to a specific URL
-- **Screenshot** - Capture a screenshot of the current page (placeholder)
+Just provide a URL and an instruction - the node handles everything else.
 
-### AI
-- **Act** - Perform browser actions using natural language (e.g., "Click the login button")
-- **Observe** - Observe and find elements on the page based on instructions
-- **Extract** - Extract structured data from the page using a JSON schema
-- **Agent Execute** - Execute multi-step tasks using an AI agent
+## Configuration
+
+### Required Fields
+
+| Field | Description |
+|-------|-------------|
+| **Starting URL** | The page where the agent begins (e.g., `https://example.com`) |
+| **Instruction** | Natural language task for the agent to complete |
+
+### Driver Model
+
+The driver model powers the browser session (navigation, DOM interactions). Choose from:
+
+- `google/gemini-2.5-flash` (Recommended - fast & cheap)
+- `google/gemini-2.5-pro`
+- `openai/gpt-4o`
+- `openai/gpt-4o-mini`
+- `anthropic/claude-sonnet-4-5-20250929`
+
+### Agent Mode
+
+| Mode | Description | Best For |
+|------|-------------|----------|
+| **CUA** | Computer Use Agent - uses vision and coordinates | Complex UIs, visual interactions |
+| **DOM** | Uses DOM selectors - works with any LLM | Speed, simple pages |
+| **Hybrid** | Combines both approaches | Fallback reliability |
+
+### Agent Models
+
+Models available depend on the selected mode:
+
+**CUA Mode:**
+- `google/gemini-2.5-computer-use-preview-10-2025`
+- `openai/computer-use-preview`
+- `anthropic/claude-sonnet-4-20250514`
+- `anthropic/claude-sonnet-4-5-20250929`
+- `anthropic/claude-haiku-4-5-20251001`
+
+**DOM Mode:**
+- `google/gemini-2.5-flash`
+- `google/gemini-2.5-pro`
+- `openai/gpt-4o`
+- `openai/gpt-4o-mini`
+- `anthropic/claude-sonnet-4-5-20250929`
+
+**Hybrid Mode:**
+- `google/gemini-3-flash-preview`
+- `anthropic/claude-sonnet-4-20250514`
+- `anthropic/claude-haiku-4-5-20251001`
 
 ## Credentials
 
-You need three credentials to use this node:
+You need three credentials:
 
-1. **Browserbase API Key** - Your Browserbase API key
-2. **Browserbase Project ID** - Your Browserbase project ID
-3. **Model API Key** - API key for the AI model (e.g., OpenAI API key)
+| Credential | Description |
+|------------|-------------|
+| **Browserbase API Key** | Your Browserbase API key |
+| **Browserbase Project ID** | Your Browserbase project ID |
+| **Model API Key** | API key for your chosen model provider |
 
-### Getting your credentials
+> **Important:** The Model API Key must match the provider of your models. If using Google models, provide a Google API key. If using OpenAI, provide an OpenAI key.
+
+### Getting Credentials
 
 1. Sign up at [Browserbase](https://browserbase.com)
-2. Navigate to your dashboard to find your API key and Project ID
-3. Get an API key from your AI provider (e.g., [OpenAI](https://platform.openai.com/api-keys))
+2. Navigate to your dashboard for API key and Project ID
+3. Get an API key from your model provider:
+   - [Google AI Studio](https://aistudio.google.com/apikey)
+   - [OpenAI](https://platform.openai.com/api-keys)
+   - [Anthropic](https://console.anthropic.com/)
 
-## Example Workflow
+## Example Usage
 
-1. **Start Session** - Initialize a browser session with your preferred AI model
-2. **Navigate** - Go to the target website
-3. **Act/Observe/Extract** - Perform AI-powered browser automation
-4. **End Session** - Clean up the browser session
+**Simple extraction:**
+- URL: `https://news.ycombinator.com`
+- Instruction: `Find the top 3 stories and return their titles and URLs`
 
-```
-[Start Session] → [Navigate to URL] → [Act: Fill login form] → [Extract: Get data] → [End Session]
+**Form filling:**
+- URL: `https://example.com/contact`
+- Instruction: `Fill out the contact form with name "John Doe" and email "john@example.com", then submit`
+
+**Navigation + action:**
+- URL: `https://github.com`
+- Instruction: `Search for "stagehand" and click on the first repository result`
+
+## Output
+
+The node returns an `AgentResult` object:
+
+```json
+{
+  "success": true,
+  "message": "Task completed successfully",
+  "actions": [
+    { "type": "act", "action": "clicked submit button" }
+  ],
+  "completed": true,
+  "usage": {
+    "input_tokens": 1250,
+    "output_tokens": 340,
+    "inference_time_ms": 2500
+  },
+  "sessionId": "abc-123"
+}
 ```
 
 ## Compatibility
