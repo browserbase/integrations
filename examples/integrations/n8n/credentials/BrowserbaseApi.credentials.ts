@@ -12,7 +12,7 @@ export class BrowserbaseApi implements ICredentialType {
 
 	documentationUrl = 'https://docs.browserbase.com';
 
-	icon = 'file:browserbase.svg' as const;
+	icon = 'file:../icons/browserbase.svg' as const;
 
 	properties: INodeProperties[] = [
 		{
