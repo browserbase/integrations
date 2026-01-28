@@ -17,7 +17,7 @@ export class Browserbase implements INodeType {
 		icon: 'file:../../icons/browserbase.svg',
 		group: ['transform'],
 		version: 2,
-		subtitle: '={{$parameter["mode"]}} agent',
+		subtitle: '={{$parameter["operation"] + ": " + $parameter["mode"]}}',
 		description:
 			'AI-powered browser automation. Provide a URL and instruction, get results. Supports CUA (vision), DOM (selectors), and Hybrid modes.',
 		defaults: {
@@ -33,13 +33,55 @@ export class Browserbase implements INodeType {
 			},
 		],
 		properties: [
+			// Resource
+			{
+				displayName: 'Resource',
+				name: 'resource',
+				type: 'options',
+				noDataExpression: true,
+				options: [
+					{
+						name: 'Agent',
+						value: 'agent',
+					},
+				],
+				default: 'agent',
+			},
+			// Operation
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['agent'],
+					},
+				},
+				options: [
+					{
+						name: 'Execute',
+						value: 'execute',
+						description: 'Execute an AI agent to perform browser automation tasks',
+						action: 'Execute an agent',
+					},
+				],
+				default: 'execute',
+			},
 			// Notice about modes
 			{
-				displayName:
-					'CUA uses vision/coordinates (best for complex UIs). DOM uses selectors (faster, any LLM). Hybrid combines both.',
+				displayName: 'Mode Info',
 				name: 'modeNotice',
 				type: 'notice',
 				default: '',
+				displayOptions: {
+					show: {
+						resource: ['agent'],
+						operation: ['execute'],
+					},
+				},
+				description:
+					'CUA uses vision/coordinates (best for complex UIs). DOM uses selectors (faster, any LLM). Hybrid combines both.',
 			},
 			// Primary fields
 			{
@@ -48,8 +90,14 @@ export class Browserbase implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				placeholder: 'https://example.com',
-				description: 'Starting page for the agent',
+				placeholder: 'e.g. https://example.com',
+				description: 'The starting page URL for the agent',
+				displayOptions: {
+					show: {
+						resource: ['agent'],
+						operation: ['execute'],
+					},
+				},
 			},
 			{
 				displayName: 'Instruction',
@@ -60,23 +108,41 @@ export class Browserbase implements INodeType {
 				},
 				default: '',
 				required: true,
-				placeholder:
-					"e.g., Find the pricing page and extract all plan names and prices",
-				description: 'Task for the agent to complete',
+				placeholder: 'e.g. Find the pricing page and extract all plan names and prices',
+				description: 'The task for the agent to complete',
+				displayOptions: {
+					show: {
+						resource: ['agent'],
+						operation: ['execute'],
+					},
+				},
 			},
-			// Notice about modes
+			// Notice about models
 			{
-				displayName:
-					'Driver Model is used for the actual primitive operations. Agent Model is used for orchestration. For now pick both models from the same provider.',
-				name: 'modeNotice',
+				displayName: 'Model Info',
+				name: 'modelNotice',
 				type: 'notice',
 				default: '',
+				displayOptions: {
+					show: {
+						resource: ['agent'],
+						operation: ['execute'],
+					},
+				},
+				description:
+					'Driver Model is used for the actual primitive operations. Agent Model is used for orchestration. For now pick both models from the same provider.',
 			},
 			// Driver Model for session start
 			{
 				displayName: 'Driver Model',
 				name: 'driverModel',
 				type: 'options',
+				displayOptions: {
+					show: {
+						resource: ['agent'],
+						operation: ['execute'],
+					},
+				},
 				options: [
 					{
 						name: 'Claude Sonnet 4.5 (Anthropic)',
@@ -107,6 +173,12 @@ export class Browserbase implements INodeType {
 				displayName: 'Mode',
 				name: 'mode',
 				type: 'options',
+				displayOptions: {
+					show: {
+						resource: ['agent'],
+						operation: ['execute'],
+					},
+				},
 				options: [
 					{
 						name: 'CUA (Computer Use Agent)',
@@ -131,11 +203,13 @@ export class Browserbase implements INodeType {
 			},
 			// CUA Models
 			{
-				displayName: 'Model',
+				displayName: 'Agent Model',
 				name: 'modelCua',
 				type: 'options',
 				displayOptions: {
 					show: {
+						resource: ['agent'],
+						operation: ['execute'],
 						mode: ['cua'],
 					},
 				},
@@ -166,11 +240,13 @@ export class Browserbase implements INodeType {
 			},
 			// DOM Models
 			{
-				displayName: 'Model',
+				displayName: 'Agent Model',
 				name: 'modelDom',
 				type: 'options',
 				displayOptions: {
 					show: {
+						resource: ['agent'],
+						operation: ['execute'],
 						mode: ['dom'],
 					},
 				},
@@ -201,11 +277,13 @@ export class Browserbase implements INodeType {
 			},
 			// Hybrid Models
 			{
-				displayName: 'Model',
+				displayName: 'Agent Model',
 				name: 'modelHybrid',
 				type: 'options',
 				displayOptions: {
 					show: {
+						resource: ['agent'],
+						operation: ['execute'],
 						mode: ['hybrid'],
 					},
 				},
@@ -226,14 +304,28 @@ export class Browserbase implements INodeType {
 				default: 'google/gemini-3-flash-preview',
 				description: 'Model for hybrid mode (must support coordinate actions)',
 			},
-			// Agent Options
+			// Options collection (combines agent options)
 			{
-				displayName: 'Agent Options',
-				name: 'agentOptions',
+				displayName: 'Options',
+				name: 'options',
 				type: 'collection',
 				placeholder: 'Add Option',
 				default: {},
+				displayOptions: {
+					show: {
+						resource: ['agent'],
+						operation: ['execute'],
+					},
+				},
 				options: [
+					{
+						displayName: 'Highlight Cursor',
+						name: 'highlightCursor',
+						type: 'boolean',
+						default: true,
+						description:
+							'Whether to highlight the cursor during execution (CUA/Hybrid only)',
+					},
 					{
 						displayName: 'Max Steps',
 						name: 'maxSteps',
@@ -249,93 +341,98 @@ export class Browserbase implements INodeType {
 							rows: 4,
 						},
 						default: '',
+						placeholder: 'e.g. You are a helpful assistant that extracts data from websites',
 						description: 'Custom system prompt for the agent',
-					},
-					{
-						displayName: 'Highlight Cursor',
-						name: 'highlightCursor',
-						type: 'boolean',
-						default: true,
-						description:
-							'Whether to highlight the cursor during execution (CUA/Hybrid only)',
 					},
 				],
 			},
-			// Browser Settings
+			// Browser Options
 			{
-				displayName: 'Browser Settings',
-				name: 'browserSettings',
+				displayName: 'Browser Options',
+				name: 'browserOptions',
 				type: 'collection',
-				placeholder: 'Add Setting',
+				placeholder: 'Add Option',
 				default: {},
+				displayOptions: {
+					show: {
+						resource: ['agent'],
+						operation: ['execute'],
+					},
+				},
 				options: [
 					{
 						displayName: 'Advanced Stealth',
 						name: 'advancedStealth',
 						type: 'boolean',
 						default: false,
-						description: 'Whether to enable advanced stealth mode',
+						description: 'Whether to enable advanced stealth mode to avoid bot detection',
 					},
 					{
 						displayName: 'Block Ads',
 						name: 'blockAds',
 						type: 'boolean',
 						default: true,
-						description: 'Whether to block ads',
+						description: 'Whether to block ads during browsing',
 					},
 					{
 						displayName: 'Record Session',
 						name: 'recordSession',
 						type: 'boolean',
 						default: true,
-						description: 'Whether to record the browser session',
+						description: 'Whether to record the browser session for replay',
 					},
 					{
 						displayName: 'Solve Captchas',
 						name: 'solveCaptchas',
 						type: 'boolean',
 						default: false,
-						description: 'Whether to automatically solve captchas',
+						description: 'Whether to automatically solve captchas encountered during execution',
 					},
 					{
 						displayName: 'Viewport Height',
 						name: 'viewportHeight',
 						type: 'number',
 						default: 711,
-						description: 'Browser viewport height (711 recommended for CUA)',
+						description: 'Browser viewport height in pixels (711 recommended for CUA)',
 					},
 					{
 						displayName: 'Viewport Width',
 						name: 'viewportWidth',
 						type: 'number',
 						default: 1288,
-						description: 'Browser viewport width (1288 recommended for CUA)',
+						description: 'Browser viewport width in pixels (1288 recommended for CUA)',
 					},
 				],
 			},
-			// Session Settings
+			// Session Options
 			{
-				displayName: 'Session Settings',
-				name: 'sessionSettings',
+				displayName: 'Session Options',
+				name: 'sessionOptions',
 				type: 'collection',
-				placeholder: 'Add Setting',
+				placeholder: 'Add Option',
 				default: {},
+				displayOptions: {
+					show: {
+						resource: ['agent'],
+						operation: ['execute'],
+					},
+				},
 				options: [
 					{
 						displayName: 'Region',
 						name: 'region',
 						type: 'options',
 						options: [
-							{ name: 'US West 2', value: 'us-west-2' },
-							{ name: 'US East 1', value: 'us-east-1' },
-							{ name: 'EU West 1', value: 'eu-west-1' },
 							{ name: 'AP South 1', value: 'ap-south-1' },
+							{ name: 'EU West 1', value: 'eu-west-1' },
+							{ name: 'US East 1', value: 'us-east-1' },
+							{ name: 'US West 2', value: 'us-west-2' },
 						],
 						default: 'us-west-2',
-						description: 'Region for the browser session',
+						description: 'The region where the browser session will run',
 					},
 					{
-						displayName: 'Timeout (Seconds)',
+						displayName: 'Timeout',
 						name: 'timeout',
 						type: 'number',
 						default: 300,
@@ -346,7 +443,7 @@ export class Browserbase implements INodeType {
 						name: 'proxies',
 						type: 'boolean',
 						default: true,
-						description: 'Whether to use proxies',
+						description: 'Whether to route traffic through proxies',
 					},
 				],
 			},
@@ -379,13 +476,13 @@ export class Browserbase implements INodeType {
 					agentModel = this.getNodeParameter('modelHybrid', i) as string;
 				}
 
-				const agentOptions = this.getNodeParameter('agentOptions', i, {}) as {
+				const options = this.getNodeParameter('options', i, {}) as {
 					maxSteps?: number;
 					systemPrompt?: string;
 					highlightCursor?: boolean;
 				};
-				const browserSettings = this.getNodeParameter(
-					'browserSettings',
+				const browserOptions = this.getNodeParameter(
+					'browserOptions',
 					i,
 					{},
 				) as {
@@ -396,8 +493,8 @@ export class Browserbase implements INodeType {
 					viewportWidth?: number;
 					viewportHeight?: number;
 				};
-				const sessionSettings = this.getNodeParameter(
-					'sessionSettings',
+				const sessionOptions = this.getNodeParameter(
+					'sessionOptions',
 					i,
 					{},
 				) as {
@@ -448,18 +545,18 @@ export class Browserbase implements INodeType {
 						apiKey: credentials.modelApiKey as string,
 						browserbaseSessionCreateParams: {
 							browserSettings: {
-								recordSession: browserSettings.recordSession ?? true,
-								solveCaptchas: browserSettings.solveCaptchas ?? false,
-								blockAds: browserSettings.blockAds ?? true,
-								advancedStealth: browserSettings.advancedStealth ?? false,
+								recordSession: browserOptions.recordSession ?? true,
+								solveCaptchas: browserOptions.solveCaptchas ?? false,
+								blockAds: browserOptions.blockAds ?? true,
+								advancedStealth: browserOptions.advancedStealth ?? false,
 								viewport: {
-									width: browserSettings.viewportWidth ?? 1288,
-									height: browserSettings.viewportHeight ?? 711,
+									width: browserOptions.viewportWidth ?? 1288,
+									height: browserOptions.viewportHeight ?? 711,
 								},
 							},
-							region: sessionSettings.region ?? 'us-west-2',
-							timeout: sessionSettings.timeout ?? 300,
-							proxies: sessionSettings.proxies ?? true,
+							region: sessionOptions.region ?? 'us-west-2',
+							timeout: sessionOptions.timeout ?? 300,
+							proxies: sessionOptions.proxies ?? true,
 						},
 					};
 
@@ -503,21 +600,21 @@ export class Browserbase implements INodeType {
 						},
 						executeOptions: {
 							instruction,
-							maxSteps: agentOptions.maxSteps ?? 20,
+							maxSteps: options.maxSteps ?? 20,
 						},
 					};
 
-					if (agentOptions.systemPrompt) {
+					if (options.systemPrompt) {
 						(executeBody.agentConfig as Record<string, unknown>).systemPrompt =
-							agentOptions.systemPrompt;
+							options.systemPrompt;
 					}
 
 					if (
 						(mode === 'cua' || mode === 'hybrid') &&
-						agentOptions.highlightCursor !== false
+						options.highlightCursor !== false
 					) {
 						(executeBody.executeOptions as Record<string, unknown>).highlightCursor =
-							agentOptions.highlightCursor ?? true;
+							options.highlightCursor ?? true;
 					}
 
 					const executeResponse = await apiCall(
