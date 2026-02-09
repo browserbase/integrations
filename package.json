@@ -33,7 +33,7 @@
   "author": "Browserbase Team",
   "license": "MIT",
   "devDependencies": {
-    "@eslint/js": "^9.14.0",
+    "@eslint/js": "^10.0.1",
     "@types/node": "^25.0.9",
     "eslint": "^9.14.0",
     "eslint-config-prettier": "^10.1.8",
