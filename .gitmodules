@@ -1,0 +1,3 @@
+[submodule "examples/integrations/n8n"]
+	path = examples/integrations/n8n
+	url = https://github.com/browserbase/n8n-node.git
