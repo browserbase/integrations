@@ -39,7 +39,7 @@ export async function GET(req: Request) {
     headers.set("Content-Length", screenshot.byteLength.toString());
 
     // Return screenshot as binary response
-    return new NextResponse(screenshot, { status: 200, headers });
+    return new NextResponse(Buffer.from(screenshot), { status: 200, headers });
   } catch (error) {
     console.error("Screenshot generation error:", error);
     return NextResponse.json(
