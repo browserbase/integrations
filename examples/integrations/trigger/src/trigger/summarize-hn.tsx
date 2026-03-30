@@ -62,7 +62,7 @@ export const summarizeHackerNews = schedules.task({
       from: "Hacker News Summary <hi@demo.tgr.dev>",
       to: ["james@trigger.dev"],
       subject: "Your morning HN summary",
-      html: render(<HNSummaryEmail articles={summaries} />),
+      html: await render(<HNSummaryEmail articles={summaries} />),
     });
 
     logger.info("Email sent successfully");
