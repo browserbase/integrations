@@ -71,21 +71,6 @@ Streamlined browser automation for AI applications with a focus on simplicity an
 - Clean separation of business logic from retry concerns
 - Production-ready error handling and recovery
 
-#### [**Portia AI Integration**](./examples/integrations/portia/README.md)
-Build intelligent web agents with **persistent authentication** using Portia AI's multi-agent framework. Portia enables both multi-agent task planning with human feedback and stateful multi-agent task execution with human control.
-
-**Key Features:**
-- **Persistent Authentication** - Agents can authenticate once and reuse sessions
-- **Human-in-the-Loop** - Structured clarification system for authentication requests
-- **Multi-User Support** - Isolated browser sessions per end user
-- **Production-Ready** - Open-source framework designed for reliable agent deployment
-
-**Perfect for:**
-- LinkedIn automation with user authentication
-- E-commerce agents that need to log into shopping sites
-- Data extraction from authenticated dashboards
-- Any web task requiring persistent user sessions
-
 ### 🏗️ Development & Deployment Platforms
 
 #### [**Vercel AI Integration**](./examples/integrations/vercel/README.md)
@@ -157,8 +142,6 @@ integrations/
 │       ├── langchain/           # LangChain framework integration
 │       ├── mastra/              # Mastra AI agent integration
 │       ├── mongodb/             # MongoDB data extraction & storage
-│       ├── portia/              # Portia AI multi-agent framework
-│       ├── stripe/              # Stripe Issuing + automation
 │       ├── temporal/            # Temporal workflow orchestration
 │       ├── trigger/             # Trigger.dev background jobs & automation
 │       └── vercel/              # Vercel AI SDK integration
