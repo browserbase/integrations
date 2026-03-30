@@ -1,5 +1,5 @@
 import { openai } from '@ai-sdk/openai';
-import { streamText, convertToCoreMessages, tool, generateText } from 'ai';
+import { streamText, convertToModelMessages, tool, generateText } from 'ai';
 import { z } from 'zod';
 import { chromium } from 'playwright';
 import {anthropic} from '@ai-sdk/anthropic'
@@ -45,16 +45,13 @@ export const maxDuration = 300; // Set max duration to 300 seconds (5 minutes)
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
-  const result = await streamText({
-    experimental_toolCallStreaming: true,
-    model: openai('gpt-4-turbo'),
-    // model: openai('gpt-4o'),
-    // model: anthropic('claude-3-5-sonnet-20240620'),
-    messages: convertToCoreMessages(messages),
+  const result = streamText({
+    model: openai('gpt-4.1'),
+    messages: await convertToModelMessages(messages),
     tools: {
       createSession: tool({
         description: 'Create a new session',
-        parameters: z.object({}),
+        inputSchema: z.object({}),
         execute: async () => {
           const session = await createSession();
           const debugUrl = await getDebugUrl(session.id);
@@ -63,13 +60,13 @@ export async function POST(req: Request) {
       }),
       askForConfirmation: tool({
         description: 'Ask the user for confirmation.',
-        parameters: z.object({
+        inputSchema: z.object({
           message: z.string().describe('The message to ask for confirmation.'),
         }),
       }),
       googleSearch: tool({
         description: 'Search Google for a query',
-        parameters: z.object({
+        inputSchema: z.object({
           toolName: z.string().describe('What the tool is doing'),
           query: z.string().describe('The exact and complete search query as provided by the user. Do not modify this in any way.'),
           sessionId: z.string().describe('The session ID to use for the search. If there is no session ID, create a new session with createSession Tool.'),
@@ -104,7 +101,7 @@ export async function POST(req: Request) {
 
             const response = await generateText({
               // model: openai('gpt-4-turbo'),
-              model: anthropic('claude-3-5-sonnet-20240620'),
+              model: anthropic('claude-sonnet-4-6'),
               prompt: `Evaluate the following web page content: ${text}`,
             });
 
@@ -125,7 +122,7 @@ export async function POST(req: Request) {
       }),
       getPageContent: tool({
         description: 'Get the content of a page using Playwright',
-        parameters: z.object({
+        inputSchema: z.object({
           toolName: z.string().describe('What the tool is doing'),
           url: z.string().describe('The url to get the content of'),
           sessionId: z.string().describe('The session ID to use for the search. If there is no session ID, create a new session with createSession Tool.'),
@@ -151,7 +148,7 @@ export async function POST(req: Request) {
 
             const response = await generateText({
               // model: openai('gpt-4-turbo'),
-              model: anthropic('claude-3-5-sonnet-20240620'),
+              model: anthropic('claude-sonnet-4-6'),
               prompt: `Evaluate the following web page content: ${text}`,
             });
 
@@ -171,5 +168,5 @@ export async function POST(req: Request) {
     },
   });
 
-  return result.toDataStreamResponse();
+  return result.toUIMessageStreamResponse();
 }
