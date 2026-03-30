@@ -4,8 +4,8 @@ import {
   TextMessage,
   ToolCallMessage,
   ToolResultMessage,
+  type AgentResult,
 } from "@inngest/agent-kit";
-import { InferenceResult } from "@inngest/agent-kit";
 
 export async function getStagehand(sessionId: string) {
   const stagehand = new Stagehand({
@@ -13,28 +13,20 @@ export async function getStagehand(sessionId: string) {
     apiKey: process.env.BROWSERBASE_API_KEY,
     projectId: process.env.BROWSERBASE_PROJECT_ID,
     browserbaseSessionID: sessionId,
-    modelName: "gpt-4o",
-    modelClientOptions: {
-      apiKey: process.env.OPENAI_API_KEY,
-    },
+    model: "openai/gpt-4o",
   });
   await stagehand.init();
   return stagehand;
 }
 
 export const StagehandAvailableModelSchema = z.enum([
-  "gpt-4o",
-  "gpt-4o-mini",
-  "gpt-4o-2024-11-20",
-  "gpt-4o-2024-08-06",
-  "gpt-4o-2024-05-13",
-  "claude-3-5-sonnet-latest",
-  "claude-3-5-sonnet-20241022",
-  "claude-3-5-sonnet-20240620",
-  "claude-3-7-sonnet-20250219",
-  "o1-mini",
-  "o1-preview",
-  "o3-mini",
+  "openai/gpt-4o",
+  "openai/gpt-4o-mini",
+  "openai/gpt-4.1",
+  "openai/o3-mini",
+  "anthropic/claude-sonnet-4-6",
+  "anthropic/claude-haiku-3-5",
+  "google/gemini-2.5-flash",
 ]);
 
 // Transform string such as "{ lastFundraiseDate: string, amount: string, round: string }" into a zod schema
@@ -80,7 +72,7 @@ export function stringToZodSchema(schema: string) {
   return z.object(shape);
 }
 
-export function lastResult(results: InferenceResult[] | undefined) {
+export function lastResult(results: AgentResult[] | undefined) {
   if (!results) {
     return undefined;
   }
@@ -93,7 +85,7 @@ type MessageType =
   | ToolResultMessage["type"];
 
 export function isLastMessageOfType(
-  result: InferenceResult,
+  result: AgentResult,
   type: MessageType
 ) {
   return result.output[result.output.length - 1]?.type === type;
