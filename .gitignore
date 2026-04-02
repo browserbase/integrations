@@ -127,3 +127,7 @@ playwright-report/
 
 # Claude Code
 .claude/
+
+# venv
+venv/
+.venv/
