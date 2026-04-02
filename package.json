@@ -9,18 +9,10 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "pnpm -r build",
-    "dev": "pnpm -r dev",
-    "test": "pnpm -r test",
-    "test:unit": "pnpm -r test:unit",
-    "test:integration": "pnpm -r test:integration",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "typecheck": "pnpm -r typecheck",
-    "clean": "pnpm -r clean",
-    "publish:packages": "pnpm -r publish"
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "browserbase",
