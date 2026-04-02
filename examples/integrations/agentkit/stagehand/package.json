@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@browserbasehq/sdk": "^2.6.0",
-    "@browserbasehq/stagehand": "^2.4.4",
+    "@browserbasehq/stagehand": "^3.2.0",
     "@inngest/agent-kit": "^0.8.0",
     "dotenv": "^16.4.7",
     "inngest": "latest",

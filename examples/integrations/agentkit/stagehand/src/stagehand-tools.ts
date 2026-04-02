@@ -15,7 +15,8 @@ export const navigate = createTool({
         network?.state.kv.get("browserbaseSessionID")!
       );
       try {
-        await stagehand.page.goto(url);
+        const page = stagehand.context.pages()[0];
+        await page.goto(url);
         return `Navigated to ${url}.`;
       } catch (error) {
         return `Failed to navigate to ${url}: ${error}`;
@@ -44,7 +45,7 @@ export const extract = createTool({
       );
       const zodSchema = stringToZodSchema(schema);
       try {
-        return await stagehand.page.extract({ instruction, schema: zodSchema });
+        return await stagehand.extract(instruction, zodSchema);
       } catch (error) {
         return `Failed to extract data from the page: ${error}`;
       }
@@ -66,7 +67,7 @@ export const act = createTool({
         network?.state.kv.get("browserbaseSessionID")!
       );
       try {
-        return await stagehand.page.act({ action });
+        return await stagehand.act(action);
       } catch (error) {
         return `Failed to perform action on the page: ${error}`;
       }
@@ -88,7 +89,7 @@ export const observe = createTool({
         network?.state.kv.get("browserbaseSessionID")!
       );
       try {
-        return await stagehand.page.observe({ instruction });
+        return await stagehand.observe(instruction);
       } catch (error) {
         return `Failed to observe the page: ${error}`;
       }

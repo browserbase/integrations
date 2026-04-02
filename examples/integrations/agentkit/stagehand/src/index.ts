@@ -60,7 +60,7 @@ When the answer is found, call the "done" agent.`,
 
       // ensure to loop back to the last executing agent if a tool has been called
       if (lastMessage && isLastMessageOfType(lastMessage, "tool_call")) {
-        return [lastMessage?.agent.name];
+        return [lastMessage.agentName];
       }
 
       const tool = result.toolCalls[0];
@@ -121,7 +121,7 @@ const simpleSearchWorkflow = inngest.createFunction(
 
     const response = await searchNetwork.run(event.data.input, {
       state: new State({
-        browserbaseSessionID,
+        data: { browserbaseSessionID },
       }),
     });
 
