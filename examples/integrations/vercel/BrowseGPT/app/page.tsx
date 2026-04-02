@@ -1,55 +1,78 @@
 'use client';
 
-import { useChat } from 'ai/react';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport, type UIMessage } from 'ai';
 import { useState, useEffect } from 'react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Markdown from 'react-markdown';
 import { MarkdownWrapper } from '@/components/ui/markdown';
 import remarkGfm from 'remark-gfm';
 import BlurFade from "@/components/ui/blur-fade";
-// import Spinner from "@/components/spinner";
 import VercelLogo from "@/components/vercel";
 import BrowserbaseLogo from "@/components/browserbase"
 import FlickeringGrid from '@/components/ui/flickering-grid';
 import FlickeringLoad from '@/components/ui/flickering-load';
 import { Prompts } from '@/components/prompts';
 
+function messageText(m: UIMessage): string {
+  return m.parts
+    .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+    .map((p) => p.text)
+    .join('');
+}
+
+function isToolUIPart(p: UIMessage['parts'][number]): boolean {
+  return typeof p.type === 'string' && p.type.startsWith('tool-');
+}
+
+type ToolPartLoose = {
+  type: string;
+  state?: string;
+  input?: Record<string, unknown>;
+  output?: Record<string, unknown>;
+};
+
 export default function Chat() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    maxSteps: 5,
+  const [input, setInput] = useState('');
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
   });
+
+  const isLoading = status === 'streaming' || status === 'submitted';
 
   const [showAlert, setShowAlert] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
 
+  const lastMessage = messages[messages.length - 1];
+  const lastText = lastMessage ? messageText(lastMessage) : '';
+
   const isGenerating =
     isLoading &&
     (!messages.length ||
-      messages[messages.length - 1].role !== 'assistant' ||
-      !messages[messages.length - 1].content);
+      lastMessage?.role !== 'assistant' ||
+      !lastText);
 
   useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-
     if (isGenerating) {
       setShowAlert(true);
 
-      // Check if any tool invocation has dataCollected = true
-      const dataCollected = lastMessage?.toolInvocations?.some(
-        invocation => 'result' in invocation && 
-        typeof invocation.result === 'object' &&
-        invocation.result !== null &&
-        'dataCollected' in invocation.result &&
-        invocation.result.dataCollected === true
-      );
+      const dataCollected = lastMessage?.parts.some((part) => {
+        if (!isToolUIPart(part)) return false;
+        const tp = part as ToolPartLoose;
+        const out = tp.state === 'output-available' ? tp.output : undefined;
+        return (
+          out &&
+          typeof out === 'object' &&
+          'dataCollected' in out &&
+          (out as { dataCollected?: boolean }).dataCollected === true
+        );
+      });
 
-      if (dataCollected && !lastMessage.content) {
-        // The AI has collected data and is generating a response
+      if (dataCollected && !lastText) {
         setStatusMessage('The AI has collected data and is generating a response. Please wait.');
       } else {
-        // The AI is currently processing the request
         setStatusMessage('The AI is currently processing your request. Please wait.');
       }
 
@@ -57,37 +80,33 @@ export default function Chat() {
     } else {
       setShowAlert(false);
     }
-  }, [isGenerating, messages]);
+  }, [isGenerating, messages, lastMessage, lastText]);
 
   useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.toolInvocations) {
-      for (const invocation of lastMessage.toolInvocations) {
-        if ('result' in invocation && invocation.result?.sessionId) {
-          setSessionId(invocation.result.sessionId);
-          break;
-        }
+    if (!lastMessage?.parts) return;
+    for (const part of lastMessage.parts) {
+      if (!isToolUIPart(part)) continue;
+      const tp = part as ToolPartLoose;
+      if (tp.state !== 'output-available') continue;
+      const out = tp.output as { sessionId?: string } | undefined;
+      if (out?.sessionId) {
+        setSessionId(out.sessionId);
+        break;
       }
     }
-  }, [messages]);
+  }, [messages, lastMessage]);
 
   const handleSubmitWrapper = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setHasInteracted(true); 
-    handleSubmit(e, { data: { message: input } });
+    if (!input.trim()) return;
+    setHasInteracted(true);
+    void sendMessage({ text: input });
+    setInput('');
   };
 
   const handlePromptClick = (text: string) => {
     setHasInteracted(true);
-    // Set the input value
-    handleInputChange({ target: { value: text } } as React.ChangeEvent<HTMLInputElement>);
-    // Submit the form after a short delay
-    setTimeout(() => {
-      const submitButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
-      if (submitButton) {
-        submitButton.click();
-      }
-    }, 100); // 100ms delay, adjust as needed
+    void sendMessage({ text });
   };
 
   return (
@@ -125,31 +144,42 @@ export default function Chat() {
                 <Prompts onPromptClick={handlePromptClick} />
               </div>
             ) : (
-              messages.map((m, index) => (
+              messages.map((m, index) => {
+                const text = messageText(m);
+                const toolParts = m.parts.filter(isToolUIPart);
+
+                return (
                 <div key={m.id} className="whitespace-pre-wrap">
                   {m.role === 'user' ? (
                     <>
                       <strong className="block mb-0 text-xl pb-2">User:</strong>
-                      <p className="mt-0 pb-4 font-mono">{m.content}</p>
+                      <p className="mt-0 pb-4 font-mono">{text}</p>
                     </>
-                  ) : m.toolInvocations ? (
+                  ) : toolParts.length > 0 ? (
                     <BlurFade>
                       <Alert className="my-4 border-[#E5E7EB]">
                         <AlertDescription>
-                          {m.toolInvocations?.map((invocation, index) => {
+                          {toolParts.map((part, partIndex) => {
+                            const tp = part as ToolPartLoose;
+                            const input = tp.input;
+                            const out =
+                              tp.state === 'output-available'
+                                ? tp.output
+                                : undefined;
+
                             let content = '';
-                            if ('result' in invocation) {
-                              if (invocation.result?.sessionId) {
-                                content = `Session ID: ${invocation.result.sessionId}`;
-                              } else if (invocation.result?.content) {
-                                content = `Content: ${invocation.result.content}`;
-                              }
+                            if (out?.sessionId) {
+                              content = `Session ID: ${String(out.sessionId)}`;
+                            } else if (out?.content) {
+                              content = `Content: ${String(out.content)}`;
                             }
-                            if (invocation.args?.debuggerFullscreenUrl) {
+
+                            const debuggerUrl = input?.debuggerFullscreenUrl;
+                            if (typeof debuggerUrl === 'string') {
                               return (
-                                <div key={index}>
+                                <div key={partIndex}>
                                   <iframe
-                                    src={`${invocation.args.debuggerFullscreenUrl}&navBar=false`}
+                                    src={`${debuggerUrl}&navBar=false`}
                                     className="w-full sm:h-72 h-52"
                                     title="Debugger"
                                     sandbox="allow-same-origin allow-scripts"
@@ -159,7 +189,7 @@ export default function Chat() {
                               );
                             }
                             return content ? (
-                              <div key={index} className="overflow-x-auto">
+                              <div key={partIndex} className="overflow-x-auto">
                                 <pre className="whitespace-pre-wrap break-all">{content}</pre>
                               </div>
                             ) : null;
@@ -182,36 +212,40 @@ export default function Chat() {
                         }`}
                       >
                         <MarkdownWrapper>
-                          <Markdown remarkPlugins={[remarkGfm]}>{m.content}</Markdown>
+                          <Markdown remarkPlugins={[remarkGfm]}>{text}</Markdown>
                         </MarkdownWrapper>
                       </div>
                     </>
                   )}
                 </div>
-              ))
+              );
+              })
             )}
 
-            {showAlert && !sessionId && (
+            {showAlert && !sessionId && lastMessage?.role === 'assistant' && (
               <BlurFade>
                 <Alert className="my-4 border-[#E5E7EB] mb-20">
                   <div className="flex justify-between items-center">
                     <div>
                       <AlertTitle>
-                        {messages[messages.length - 1].toolInvocations
-                          ?.map((invocation) => {
-                            if ('result' in invocation) {
-                              return invocation.result?.toolName;
-                            }
-                            return invocation.args?.toolName;
+                        {lastMessage.parts
+                          .filter(isToolUIPart)
+                          .map((part) => {
+                            const tp = part as ToolPartLoose;
+                            const out =
+                              tp.state === 'output-available'
+                                ? (tp.output as { toolName?: string } | undefined)
+                                : undefined;
+                            if (out?.toolName) return out.toolName;
+                            const input = tp.input as { toolName?: string } | undefined;
+                            return input?.toolName;
                           })
                           .filter(Boolean)
                           .join(', ')}
                       </AlertTitle>
                       <AlertDescription>{statusMessage}</AlertDescription>
                     </div>
-                    {/* <div role="status" className="w-[70px] h-[40px]"> */}
                       <FlickeringLoad height={50} width={60} className='p-1'/>
-                    {/* </div> */}
                   </div>
                 </Alert>
               </BlurFade>
@@ -228,7 +262,7 @@ export default function Chat() {
                   className="w-full p-2 pr-10 border border-[#E5E7EB] transition-all duration-200 ease-in-out shadow-md shadow-gray-300/50 focus:border-red-300 focus:shadow-lg focus:shadow-red-300/40 outline-none"
                   value={input}
                   placeholder="Ask anything..."
-                  onChange={handleInputChange}
+                  onChange={(e) => setInput(e.target.value)}
                 />
                 <button
                   type="submit"
