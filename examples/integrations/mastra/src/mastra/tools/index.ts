@@ -53,7 +53,8 @@ class StagehandSessionManager {
       }
 
       try {
-        const title = await this.stagehand.page.evaluate(() => document.title);
+        const page = this.stagehand.context.pages()[0];
+        const title = await page.evaluate(() => document.title);
         console.log('Session check successful, page title:', title);
         return this.stagehand;
       } catch (error) {
@@ -179,17 +180,15 @@ export const stagehandExtractTool = createTool({
 
 const performWebAction = async (url?: string, action?: string) => {
   const stagehand = await sessionManager.ensureStagehand();
-  const page = stagehand.page;
+  const page = stagehand.context.pages()[0];
   
   try {
-    // Navigate to the URL if provided
     if (url) {
       await page.goto(url);
     }
     
-    // Perform the action
     if (action) {
-      await page.act(action);
+      await stagehand.act(action);
     }
     
     return { 
@@ -211,25 +210,23 @@ const performWebObservation = async (url?: string, instruction?: string) => {
       throw new Error('Failed to get Stagehand instance');
     }
     
-    const page = stagehand.page;
+    const page = stagehand.context.pages()[0];
     if (!page) {
       console.error('Page not available');
       throw new Error('Page not available');
     }
     
     try {
-      // Navigate to the URL if provided
       if (url) {
         console.log(`Navigating to ${url}`);
         await page.goto(url);
         console.log(`Successfully navigated to ${url}`);
       }
       
-      // Observe the page
       if (instruction) {
         console.log(`Observing with instruction: ${instruction}`);
         try {
-          const actions = await page.observe(instruction);
+          const actions = await stagehand.observe(instruction);
           console.log(`Observation successful, found ${actions.length} actions`);
           return actions;
         } catch (observeError) {
@@ -260,31 +257,24 @@ const performWebExtraction = async (
   
   try {
     const stagehand = await sessionManager.ensureStagehand();
-    const page = stagehand.page;
+    const page = stagehand.context.pages()[0];
     
     try {
-      // Navigate to the URL if provided
       if (url) {
         console.log(`Navigating to ${url}`);
         await page.goto(url);
         console.log(`Successfully navigated to ${url}`);
       }
       
-      // Extract data
       if (instruction) {
         console.log(`Extracting with instruction: ${instruction}`);
         
-        // Create a default schema if none is provided from Mastra Agent
         const finalSchemaObj = schemaObj || { content: z.string() }; 
         
         try {
           const schema = z.object(finalSchemaObj);
           
-          const result = await page.extract({
-            instruction,
-            schema,
-            useTextExtract
-          });
+          const result = await stagehand.extract(instruction, schema);
           
           console.log(`Extraction successful:`, result);
           return result;
@@ -322,12 +312,11 @@ export const stagehandNavigateTool = createTool({
     try {
       const stagehand = await sessionManager.ensureStagehand();
       
-      // Navigate to the URL
-      await stagehand.page.goto(context.url);
+      const page = stagehand.context.pages()[0];
+      await page.goto(context.url);
       
-      // Get page title and current URL
-      const title = await stagehand.page.evaluate(() => document.title);
-      const currentUrl = await stagehand.page.evaluate(() => window.location.href);
+      const title = await page.evaluate(() => document.title);
+      const currentUrl = await page.evaluate(() => window.location.href);
       
       return { 
         success: true, 
