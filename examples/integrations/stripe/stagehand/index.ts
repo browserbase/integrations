@@ -36,11 +36,7 @@ async function run() {
     );
   }
 
-  const page = stagehand.page;
-  const context = stagehand.context;
   await main({
-    page,
-    context,
     stagehand,
   });
   await stagehand.close();
