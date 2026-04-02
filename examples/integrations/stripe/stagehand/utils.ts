@@ -1,4 +1,9 @@
-import { ObserveResult, Page } from "@browserbasehq/stagehand";
+import type {
+  Action,
+  ObserveResult,
+  Page,
+  Stagehand,
+} from "@browserbasehq/stagehand";
 import boxen from "boxen";
 import chalk from "chalk";
 import fs from "fs/promises";
@@ -10,15 +15,10 @@ export function announce(message: string, title?: string) {
       padding: 1,
       margin: 3,
       title: title || "Stagehand",
-    })
+    }),
   );
 }
 
-/**
- * Get an environment variable and throw an error if it's not found
- * @param name - The name of the environment variable
- * @returns The value of the environment variable
- */
 export function getEnvVar(name: string, required = true): string | undefined {
   const value = process.env[name];
   if (!value && required) {
@@ -27,12 +27,6 @@ export function getEnvVar(name: string, required = true): string | undefined {
   return value;
 }
 
-/**
- * Validate a Zod schema against some data
- * @param schema - The Zod schema to validate against
- * @param data - The data to validate
- * @returns Whether the data is valid against the schema
- */
 export function validateZodSchema(schema: z.ZodTypeAny, data: unknown) {
   try {
     schema.parse(data);
@@ -42,11 +36,9 @@ export function validateZodSchema(schema: z.ZodTypeAny, data: unknown) {
   }
 }
 
-export async function drawObserveOverlay(page: Page, results: ObserveResult[]) {
-  // Convert single xpath to array for consistent handling
-  const xpathList = results.map((result) => result.selector);
+export async function drawObserveOverlay(page: Page, results: ObserveResult) {
+  const xpathList = results.map((result: Action) => result.selector);
 
-  // Filter out empty xpaths
   const validXpaths = xpathList.filter((xpath) => xpath !== "xpath=");
 
   await page.evaluate((selectors) => {
@@ -59,7 +51,7 @@ export async function drawObserveOverlay(page: Page, results: ObserveResult[]) {
           document,
           null,
           XPathResult.FIRST_ORDERED_NODE_TYPE,
-          null
+          null,
         ).singleNodeValue;
       } else {
         element = document.querySelector(selector);
@@ -84,7 +76,6 @@ export async function drawObserveOverlay(page: Page, results: ObserveResult[]) {
 }
 
 export async function clearOverlays(page: Page) {
-  // remove existing stagehandObserve attributes
   await page.evaluate(() => {
     const elements = document.querySelectorAll('[stagehandObserve="true"]');
     elements.forEach((el) => {
@@ -97,39 +88,55 @@ export async function clearOverlays(page: Page) {
   });
 }
 
-export async function simpleCache(
-  instruction: string,
-  actionToCache: ObserveResult
-) {
-  // Save action to cache.json
+export async function simpleCache(instruction: string, actionToCache: Action) {
   try {
-    // Read existing cache if it exists
-    let cache: Record<string, ObserveResult> = {};
+    let cache: Record<string, Action> = {};
     try {
       const existingCache = await fs.readFile("cache.json", "utf-8");
       cache = JSON.parse(existingCache);
-    } catch (error) {
-      // File doesn't exist yet, use empty cache
+    } catch {
+      // no file yet
     }
 
-    // Add new action to cache
     cache[instruction] = actionToCache;
 
-    // Write updated cache to file
     await fs.writeFile("cache.json", JSON.stringify(cache, null, 2));
   } catch (error) {
     console.error(chalk.red("Failed to save to cache:"), error);
   }
 }
 
-export async function readCache(
-  instruction: string
-): Promise<ObserveResult | null> {
+export async function readCache(instruction: string): Promise<Action | null> {
   try {
     const existingCache = await fs.readFile("cache.json", "utf-8");
-    const cache: Record<string, ObserveResult> = JSON.parse(existingCache);
+    const cache: Record<string, Action> = JSON.parse(existingCache);
     return cache[instruction] || null;
-  } catch (error) {
+  } catch {
     return null;
   }
+}
+
+export async function actWithCache(
+  stagehand: Stagehand,
+  page: Page,
+  instruction: string,
+): Promise<void> {
+  const cachedAction = await readCache(instruction);
+  if (cachedAction) {
+    console.log(chalk.blue("Using cached action for:"), instruction);
+    await stagehand.act(cachedAction);
+    return;
+  }
+
+  const results = await stagehand.observe(instruction);
+  console.log(chalk.blue("Got results:"), results);
+
+  const actionToCache = results[0];
+  console.log(chalk.blue("Taking cacheable action:"), actionToCache);
+  await simpleCache(instruction, actionToCache);
+  await drawObserveOverlay(page, results);
+  await page.waitForTimeout(1000);
+  await clearOverlays(page);
+
+  await stagehand.act(actionToCache);
 }
