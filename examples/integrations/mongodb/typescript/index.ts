@@ -1,4 +1,4 @@
-import { Stagehand, Page, BrowserContext } from "@browserbasehq/stagehand";
+import { Stagehand, type Page } from "@browserbasehq/stagehand";
 import StagehandConfig from "./stagehand.config.js";
 import chalk from "chalk";
 import boxen from "boxen";
@@ -274,7 +274,11 @@ async function aggregateData<T>(
 /**
  * Scrapes a product list from an Amazon category page
  */
-async function scrapeProductList(page: Page, categoryUrl: string): Promise<ProductList> {
+async function scrapeProductList(
+  page: Page,
+  categoryUrl: string,
+  stagehand: Stagehand,
+): Promise<ProductList> {
   // Navigate to Amazon homepage first
   await page.goto('https://www.amazon.com');
   await page.waitForTimeout(2000);
@@ -296,24 +300,26 @@ async function scrapeProductList(page: Page, categoryUrl: string): Promise<Produ
   });
   await page.waitForTimeout(1000);
 
-  // Extract product data using Stagehand
-  const data = await page.extract({
-    instruction: "Extract all product information from this Amazon category page, including product names, prices, URLs, ratings",
-    schema: z.object({
-      products: z.array(z.object({
+  const listSchema = z.object({
+    products: z.array(
+      z.object({
         name: z.string(),
         price: z.string(),
         url: z.string(),
         rating: z.number().optional(),
         reviewCount: z.number().optional(),
-      })),
-      category: z.string(),
-      totalProducts: z.number().optional(),
-    }),
+      }),
+    ),
+    category: z.string(),
+    totalProducts: z.number().optional(),
   });
 
-  // Process the extracted data
-  const products = data.products.map(product => ({
+  const data = await stagehand.extract(
+    "Extract all product information from this Amazon category page, including product names, prices, URLs, ratings",
+    listSchema,
+  );
+
+  const products = data.products.map((product: (typeof data.products)[number]) => ({
     ...product,
     dateScraped: new Date(),
   }));
@@ -337,7 +343,11 @@ async function scrapeProductList(page: Page, categoryUrl: string): Promise<Produ
 /**
  * Scrapes detailed information for a single product
  */
-async function scrapeProductDetails(page: Page, productUrl: string): Promise<Product> {
+async function scrapeProductDetails(
+  page: Page,
+  productUrl: string,
+  stagehand: Stagehand,
+): Promise<Product> {
   await page.goto(productUrl);
   
   // Wait for the page to load
@@ -353,11 +363,10 @@ async function scrapeProductDetails(page: Page, productUrl: string): Promise<Pro
   });
   await page.waitForTimeout(1000);
 
-  // Extract product details using Stagehand
-  const product = await page.extract({
-    instruction: "Extract detailed product information from this Amazon product page, including name, price, description, specifications, brand, category, image URL, rating, review count, and availability",
-    schema: ProductSchema.omit({ dateScraped: true }),
-  });
+  const product = await stagehand.extract(
+    "Extract detailed product information from this Amazon product page, including name, price, description, specifications, brand, category, image URL, rating, review count, and availability",
+    ProductSchema.omit({ dateScraped: true }),
+  );
 
   // Add additional data
   const completeProduct: Product = {
@@ -445,11 +454,9 @@ async function runQueries(): Promise<void> {
 // ========== Main Function ==========
 async function main({
   page,
-  context,
   stagehand,
 }: {
   page: Page;
-  context: BrowserContext;
   stagehand: Stagehand;
 }) {
   try {
@@ -471,7 +478,7 @@ async function main({
     console.log(chalk.blue("📊 Starting to scrape product listing..."));
     
     // Scrape product listing
-    const productList = await scrapeProductList(page, categoryUrl);
+    const productList = await scrapeProductList(page, categoryUrl, stagehand);
     console.log(chalk.green(`✅ Scraped ${productList.products.length} products from category: ${productList.category}`));
     
     // Scrape detailed information for the first 3 products
@@ -482,7 +489,7 @@ async function main({
       
       try {
         // Scrape product details
-        const detailedProduct = await scrapeProductDetails(page, product.url);
+        const detailedProduct = await scrapeProductDetails(page, product.url, stagehand);
         console.log(chalk.green(`✅ Scraped detailed information for: ${detailedProduct.name}`));
         
         // Wait between requests to avoid rate limiting
@@ -526,12 +533,10 @@ async function run() {
     );
   }
 
-  const page = stagehand.page;
-  const context = stagehand.context;
-  
+  const page = stagehand.context.pages()[0];
+
   await main({
     page,
-    context,
     stagehand,
   });
   
