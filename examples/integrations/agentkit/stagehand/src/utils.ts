@@ -25,7 +25,6 @@ export const StagehandAvailableModelSchema = z.enum([
   "openai/gpt-4.1",
   "openai/o3-mini",
   "anthropic/claude-sonnet-4-6",
-  "anthropic/claude-haiku-3-5",
   "google/gemini-2.5-flash",
 ]);
 
