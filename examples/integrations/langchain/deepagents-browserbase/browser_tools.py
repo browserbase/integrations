@@ -6,8 +6,8 @@ import os
 import re
 from typing import Any
 
-from browserbase import Browserbase
 from bs4 import BeautifulSoup
+import httpx
 from langchain_core.tools import tool
 from stagehand import Stagehand, StagehandConfig
 
@@ -29,8 +29,11 @@ def _require_env(name: str) -> str:
     return value
 
 
-def _browserbase_client() -> Browserbase:
-    return Browserbase(api_key=_require_env("BROWSERBASE_API_KEY"))
+def _browserbase_headers() -> dict[str, str]:
+    return {
+        "x-bb-api-key": _require_env("BROWSERBASE_API_KEY"),
+        "Content-Type": "application/json",
+    }
 
 
 def _normalize(value: Any) -> Any:
@@ -113,22 +116,31 @@ def _run_async(coro: Any) -> Any:
 @tool
 def browserbase_search(query: str, num_results: int = 5) -> str:
     """Search the web with Browserbase. Use this first for discovery before opening pages."""
-    bb = _browserbase_client()
-    response = bb.search.web(query=query, num_results=max(1, min(num_results, 10)))
+    response = httpx.post(
+        "https://api.browserbase.com/v1/search",
+        headers=_browserbase_headers(),
+        json={
+            "query": query,
+            "numResults": max(1, min(num_results, 10)),
+        },
+        timeout=30.0,
+    )
+    response.raise_for_status()
+    payload = response.json()
     results = []
-    for result in response.results:
+    for result in payload.get("results", []):
         results.append(
             {
-                "title": getattr(result, "title", ""),
-                "url": getattr(result, "url", ""),
-                "author": getattr(result, "author", None),
-                "published_date": getattr(result, "published_date", None),
+                "title": result.get("title", ""),
+                "url": result.get("url", ""),
+                "author": result.get("author"),
+                "published_date": result.get("publishedDate"),
             }
         )
     return _json(
         {
             "query": query,
-            "request_id": getattr(response, "request_id", None),
+            "request_id": payload.get("requestId"),
             "results": results,
         }
     )
@@ -137,10 +149,19 @@ def browserbase_search(query: str, num_results: int = 5) -> str:
 @tool
 def browserbase_fetch(url: str, use_proxy: bool = False, max_chars: int = 12000) -> str:
     """Fetch page content without a browser session. Best for static pages and quick reads."""
-    bb = _browserbase_client()
-    response = bb.fetch_api.create(url=url, proxies=use_proxy)
-    content = getattr(response, "content", "")
-    content_type = (getattr(response, "content_type", "") or "").lower()
+    response = httpx.post(
+        "https://api.browserbase.com/v1/fetch",
+        headers=_browserbase_headers(),
+        json={
+            "url": url,
+            "proxies": use_proxy,
+        },
+        timeout=30.0,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    content = payload.get("content", "")
+    content_type = (payload.get("contentType", "") or "").lower()
 
     title = ""
     text = str(content)[:max_chars]
@@ -150,9 +171,9 @@ def browserbase_fetch(url: str, use_proxy: bool = False, max_chars: int = 12000)
     return _json(
         {
             "url": url,
-            "status_code": getattr(response, "status_code", None),
-            "content_type": getattr(response, "content_type", None),
-            "encoding": getattr(response, "encoding", None),
+            "status_code": payload.get("statusCode"),
+            "content_type": payload.get("contentType"),
+            "encoding": payload.get("encoding"),
             "title": title,
             "text": text,
         }
