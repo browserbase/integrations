@@ -9,10 +9,14 @@
     "node": ">=18.0.0"
   },
   "scripts": {
+    "build:packages": "pnpm -r --filter './packages/*' run build",
+    "changeset": "changeset",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "version-packages": "changeset version",
+    "release": "pnpm run build:packages && changeset publish"
   },
   "keywords": [
     "browserbase",
@@ -25,6 +29,8 @@
   "author": "Browserbase Team",
   "license": "MIT",
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.9",
     "@eslint/js": "^9.14.0",
     "@types/node": "^25.0.9",
     "eslint": "^10.1.0",
