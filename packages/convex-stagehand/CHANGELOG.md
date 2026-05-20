@@ -1,5 +1,11 @@
 # @browserbasehq/convex-stagehand
 
+## 0.1.1
+
+### Patch Changes
+
+- [#73](https://github.com/browserbase/integrations/pull/73) [`c79c87c`](https://github.com/browserbase/integrations/commit/c79c87cd632cb863985e6825d805ed77cdca2a3c) Thanks [@shrey150](https://github.com/shrey150)! - Migrate the Convex Stagehand package into the integrations monorepo.
+
 ## 0.1.0
 
 ### Minor Changes
