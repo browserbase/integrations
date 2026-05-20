@@ -1,6 +1,6 @@
 {
   "name": "@browserbasehq/openclaw-browserbase",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OpenClaw plugin for cloud browser automation with anti-bot stealth, CAPTCHA solving, and residential proxies via Browserbase",
   "packageManager": "pnpm@10.21.0",
   "type": "module",
