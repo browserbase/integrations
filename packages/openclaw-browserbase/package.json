@@ -1,0 +1,57 @@
+{
+  "name": "@browserbasehq/openclaw-browserbase",
+  "version": "0.1.0",
+  "description": "OpenClaw plugin for cloud browser automation with anti-bot stealth, CAPTCHA solving, and residential proxies via Browserbase",
+  "packageManager": "pnpm@10.21.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src",
+    "types",
+    "openclaw.plugin.json"
+  ],
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "browserbase",
+    "browser",
+    "automation",
+    "web-scraping",
+    "captcha",
+    "anti-bot",
+    "stealth",
+    "proxy",
+    "headless-browser",
+    "ai-agent"
+  ],
+  "author": "Browserbase",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/browserbase/integrations.git",
+    "directory": "packages/openclaw-browserbase"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.1.29"
+  },
+  "openclaw": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "tar": "^7.5.9"
+  }
+}

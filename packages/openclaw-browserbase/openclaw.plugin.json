@@ -1,0 +1,47 @@
+{
+  "id": "browserbase",
+  "name": "Browserbase",
+  "description": "Browse the web with anti-bot stealth, automatic CAPTCHA solving, and residential proxies. Automates browser interactions via natural language with full JavaScript rendering.",
+  "version": "0.1.0",
+  "kind": "tool",
+  "uiHints": {
+    "apiKey": {
+      "label": "Browserbase API Key",
+      "sensitive": true,
+      "placeholder": "bb_...",
+      "help": "Get your key from browserbase.com/settings or use ${BROWSERBASE_API_KEY}."
+    },
+    "projectId": {
+      "label": "Browserbase Project ID",
+      "placeholder": "proj_...",
+      "help": "Get your project ID from browserbase.com/settings or use ${BROWSERBASE_PROJECT_ID}."
+    },
+    "baseUrl": {
+      "label": "Browserbase API Base URL",
+      "placeholder": "https://api.browserbase.com",
+      "advanced": true
+    },
+    "promptOnStart": {
+      "label": "Prompt On Startup",
+      "help": "Prompt interactively for credentials if missing (TTY only).",
+      "advanced": true
+    },
+    "autoSyncSkills": {
+      "label": "Auto Sync Skills",
+      "help": "Automatically sync browser-automation/functions skills from github:browserbase/skills when missing.",
+      "advanced": true
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "apiKey": { "type": "string" },
+      "projectId": { "type": "string" },
+      "baseUrl": { "type": "string" },
+      "promptOnStart": { "type": "boolean" },
+      "autoSyncSkills": { "type": "boolean" }
+    },
+    "required": []
+  }
+}

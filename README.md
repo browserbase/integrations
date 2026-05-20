@@ -37,6 +37,7 @@ integrations/
 │       ├── temporal/             # Temporal workflow orchestration
 │       ├── trigger/              # Trigger.dev background jobs & automation
 │       └── vercel/               # Vercel integrations
+├── packages/                     # Published npm packages
 └── README.md
 ```
 
