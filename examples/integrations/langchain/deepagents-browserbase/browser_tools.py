@@ -111,10 +111,47 @@ def browserbase_search(query: str, num_results: int = 5) -> str:
 
 
 @tool
-def browserbase_fetch(url: str, use_proxy: bool = False, max_chars: int = 12000) -> str:
+def browserbase_fetch(
+    url: str,
+    format: str = "markdown",
+    schema: str = "",
+    use_proxy: bool = False,
+    allow_redirects: bool = False,
+    allow_insecure_ssl: bool = False,
+    max_chars: int = 12000,
+) -> str:
     """Fetch page content without a browser session. Best for static pages and quick reads."""
     bb = _browserbase_client()
-    response = bb.fetch_api.create(url=url, proxies=use_proxy)
+    normalized_format = format.strip().lower() or "markdown"
+    if normalized_format not in {"raw", "markdown", "json"}:
+        raise ValueError("format must be one of: raw, markdown, json")
+
+    parsed_schema: dict[str, Any] | None = None
+    if schema.strip():
+        try:
+            loaded_schema = json.loads(schema)
+        except json.JSONDecodeError as exc:
+            raise ValueError("schema must be valid JSON") from exc
+        if not isinstance(loaded_schema, dict):
+            raise ValueError("schema must decode to a JSON object")
+        parsed_schema = loaded_schema
+
+    if normalized_format == "json" and parsed_schema is None:
+        raise ValueError("schema is required when format='json'")
+    if normalized_format != "json" and parsed_schema is not None:
+        raise ValueError("schema can only be used when format='json'")
+
+    request: dict[str, Any] = {
+        "url": url,
+        "format": normalized_format,
+        "proxies": use_proxy,
+        "allow_redirects": allow_redirects,
+        "allow_insecure_ssl": allow_insecure_ssl,
+    }
+    if parsed_schema is not None:
+        request["schema"] = parsed_schema
+
+    response = bb.fetch_api.create(**request)
     content = getattr(response, "content", "")
     content_type = (
         getattr(response, "content_type", None)
@@ -123,20 +160,33 @@ def browserbase_fetch(url: str, use_proxy: bool = False, max_chars: int = 12000)
     ).lower()
 
     title = ""
-    text = str(content)[:max_chars]
-    if "html" in content_type:
-        title, text = _html_to_text(str(content), max_chars=max_chars)
+    text = ""
+    structured_content: Any = None
+
+    if normalized_format == "json":
+        structured_content = _normalize(content)
+    else:
+        text = str(content)[:max_chars]
+        if normalized_format == "raw" and "html" in content_type:
+            title, text = _html_to_text(str(content), max_chars=max_chars)
 
     return _json(
         {
             "url": url,
+            "format": normalized_format,
+            "schema": parsed_schema,
+            "used_proxy": use_proxy,
+            "allow_redirects": allow_redirects,
+            "allow_insecure_ssl": allow_insecure_ssl,
             "status_code": getattr(response, "status_code", None)
             or getattr(response, "statusCode", None),
+            "headers": getattr(response, "headers", None),
             "content_type": getattr(response, "content_type", None)
             or getattr(response, "contentType", None),
             "encoding": getattr(response, "encoding", None),
             "title": title,
             "text": text,
+            "content": structured_content,
         }
     )
 

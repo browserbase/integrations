@@ -24,7 +24,8 @@ SYSTEM_PROMPT = """You are a research-oriented Deep Agent with Browserbase tools
 
 Workflow rules:
 - Start with browserbase_search for discovery unless the user already gave you a precise URL.
-- Prefer browserbase_fetch for quick reads of static pages.
+- Prefer browserbase_fetch with markdown output for quick reads of static pages.
+- Use browserbase_fetch with JSON output plus a schema when you need structured extraction from a non-JS page.
 - Delegate JS-heavy, rendered, or multi-step browsing work to the browser-specialist subagent.
 - Use browserbase_rendered_extract for read-only browser work on rendered pages.
 - Use browserbase_interactive_task only when the task requires clicking, typing, login, or form submission.
@@ -209,7 +210,7 @@ def parse_args() -> argparse.Namespace:
         "query",
         nargs="?",
         default=(
-            "Research the Browserbase Search API and explain when to use Search, Fetch, "
+            "Research the Browserbase Search and Fetch APIs and explain when to use Search, Fetch, "
             "and a full browser session. Cite the URLs you used."
         ),
     )
