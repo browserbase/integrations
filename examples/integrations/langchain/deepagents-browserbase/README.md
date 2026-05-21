@@ -37,8 +37,6 @@ The sample defaults to:
 
 You can override either with environment variables.
 
-The fetch tool now defaults to `format="markdown"` so the main Deep Agent gets cleaner LLM-ready content from Browserbase Fetch Extract. For structured extraction on non-JS pages, the tool also supports `format="json"` with a JSON schema string.
-
 ## Install
 
 ```bash
