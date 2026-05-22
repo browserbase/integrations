@@ -11,7 +11,7 @@ It intentionally does **not** route the agent through the Browserbase CLI. Deep 
 ## Architecture
 
 - `browserbase_search`: fast discovery with Browserbase Search
-- `browserbase_fetch`: cheap page retrieval with Browserbase Fetch
+- `browserbase_fetch`: Browserbase Fetch / Fetch Extract for raw, markdown, or structured JSON retrieval
 - `browserbase_rendered_extract`: Stagehand-backed rendered extraction for JS-heavy pages
 - `browserbase_interactive_task`: a Stagehand `agent().execute(...)` workflow for clicks, typing, login, or form submission
 - `browser-specialist` subagent: isolates browser-heavy work from the main planner
@@ -87,11 +87,14 @@ This is the right place to put human approval in a Deep Agents + Browserbase des
 ## Notes
 
 - The interactive tool now uses `stagehand.agent().execute(...)` instead of a single `sessions.act(...)` call. That makes it better suited to genuine multi-step browser tasks.
+- Browserbase Fetch supports `raw`, `markdown`, and `json` output in the Python SDK starting with `browserbase` `1.11.0`, which is why this example now requires that version or newer.
 - Browserbase’s Stagehand quickstart documents that Model Gateway works with just `BROWSERBASE_API_KEY` for Stagehand browser workflows.
 - I did not hardcode a Browserbase model-gateway URL for the LangChain model client because I did not find an official doc page in the Browserbase docs that specifies a general-purpose OpenAI-compatible endpoint for LangChain. The sample therefore accepts `DEEPAGENT_BASE_URL` or `OPENAI_BASE_URL` explicitly.
 
 ## Suggested prompts
 
 - `Research Browserbase Search, Fetch, and browser sessions. Give me a decision tree with citations.`
+- `Use browserbase_fetch with markdown output on https://docs.browserbase.com/platform/fetch/overview and summarize the fetch limits.`
+- `Use browserbase_fetch with JSON output to extract the page title and one-sentence summary from https://www.browserbase.com/.`
 - `Open docs.browserbase.com and extract the limits of the Fetch API from the rendered docs page.`
 - `Go to example.com and tell me whether any interactive action would be required to complete the task.`
