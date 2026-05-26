@@ -29,7 +29,7 @@
   "author": "Browserbase Team",
   "license": "MIT",
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.27.9",
     "@eslint/js": "^9.14.0",
     "@types/node": "^25.0.9",
