@@ -197,7 +197,7 @@ function registerCli(
   api: OpenClawPluginApi,
   logger: OpenClawPluginApi['logger']
 ): void {
-  api.registerCli(({ program }: { program: any }) => {
+  const registerBrowserbaseCommands = ({ program }: { program: any }) => {
     const browserbase = program
       .command('browserbase')
       .description('Browserbase plugin setup and credential helpers');
@@ -453,7 +453,9 @@ function registerCli(
       .action((options: any) => {
         console.log(resolveConfigPath(options.config));
       });
-  });
+  };
+
+  api.registerCli(registerBrowserbaseCommands, { commands: ['browserbase'] });
 }
 
 let didStartupPrompt = false;
