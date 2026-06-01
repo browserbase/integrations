@@ -29,6 +29,7 @@ integrations/
 │       ├── cartesia/             # Cartesia integration
 │       ├── cloudflare/           # Cloudflare integration
 │       ├── crewai/               # CrewAI framework integration
+│       ├── elevenlabs/           # ElevenLabs voice agent + browser agent
 │       ├── langchain/            # LangChain framework integration
 │       ├── logs/                 # Logging utilities
 │       ├── mastra/               # Mastra AI agent integration
