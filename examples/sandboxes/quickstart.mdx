@@ -1,0 +1,199 @@
+---
+title: "Browser agents in a sandbox"
+sidebarTitle: "Sandboxes"
+description: "Run a browser agent inside any code sandbox (E2B, Modal, Vercel, Daytona, Cloudflare, Fly, and more) without getting blocked — by driving a remote Verified Browserbase browser over CDP."
+---
+
+A code sandbox is great at running your agent loop, but a vanilla microVM has a
+**datacenter IP**, no anti-bot hardening, and no CAPTCHA solving — so it gets blocked
+the moment it touches the real web. Bundling Playwright + Chromium doesn't help: it
+still browses *from the datacenter IP*.
+
+The fix is to keep the browser **out** of the sandbox. The sandbox runs the
+[`browse`](https://github.com/browserbase/stagehand/tree/main/packages/cli) CLI, which
+connects out over CDP to a **Verified Browserbase browser** — residential IP, stealth
+fingerprint, and server-side CAPTCHA solving.
+
+```text
+   Your sandbox (any provider)              CDP over wss            Browserbase
+   ┌────────────────────────────┐  ────────────────────────────▶  ┌────────────────────────┐
+   │  node + `browse` CLI        │                                  │  Verified browser       │
+   │  your agent loop            │  ◀────────────────────────────  │  residential IP·stealth │
+   │  NO Chrome in the sandbox   │        page data / refs          │  auto CAPTCHA solve     │
+   └────────────────────────────┘                                  └────────────────────────┘
+```
+
+<Note>
+The browser — and every site it visits — runs on Browserbase, not in your sandbox. So
+the only outbound access the sandbox needs is to `*.browserbase.com` and
+`connect.<region>.browserbase.com`. Nothing else has to be opened.
+</Note>
+
+## Prerequisites
+
+<Steps>
+  <Step title="Get your Browserbase credentials">
+    Grab your **API key** and **Project ID** from the
+    [dashboard](https://www.browserbase.com/overview) (the free plan works).
+  </Step>
+  <Step title="Export them where the sandbox can read them">
+    ```bash
+    export BROWSERBASE_API_KEY=bb_live_xxx
+    export BROWSERBASE_PROJECT_ID=xxxxxxxx-xxxx-xxxx
+    ```
+    This is the only credential the browser needs — every template below reuses it.
+  </Step>
+</Steps>
+
+## Try it with just the CLI
+
+Prove the core path on your laptop first — the browser still runs on Browserbase.
+
+<Steps>
+  <Step title="Install the CLI">
+    ```bash
+    npm install -g browse
+    ```
+  </Step>
+  <Step title="Open a Verified session against a protected page">
+    ```bash
+    SESSION=$(browse cloud sessions create --proxies --verified --solve-captchas --keep-alive --timeout 300)
+    CONNECT=$(echo "$SESSION" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>console.log(JSON.parse(d).connectUrl))')
+
+    browse open https://nowsecure.nl --cdp "$CONNECT" --session demo
+    browse get title --session demo     # → "nowsecure.nl" (real content, not a challenge wall)
+    browse stop --session demo
+    ```
+  </Step>
+</Steps>
+
+Once that returns the real page, drop the same logic into a sandbox. Every template runs
+the committed [`browsecli-demo.sh`](https://github.com/browserbase/integrations/blob/main/examples/sandboxes/_shared/browsecli-demo.sh),
+which creates the Verified session, opens the protected page over CDP, and asserts real
+content with a clear **PASS / FAIL**.
+
+## Pick your sandbox
+
+Each tab is a drop-in template in that provider's native format. Set the two Browserbase
+env vars above plus the provider's own key, then run.
+
+<Tabs>
+  <Tab title="E2B">
+    ```bash
+    cd e2b && npm i
+    export E2B_API_KEY=e2b_xxx
+    e2b template create browsecli-sandbox -d e2b.Dockerfile -c "tail -f /dev/null" --ready-cmd "browse --version"
+    npm start   # Sandbox.create → uploads demo → runs it
+    ```
+  </Tab>
+  <Tab title="Modal">
+    ```bash
+    cd modal && pip install modal
+    modal run browsecli_in_modal.py   # reads BROWSERBASE_API_KEY from your env
+    ```
+  </Tab>
+  <Tab title="Vercel">
+    ```bash
+    cd vercel-sandbox && pnpm i
+    export VERCEL_TOKEN=… VERCEL_TEAM_ID=… VERCEL_PROJECT_ID=…   # team must have Sandbox enabled
+    npx tsx sandbox.ts
+    ```
+  </Tab>
+  <Tab title="Daytona">
+    ```bash
+    cd daytona && pip install daytona   # Python 3.10+
+    export DAYTONA_API_KEY=dtn_xxx
+    python main.py
+    ```
+    <Warning>
+      Daytona restricts sandbox egress by default and Browserbase isn't on its domain
+      allowlist yet, so the browse call is blocked on Tier 1/2. Until
+      [sandbox-network-whitelist#117](https://github.com/daytonaio/sandbox-network-whitelist/pull/117)
+      merges and deploys, run on a **Tier 3/4 org** (full egress by default).
+    </Warning>
+  </Tab>
+  <Tab title="Cloudflare">
+    ```bash
+    cd cloudflare/browsecli-sandbox-template && npm i
+    # add BROWSERBASE_API_KEY + BROWSERBASE_PROJECT_ID to .dev.vars (or `wrangler secret put`)
+    wrangler deploy   # a Worker triggers a Container that runs `browse`
+    ```
+  </Tab>
+  <Tab title="Fly.io">
+    ```bash
+    cd fly
+    fly launch --no-deploy
+    fly secrets set BROWSERBASE_API_KEY=… BROWSERBASE_PROJECT_ID=…
+    fly machine run . /app/browsecli-demo.sh --rm   # one-shot
+    ```
+  </Tab>
+  <Tab title="CodeSandbox">
+    ```bash
+    cd codesandbox && npm i
+    export CSB_API_KEY=csb_xxx
+    npx @codesandbox/sdk build ./tpl   # build the golden image
+    node create.mjs                     # boot a VM from it and run the demo
+    ```
+  </Tab>
+  <Tab title="Runloop">
+    ```bash
+    cd runloop && pip install runloop-api-client
+    export RUNLOOP_API_KEY=…
+    python main.py   # builds a Blueprint devbox, runs the demo
+    ```
+  </Tab>
+  <Tab title="Blaxel">
+    ```bash
+    cd blaxel && bl deploy   # builds the hub/browsecli template image and runs it
+    ```
+  </Tab>
+  <Tab title="Northflank">
+    Publish the IaC template (`northflank-template.json`) as a shareable template, or run
+    it from the dashboard / API with the two Browserbase secrets set.
+  </Tab>
+  <Tab title="Morph">
+    ```bash
+    cd morph && pip install morphcloud
+    export MORPH_API_KEY=…
+    python main.py
+    ```
+  </Tab>
+</Tabs>
+
+## Local proof
+
+Run the exact container any OCI-based sandbox executes, on your machine:
+
+<CodeGroup>
+```bash Docker
+cd _shared
+docker build -t browsecli-sandbox:shared .
+docker run --rm -e BROWSERBASE_API_KEY -e BROWSERBASE_PROJECT_ID browsecli-sandbox:shared
+# → [browsecli-demo] RESULT: ✅ PASS — reached real content … from inside the sandbox
+```
+</CodeGroup>
+
+## Troubleshooting
+
+<Accordion title="401 Unauthorized">
+  Check `BROWSERBASE_API_KEY`. Confirm with `browse cloud projects list`.
+</Accordion>
+<Accordion title="Connection error / TLS reset inside the sandbox">
+  The sandbox's egress is blocked. Allow outbound to `*.browserbase.com` and
+  `connect.<region>.browserbase.com`. On Daytona specifically, see the egress note above.
+</Accordion>
+<Accordion title="Anything else">
+  Run `browse doctor --json`, then check the provider folder's `TEST_EVIDENCE.md` for the
+  exact verified commands.
+</Accordion>
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Browse all templates" icon="folder" href="https://github.com/browserbase/integrations/tree/main/examples/sandboxes">
+    11 provider templates, each with a README and verified test evidence.
+  </Card>
+  <Card title="The browse CLI" icon="terminal" href="https://github.com/browserbase/stagehand/tree/main/packages/cli">
+    The unified Browserbase CLI that powers every template.
+  </Card>
+</Columns>
