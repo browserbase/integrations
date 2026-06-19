@@ -1,0 +1,19 @@
+{
+  "name": "browsecli-browserbase-runloop",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Run the Browserbase BrowseCLI inside a Runloop devbox to reach any site via a Verified browser (residential IP, anti-bot stealth, auto CAPTCHA-solve).",
+  "scripts": {
+    "create-blueprint": "tsx index.ts create-blueprint",
+    "run-demo": "tsx index.ts run",
+    "start": "tsx index.ts"
+  },
+  "dependencies": {
+    "@runloop/api-client": "^0.55.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

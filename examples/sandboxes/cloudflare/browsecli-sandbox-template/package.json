@@ -1,0 +1,35 @@
+{
+  "name": "browsecli-sandbox-template",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Run the BrowseCLI inside a Cloudflare Container (Sandbox SDK), triggered by a Worker, to reach any site via a Verified Browserbase browser (residential IP, no datacenter blocking, auto CAPTCHA-solve).",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@cloudflare/sandbox": "^0.12.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250506.0",
+    "typescript": "^5.5.0",
+    "wrangler": "^4.0.0"
+  },
+  "cloudflare": {
+    "label": "BrowseCLI Sandbox (Browserbase)",
+    "products": ["Workers", "Containers", "Durable Objects"],
+    "categories": ["ai"],
+    "docs_url": "https://docs.browserbase.com",
+    "preview_image_url": "",
+    "preview_icon_url": "",
+    "bindings": {
+      "Sandbox": {
+        "description": "Durable Object + Container running the `browse` CLI, driven via @cloudflare/sandbox."
+      }
+    },
+    "publish": true
+  }
+}

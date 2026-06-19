@@ -1,0 +1,20 @@
+{
+  "$schema": "https://codesandbox.io/schemas/tasks.json",
+  "setupTasks": [
+    {
+      "name": "Ensure browse CLI",
+      "command": "command -v browse >/dev/null 2>&1 || npm install -g browse@latest"
+    },
+    {
+      "name": "Verify browse CLI",
+      "command": "browse --version"
+    }
+  ],
+  "tasks": {
+    "browse-demo": {
+      "name": "BrowseCLI → Verified Browserbase demo",
+      "command": "chmod +x ./browsecli-demo.sh && ./browsecli-demo.sh",
+      "runAtStart": false
+    }
+  }
+}

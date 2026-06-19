@@ -1,0 +1,25 @@
+# Dockerfile.test — Docker-equivalent smoke test for the Cloudflare template.
+#
+# The REAL container image is browsecli-sandbox-template/Dockerfile, which derives
+# from `docker.io/cloudflare/sandbox:<ver>` so the Cloudflare Worker can drive it
+# via @cloudflare/sandbox. That base image (and `wrangler deploy`) require a
+# Cloudflare account + network access to the Cloudflare registry.
+#
+# This file proves the part that actually matters and is provider-agnostic: that
+# the BrowseCLI, running inside an OCI container with ONLY Node + `npm i -g
+# browse` (no Chrome), reaches real content through a Verified Browserbase
+# browser. It is byte-for-byte the same install + demo layer as the real image,
+# just on the canonical node:20-slim base so it builds without the Cloudflare
+# registry. If this PASSes, the same layer PASSes on the cloudflare/sandbox base.
+FROM node:20-slim
+
+RUN npm install -g browse@latest \
+    && browse --version
+
+WORKDIR /app
+COPY browsecli-demo.sh /app/browsecli-demo.sh
+RUN chmod +x /app/browsecli-demo.sh
+
+ENV TARGET_URL=https://nowsecure.nl
+
+CMD ["/app/browsecli-demo.sh"]

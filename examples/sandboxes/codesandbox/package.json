@@ -1,0 +1,15 @@
+{
+  "name": "browsecli-codesandbox",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Run the BrowseCLI inside a CodeSandbox SDK microVM to reach any site via a Verified Browserbase browser (residential IP, no datacenter blocking, auto CAPTCHA-solve).",
+  "type": "module",
+  "scripts": {
+    "build:template": "csb build ./tpl --name browsecli-sandbox",
+    "start": "node create.mjs"
+  },
+  "dependencies": {
+    "@codesandbox/sdk": "^2.0.0",
+    "dotenv": "^16.4.5"
+  }
+}

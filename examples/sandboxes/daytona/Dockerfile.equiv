@@ -1,0 +1,38 @@
+# Dockerfile.equiv — the Docker-equivalent of the Daytona `Image` built in main.py.
+#
+# Daytona builds its sandbox image declaratively:
+#
+#   Image.debian_slim("3.12")
+#     .run_commands(
+#         "curl -fsSL https://deb.nodesource.com/setup_20.x | bash -",
+#         "apt-get install -y nodejs",
+#         "npm install -g browse@latest",
+#     )
+#     .add_local_file("browsecli-demo.sh", "/app/browsecli-demo.sh")
+#
+# This Dockerfile replicates those exact steps so the in-sandbox behavior can be
+# proven locally with `docker run` before a Daytona API key is available. The
+# resulting container runs the identical `browse` CLI against a Verified
+# Browserbase browser. No Chrome/Chromium is installed — the browser lives on
+# Browserbase and is reached over CDP at run time.
+FROM debian:bookworm-slim
+
+# debian_slim("3.12") in Daytona ships a Python 3.12 base. Here we start from
+# Debian and add Node 20 via NodeSource, mirroring main.py's run_commands.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates python3 \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && npm install -g browse@latest \
+    && browse --version \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY browsecli-demo.sh /app/browsecli-demo.sh
+RUN chmod +x /app/browsecli-demo.sh
+
+# BROWSERBASE_API_KEY (and BROWSERBASE_PROJECT_ID) are injected at run time.
+# TARGET_URL optionally overrides the protected site to visit.
+ENV TARGET_URL=https://nowsecure.nl
+
+CMD ["/app/browsecli-demo.sh"]

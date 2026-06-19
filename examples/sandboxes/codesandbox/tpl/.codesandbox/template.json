@@ -1,0 +1,6 @@
+{
+  "title": "BrowseCLI → Verified Browserbase",
+  "description": "Run the browse CLI inside a CodeSandbox microVM and reach any site (incl. Cloudflare/Akamai/DataDome) via a Verified Browserbase browser: residential IP, anti-bot stealth, server-side CAPTCHA solving.",
+  "tags": ["containers", "browser", "browserbase", "scraping", "anti-bot", "captcha"],
+  "published": true
+}

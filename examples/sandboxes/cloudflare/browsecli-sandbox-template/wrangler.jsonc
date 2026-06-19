@@ -1,0 +1,55 @@
+{
+  // Cloudflare Worker + Container (Sandbox SDK) config for running the BrowseCLI
+  // inside a Cloudflare Container and driving it from a Worker.
+  //
+  // Docs: https://developers.cloudflare.com/containers/
+  //       https://github.com/cloudflare/sandbox-sdk
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "browsecli-sandbox-template",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-05-06",
+  // The Sandbox SDK runtime needs the nodejs_compat flag.
+  "compatibility_flags": ["nodejs_compat"],
+
+  // The container image the Worker runs. Built from ./Dockerfile, which derives
+  // from the cloudflare/sandbox base image and adds Node + `browse` + the demo.
+  // `class_name` must match the Durable Object class re-exported in src/index.ts.
+  "containers": [
+    {
+      "class_name": "Sandbox",
+      "image": "./Dockerfile",
+      // "lite" is the smallest instance; plenty for `npm i -g browse` + a CDP client.
+      "instance_type": "lite",
+      "max_instances": 5
+    }
+  ],
+
+  // Durable Object binding that backs the container sandbox. The binding name
+  // (`Sandbox`) is what `getSandbox(env.Sandbox, id)` reads in src/index.ts.
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "Sandbox",
+        "class_name": "Sandbox"
+      }
+    ]
+  },
+
+  // The Sandbox DO uses the SQLite-backed storage backend, so it must be
+  // declared in `new_sqlite_classes` (not `new_classes`).
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["Sandbox"]
+    }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+
+  // Browserbase credentials are NOT stored here. Set them as encrypted secrets:
+  //   wrangler secret put BROWSERBASE_API_KEY
+  //   wrangler secret put BROWSERBASE_PROJECT_ID
+  // For local `wrangler dev`, put them in .dev.vars (see .dev.vars.example).
+}

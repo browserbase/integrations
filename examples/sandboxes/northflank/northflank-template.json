@@ -1,0 +1,116 @@
+{
+  "apiVersion": "v1.2",
+  "name": "browsecli-verified-browser",
+  "description": "Run the Browserbase BrowseCLI inside a Northflank microVM to reach any site (Cloudflare/Akamai/DataDome) via a Verified browser: residential IP, no datacenter blocking, auto CAPTCHA-solve.",
+  "options": {
+    "autorun": false,
+    "concurrencyPolicy": "allow"
+  },
+  "arguments": {
+    "REGION": "us-central",
+    "BROWSERBASE_API_KEY": "",
+    "BROWSERBASE_PROJECT_ID": "",
+    "TARGET_URL": "https://nowsecure.nl",
+    "REPO_URL": "https://github.com/browserbase/browserbase-integrations",
+    "REPO_BRANCH": "main",
+    "DOCKERFILE_PATH": "/examples/sandboxes/northflank/Dockerfile",
+    "DOCKER_WORK_DIR": "/examples/sandboxes/northflank"
+  },
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "Project",
+          "ref": "project",
+          "spec": {
+            "name": "BrowseCLI",
+            "region": "${args.REGION}",
+            "networking": {
+              "allowedIngressProjects": []
+            }
+          }
+        },
+        {
+          "kind": "Workflow",
+          "spec": {
+            "type": "sequential",
+            "context": {
+              "projectId": "${refs.project.id}"
+            },
+            "steps": [
+              {
+                "kind": "SecretGroup",
+                "ref": "browserbase-secrets",
+                "spec": {
+                  "name": "Browserbase credentials",
+                  "secretType": "environment-arguments",
+                  "priority": 10,
+                  "secrets": {
+                    "variables": {
+                      "BROWSERBASE_API_KEY": "${args.BROWSERBASE_API_KEY}",
+                      "BROWSERBASE_PROJECT_ID": "${args.BROWSERBASE_PROJECT_ID}"
+                    }
+                  },
+                  "addToAllJobs": true,
+                  "addToAllServices": true
+                }
+              },
+              {
+                "kind": "ManualJob",
+                "ref": "browsecli-demo",
+                "spec": {
+                  "name": "browsecli-demo",
+                  "billing": {
+                    "deploymentPlan": "nf-compute-20",
+                    "buildPlan": "nf-compute-400-16"
+                  },
+                  "backoffLimit": 0,
+                  "activeDeadlineSeconds": 600,
+                  "vcsData": {
+                    "projectType": "github",
+                    "projectUrl": "${args.REPO_URL}",
+                    "projectBranch": "${args.REPO_BRANCH}"
+                  },
+                  "buildSettings": {
+                    "dockerfile": {
+                      "buildEngine": "kaniko",
+                      "dockerFilePath": "${args.DOCKERFILE_PATH}",
+                      "dockerWorkDir": "${args.DOCKER_WORK_DIR}",
+                      "useCache": false
+                    }
+                  },
+                  "buildConfiguration": {
+                    "pathIgnoreRules": [],
+                    "isAllowList": false,
+                    "ciIgnoreFlagsEnabled": false
+                  },
+                  "deployment": {
+                    "instances": 1,
+                    "storage": {
+                      "ephemeralStorage": {
+                        "storageSize": 1024
+                      },
+                      "shmSize": 64
+                    },
+                    "docker": {
+                      "configType": "default"
+                    }
+                  },
+                  "runtimeEnvironment": {
+                    "TARGET_URL": "${args.TARGET_URL}"
+                  },
+                  "runtimeFiles": {},
+                  "buildArguments": {},
+                  "buildFiles": {},
+                  "disabledCI": true
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

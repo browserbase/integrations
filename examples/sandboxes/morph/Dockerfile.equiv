@@ -1,0 +1,23 @@
+# Dockerfile.equiv — the Docker-equivalent of the Morph snapshot this example builds.
+#
+# main.py builds a Morph SNAPSHOT (Node + `browse` CLI) and boots an INSTANCE
+# from it. There is no Morph API key in CI/local, so this Dockerfile reproduces
+# the *exact same software state* the snapshot would have, letting us prove the
+# in-instance behavior (run browsecli-demo.sh -> reach a protected site through a
+# Verified Browserbase browser) without a Morph account.
+#
+# Snapshot setup steps mirrored here:
+#   snapshot.setup("install node 20")
+#   snapshot.setup("npm install -g browse@latest")
+FROM node:20-slim
+
+RUN npm install -g browse@latest \
+    && browse --version
+
+WORKDIR /app
+COPY browsecli-demo.sh /app/browsecli-demo.sh
+RUN chmod +x /app/browsecli-demo.sh
+
+ENV TARGET_URL=https://nowsecure.nl
+
+CMD ["/app/browsecli-demo.sh"]

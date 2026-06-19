@@ -1,0 +1,44 @@
+# fly.toml — Fly.io app config for "BrowseCLI in a Fly Machine".
+#
+# Deploy it:
+#   fly launch --no-deploy        # creates/claims the app (edit the name below)
+#   fly secrets set BROWSERBASE_API_KEY=bb_live_... BROWSERBASE_PROJECT_ID=...
+#   fly deploy                    # builds the Dockerfile and provisions a Machine
+#
+# This is a batch/one-shot job: the `demo` process runs browsecli-demo.sh once
+# (create a Verified Browserbase session, reach a protected page, assert real
+# content) and exits. No public ports are exposed — nothing to serve.
+#
+# NOTE on true run-once semantics: Fly Apps assume long-lived Machines, so there
+# is no fly.toml key for "run once and exit" — flyctl's default restart policy
+# would re-run the demo. For a clean one-shot that destroys itself on exit, use
+# `fly machine run` with `--rm` (which also forces restart policy to `no`):
+#   fly machine run . /app/browsecli-demo.sh --rm \
+#     -e BROWSERBASE_API_KEY=bb_live_... -e BROWSERBASE_PROJECT_ID=... -e TARGET_URL=https://nowsecure.nl
+# Keep this fly.toml as the deployable app skeleton; see the README for both paths.
+
+# Change "browsecli-sandbox" to a globally-unique name (or let `fly launch` pick one).
+app = "browsecli-sandbox"
+
+# Pick any Fly region close to you. https://fly.io/docs/reference/regions/
+primary_region = "iad"
+
+# Fly auto-detects the Dockerfile in this directory; [build] is here for clarity.
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  # Override to visit a different protected site.
+  TARGET_URL = "https://nowsecure.nl"
+
+# One-shot demo process. It runs the script and exits (no restart loop), so the
+# Machine stops on its own after the job completes.
+[processes]
+  demo = "/app/browsecli-demo.sh"
+
+# Modest VM — the browser runs remotely on Browserbase, so the Machine only needs
+# enough to run the `browse` CLI / your agent loop.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  processes = ["demo"]
