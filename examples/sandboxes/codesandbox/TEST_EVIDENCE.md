@@ -53,7 +53,7 @@ quickly"; supports `--name`, `--from-sandbox`, `--ports`, `--vm-tier`, `--alias`
 | create.mjs syntax | `node --check create.mjs` | `syntax OK` |
 | create.mjs no-key guard | `npm i @codesandbox/sdk dotenv` (temp), unset `CSB_API_KEY`, `node create.mjs` | printed `skipping live run (no CSB_API_KEY)`, **exit 0** (CI-safe; also proves it imports against real `@codesandbox/sdk@2.4.2`) |
 | image build | `docker build -t browsecli-sandbox:codesandbox -f Dockerfile.equiv .` | built OK (`naming to docker.io/library/browsecli-sandbox:codesandbox done`) |
-| live in-VM run | `docker run --rm -e BROWSERBASE_API_KEY=*** -e BROWSERBASE_PROJECT_ID=*** browsecli-sandbox:codesandbox /app/browsecli-demo.sh` | **✅ PASS** (see below) |
+| live in-VM run | `docker run --rm -e BROWSERBASE_API_KEY=*** browsecli-sandbox:codesandbox /app/browsecli-demo.sh` | **✅ PASS** (see below) |
 
 ### Live run output (key redacted, never echoed)
 

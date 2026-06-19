@@ -42,7 +42,9 @@ browser that:
 - `browsecli-demo.sh` — the demo: create a Verified session
   (`--proxies --verified --solve-captchas`), open a Cloudflare-protected page over
   CDP, and assert real content (not a challenge wall).
-- `.env.example` — the two Browserbase env vars (for the local Docker smoke test).
+- `.env.example` — the Browserbase API key (for the local Docker smoke test).
+
+> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
 
 ## How to run
 
@@ -51,7 +53,7 @@ browser that:
 1. Open the template (via the shareable link you publish, or
    **Templates → Create template → import JSON** and paste `northflank-template.json`).
 2. Fill the template **arguments**:
-   - `BROWSERBASE_API_KEY`, `BROWSERBASE_PROJECT_ID` — from
+   - `BROWSERBASE_API_KEY` — from
      https://www.browserbase.com/settings (put these in **argument overrides** so
      they're stored encrypted, not in the committed spec).
    - `TARGET_URL` — optional; defaults to a Cloudflare-protected page.
@@ -88,7 +90,6 @@ locally with no Northflank account:
 docker build -t browsecli-sandbox:northflank -f Dockerfile .
 docker run --rm \
   -e BROWSERBASE_API_KEY=$BROWSERBASE_API_KEY \
-  -e BROWSERBASE_PROJECT_ID=$BROWSERBASE_PROJECT_ID \
   browsecli-sandbox:northflank /app/browsecli-demo.sh
 # → [browsecli-demo] RESULT: ✅ PASS — reached real content ... from inside the sandbox
 ```

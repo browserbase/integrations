@@ -38,7 +38,9 @@ So this example keeps the browser **out** of the Machine. The Machine runs the
 - `browsecli-demo.sh` — the demo: create a Verified session
   (`--proxies --verified --solve-captchas`), open a Cloudflare-protected page over
   CDP, and assert real content (not a challenge wall).
-- `.env.example` — the two Browserbase env vars (for the local Docker smoke test).
+- `.env.example` — the Browserbase API key (for the local Docker smoke test).
+
+> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
 
 ## How to run (Fly Machine)
 
@@ -59,7 +61,7 @@ So this example keeps the browser **out** of the Machine. The Machine runs the
 3. Set the Browserbase credentials as Fly secrets (encrypted, injected as env):
 
    ```bash
-   fly secrets set BROWSERBASE_API_KEY=bb_live_... BROWSERBASE_PROJECT_ID=...
+   fly secrets set BROWSERBASE_API_KEY=bb_live_...
    ```
 
    Get credentials at https://www.browserbase.com/settings.
@@ -74,7 +76,6 @@ So this example keeps the browser **out** of the Machine. The Machine runs the
    #     --rm forces restart policy to `no`, so a clean exit isn't re-run.
    fly machine run . /app/browsecli-demo.sh --rm \
      -e BROWSERBASE_API_KEY=bb_live_... \
-     -e BROWSERBASE_PROJECT_ID=... \
      -e TARGET_URL=https://nowsecure.nl
    ```
 
@@ -97,7 +98,7 @@ curl -fsSL https://sprites.dev/install.sh | sh
 sprite org auth
 sprite create browse-demo && sprite use browse-demo
 sprite exec -- bash -lc 'npm i -g browse@latest'
-sprite exec -- env BROWSERBASE_API_KEY=bb_live_... BROWSERBASE_PROJECT_ID=... \
+sprite exec -- env BROWSERBASE_API_KEY=bb_live_... \
   bash -s < browsecli-demo.sh
 ```
 
@@ -112,7 +113,6 @@ of the same image reproduces the exact in-sandbox behavior without a Fly account
 docker build -t browsecli-sandbox:fly -f Dockerfile .
 docker run --rm \
   -e BROWSERBASE_API_KEY=$BROWSERBASE_API_KEY \
-  -e BROWSERBASE_PROJECT_ID=$BROWSERBASE_PROJECT_ID \
   browsecli-sandbox:fly /app/browsecli-demo.sh
 # → [browsecli-demo] RESULT: ✅ PASS — reached real content ... from inside the sandbox
 ```

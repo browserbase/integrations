@@ -39,7 +39,6 @@ which connects out over CDP to a **Verified Browserbase browser** that:
 docker build -t browsecli-sandbox:shared .
 docker run --rm \
   -e BROWSERBASE_API_KEY=$BROWSERBASE_API_KEY \
-  -e BROWSERBASE_PROJECT_ID=$BROWSERBASE_PROJECT_ID \
   browsecli-sandbox:shared
 # → [browsecli-demo] RESULT: ✅ PASS — reached real content ... from inside the sandbox
 ```

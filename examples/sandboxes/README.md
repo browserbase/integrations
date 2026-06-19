@@ -25,13 +25,12 @@ fingerprint, server-side CAPTCHA solving.
 
 ## Prerequisites (60 seconds)
 
-1. A Browserbase account → grab your **API key + Project ID** from the
+1. A Browserbase account → grab your **API key** from the
    [dashboard](https://www.browserbase.com/overview) (free plan works).
 2. Export them anywhere the sandbox can read them:
 
 ```bash
 export BROWSERBASE_API_KEY=bb_live_xxx
-export BROWSERBASE_PROJECT_ID=xxxxxxxx-xxxx-xxxx
 ```
 
 That's the only credential the browser needs — everything below reuses it.
@@ -56,6 +55,8 @@ browse stop --session demo
 ```
 
 If that returns the real page, you're ready to put it inside a sandbox.
+
+> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
 
 > The same logic, packaged for piping into any sandbox, lives in
 > [`_shared/browsecli-demo.sh`](./_shared/browsecli-demo.sh) — every template below runs it.
@@ -88,7 +89,7 @@ Every template ends with: `✅ PASS — reached real content through the protect
 
 ## Per-sandbox quickstart
 
-> All of these assume `BROWSERBASE_API_KEY` and `BROWSERBASE_PROJECT_ID` are exported,
+> All of these assume `BROWSERBASE_API_KEY` is exported,
 > plus the provider's own key. See each folder's `README.md` for the full walkthrough
 > and `TEST_EVIDENCE.md` for exactly how it was verified.
 
@@ -128,7 +129,7 @@ python main.py
 ### Cloudflare (Sandbox SDK / Containers)
 ```bash
 cd cloudflare/browsecli-sandbox-template && npm i
-# put BROWSERBASE_API_KEY + BROWSERBASE_PROJECT_ID in .dev.vars (or `wrangler secret put`)
+# put BROWSERBASE_API_KEY in .dev.vars (or `wrangler secret put`)
 wrangler deploy        # Worker triggers a container that runs `browse`
 ```
 
@@ -136,13 +137,13 @@ wrangler deploy        # Worker triggers a container that runs `browse`
 ```bash
 cd fly
 fly launch --no-deploy
-fly secrets set BROWSERBASE_API_KEY=… BROWSERBASE_PROJECT_ID=…
+fly secrets set BROWSERBASE_API_KEY=…
 fly machine run . /app/browsecli-demo.sh --rm    # one-shot
 ```
 
 ### Northflank
 Publish the IaC template ([`northflank-template.json`](./northflank)) as a shareable
-template, or run it via the dashboard/API with the two Browserbase secrets set.
+template, or run it via the dashboard/API with the Browserbase API key set.
 
 ### CodeSandbox SDK
 ```bash
@@ -185,7 +186,7 @@ Want the local proof (the exact container any OCI sandbox runs)?
 ```bash
 cd _shared
 docker build -t browsecli-sandbox:shared .
-docker run --rm -e BROWSERBASE_API_KEY -e BROWSERBASE_PROJECT_ID browsecli-sandbox:shared
+docker run --rm -e BROWSERBASE_API_KEY browsecli-sandbox:shared
 ```
 
 ---

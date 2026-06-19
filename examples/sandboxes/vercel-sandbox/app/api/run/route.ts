@@ -8,7 +8,7 @@
  * This is the Templates-Marketplace-friendly shape (Vercel favors Next.js).
  * The standalone `sandbox.ts` remains the primary, directly-runnable artifact.
  *
- * Env (Project / Vercel env vars): BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID.
+ * Env (Project / Vercel env vars): BROWSERBASE_API_KEY.
  * Vercel Sandbox auth (VERCEL_TOKEN / VERCEL_TEAM_ID / VERCEL_PROJECT_ID) is
  * resolved automatically when this route runs on Vercel.
  */
@@ -20,10 +20,10 @@ export const runtime = 'nodejs';
 export const maxDuration = 300;
 
 export async function POST(req: Request): Promise<Response> {
-  const { BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID } = process.env;
-  if (!BROWSERBASE_API_KEY || !BROWSERBASE_PROJECT_ID) {
+  const { BROWSERBASE_API_KEY } = process.env;
+  if (!BROWSERBASE_API_KEY) {
     return new Response(
-      'Missing BROWSERBASE_API_KEY / BROWSERBASE_PROJECT_ID in environment.',
+      'Missing BROWSERBASE_API_KEY in environment.',
       { status: 500 },
     );
   }
@@ -57,7 +57,6 @@ export async function POST(req: Request): Promise<Response> {
           args: ['-lc', 'chmod +x browsecli-demo.sh && ./browsecli-demo.sh'],
           env: {
             BROWSERBASE_API_KEY,
-            BROWSERBASE_PROJECT_ID,
             ...(targetUrl ? { TARGET_URL: targetUrl } : {}),
           },
         });

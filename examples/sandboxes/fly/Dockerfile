@@ -22,7 +22,7 @@ RUN chmod +x /app/browsecli-demo.sh
 ENV TARGET_URL=https://nowsecure.nl
 
 # Default entrypoint for the one-shot "demo" process (see fly.toml [processes]).
-# BROWSERBASE_API_KEY / BROWSERBASE_PROJECT_ID are injected as Fly secrets at
+# BROWSERBASE_API_KEY is injected as a Fly secret at
 # run time (fly secrets set ...). This same CMD also runs the image as a plain
 # `docker run` for the local Docker-equivalent smoke test.
 CMD ["/app/browsecli-demo.sh"]

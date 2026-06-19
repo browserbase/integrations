@@ -62,12 +62,13 @@ npx @codesandbox/sdk build ./tpl --name browsecli-sandbox
 # → prints a TEMPLATE_ID and a ready-to-paste:  sdk.sandboxes.create({ id: "<id>" })
 ```
 
+> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
+
 ## How to run it via the SDK
 
 ```bash
 export CSB_API_KEY=csb_...
 export BROWSERBASE_API_KEY=bb_live_...      # https://www.browserbase.com/settings
-export BROWSERBASE_PROJECT_ID=...
 TEMPLATE_ID=<id from build> npm start
 # → ... RESULT: ✅ PASS — reached real content through the protected site from inside the sandbox
 ```
@@ -80,7 +81,7 @@ const sdk = new CodeSandbox(process.env.CSB_API_KEY);
 const sandbox = await sdk.sandboxes.create({ id: TEMPLATE_ID });   // fork the template
 const client = await sandbox.connect();
 const out = await client.commands.run('./browsecli-demo.sh', {     // run + capture stdout
-  env: { BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, TARGET_URL },
+  env: { BROWSERBASE_API_KEY, TARGET_URL },
 });
 await sdk.sandboxes.shutdown(sandbox.id);
 ```

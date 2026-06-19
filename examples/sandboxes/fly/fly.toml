@@ -2,7 +2,7 @@
 #
 # Deploy it:
 #   fly launch --no-deploy        # creates/claims the app (edit the name below)
-#   fly secrets set BROWSERBASE_API_KEY=bb_live_... BROWSERBASE_PROJECT_ID=...
+#   fly secrets set BROWSERBASE_API_KEY=bb_live_...
 #   fly deploy                    # builds the Dockerfile and provisions a Machine
 #
 # This is a batch/one-shot job: the `demo` process runs browsecli-demo.sh once
@@ -14,7 +14,7 @@
 # would re-run the demo. For a clean one-shot that destroys itself on exit, use
 # `fly machine run` with `--rm` (which also forces restart policy to `no`):
 #   fly machine run . /app/browsecli-demo.sh --rm \
-#     -e BROWSERBASE_API_KEY=bb_live_... -e BROWSERBASE_PROJECT_ID=... -e TARGET_URL=https://nowsecure.nl
+#     -e BROWSERBASE_API_KEY=bb_live_... -e TARGET_URL=https://nowsecure.nl
 # Keep this fly.toml as the deployable app skeleton; see the README for both paths.
 
 # Change "browsecli-sandbox" to a globally-unique name (or let `fly launch` pick one).

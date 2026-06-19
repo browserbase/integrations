@@ -27,7 +27,7 @@ if [ "$#" -gt 0 ]; then
     */browsecli-demo.sh|browsecli-demo.sh)
       if [ -z "${BROWSERBASE_API_KEY:-}" ]; then
         echo "[entrypoint] BROWSERBASE_API_KEY is not set." >&2
-        echo "[entrypoint] Set BROWSERBASE_API_KEY and BROWSERBASE_PROJECT_ID (Blaxel secrets/env) and re-run." >&2
+        echo "[entrypoint] Set BROWSERBASE_API_KEY (Blaxel secret/env) and re-run." >&2
         exit 1
       fi
       ;;

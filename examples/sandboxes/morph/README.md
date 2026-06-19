@@ -35,6 +35,8 @@ browser that:
    --solve-captchas`), opens a Cloudflare-protected page over CDP, and asserts it
    reached real content instead of a challenge wall.
 
+> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
+
 ## Run it
 
 ```bash
@@ -43,7 +45,6 @@ pip install -r requirements.txt
 
 export MORPH_API_KEY=...           # https://cloud.morph.so
 export BROWSERBASE_API_KEY=...     # https://www.browserbase.com/settings
-export BROWSERBASE_PROJECT_ID=...
 
 python main.py
 # → [browsecli-demo] RESULT: ✅ PASS — reached real content ... from inside the sandbox
@@ -61,7 +62,6 @@ so you can prove the in-instance behavior with only Browserbase keys:
 docker build -t browsecli-sandbox:morph -f Dockerfile.equiv .
 docker run --rm \
   -e BROWSERBASE_API_KEY="$BROWSERBASE_API_KEY" \
-  -e BROWSERBASE_PROJECT_ID="$BROWSERBASE_PROJECT_ID" \
   browsecli-sandbox:morph /app/browsecli-demo.sh
 ```
 

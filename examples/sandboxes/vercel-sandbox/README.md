@@ -33,9 +33,11 @@ This matters because Vercel's own [agent-browser example](https://github.com/ver
 | `.env.example` | Required env vars. |
 | `Dockerfile.equiv` | Local stand-in for the Vercel Sandbox runtime, used to prove the in-sandbox BrowseCLI flow without a Vercel token (see TEST_EVIDENCE.md). |
 
+> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
+
 ## How to run
 
-1. Get a Browserbase API key + project ID at [browserbase.com/settings](https://www.browserbase.com/settings).
+1. Get a Browserbase API key at [browserbase.com/settings](https://www.browserbase.com/settings).
 2. Get a Vercel token at [vercel.com/account/tokens](https://vercel.com/account/tokens), plus your team + project IDs.
 3. Configure env and run the standalone script:
 
@@ -65,7 +67,7 @@ curl -X POST https://<your-deployment>/api/run \
   -d '{"targetUrl":"https://nowsecure.nl"}'
 ```
 
-Set `BROWSERBASE_API_KEY` and `BROWSERBASE_PROJECT_ID` as Vercel project env vars. Vercel Sandbox auth (`VERCEL_TOKEN` / `VERCEL_TEAM_ID` / `VERCEL_PROJECT_ID`) resolves automatically when the route runs on Vercel.
+Set `BROWSERBASE_API_KEY` as a Vercel project env var. Vercel Sandbox auth (`VERCEL_TOKEN` / `VERCEL_TEAM_ID` / `VERCEL_PROJECT_ID`) resolves automatically when the route runs on Vercel.
 
 ## Differentiation
 

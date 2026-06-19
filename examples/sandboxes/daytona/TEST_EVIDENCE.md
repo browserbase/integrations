@@ -33,11 +33,10 @@ commands declared in `main.py`'s `Image.debian_slim("3.12").run_commands(...)`.
 ### 2. Live run against a Verified Browserbase browser
 
 ```bash
-eval "$(grep -E '^(BROWSERBASE_API_KEY|BROWSERBASE_PROJECT_ID)=' ~/Developer/scratchpad/.env)"
-export BROWSERBASE_API_KEY BROWSERBASE_PROJECT_ID
+eval "$(grep -E '^(BROWSERBASE_API_KEY)=' ~/Developer/scratchpad/.env)"
+export BROWSERBASE_API_KEY
 docker run --rm \
   -e BROWSERBASE_API_KEY="$BROWSERBASE_API_KEY" \
-  -e BROWSERBASE_PROJECT_ID="$BROWSERBASE_PROJECT_ID" \
   browsecli-sandbox:daytona /app/browsecli-demo.sh
 ```
 
@@ -96,7 +95,7 @@ To run the real thing once a key is available:
 ```bash
 pip install -r examples/sandboxes/daytona/requirements.txt
 export DAYTONA_API_KEY=dtn_...
-export BROWSERBASE_API_KEY=bb_live_... BROWSERBASE_PROJECT_ID=...
+export BROWSERBASE_API_KEY=bb_live_...
 python examples/sandboxes/daytona/main.py
 ```
 

@@ -28,7 +28,6 @@ Idiomatic Morph shape used here (morphcloud SDK):
 Env required:
   MORPH_API_KEY          - your Morph Cloud API key
   BROWSERBASE_API_KEY    - your Browserbase API key (passed into the instance)
-  BROWSERBASE_PROJECT_ID - your Browserbase project id (passed into the instance)
 Optional:
   TARGET_URL             - protected site to visit (default https://nowsecure.nl)
 """
@@ -60,7 +59,6 @@ def require_env(name: str) -> str:
 def main() -> int:
     require_env("MORPH_API_KEY")
     bb_key = require_env("BROWSERBASE_API_KEY")
-    bb_project = require_env("BROWSERBASE_PROJECT_ID")
     target_url = os.environ.get("TARGET_URL", "https://nowsecure.nl")
 
     client = MorphCloudClient()  # reads MORPH_API_KEY from env
@@ -106,7 +104,6 @@ def main() -> int:
         print(f"[morph] running browsecli-demo.sh against {target_url} ...")
         env = (
             f"BROWSERBASE_API_KEY={bb_key} "
-            f"BROWSERBASE_PROJECT_ID={bb_project} "
             f"TARGET_URL={target_url}"
         )
         result = instance.exec(command=f"{env} {DEMO_REMOTE}")

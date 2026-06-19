@@ -24,8 +24,8 @@ ship a recent Node; same `browse`, same script).
 ### Commands
 
 ```bash
-eval "$(grep -E '^(BROWSERBASE_API_KEY|BROWSERBASE_PROJECT_ID)=' ~/Developer/scratchpad/.env)"
-export BROWSERBASE_API_KEY BROWSERBASE_PROJECT_ID
+eval "$(grep -E '^(BROWSERBASE_API_KEY)=' ~/Developer/scratchpad/.env)"
+export BROWSERBASE_API_KEY
 
 docker build -t browsecli-sandbox:cloudflare-test \
   -f examples/sandboxes/cloudflare/Dockerfile.test \
@@ -33,7 +33,6 @@ docker build -t browsecli-sandbox:cloudflare-test \
 
 docker run --rm \
   -e BROWSERBASE_API_KEY="$BROWSERBASE_API_KEY" \
-  -e BROWSERBASE_PROJECT_ID="$BROWSERBASE_PROJECT_ID" \
   browsecli-sandbox:cloudflare-test /app/browsecli-demo.sh
 ```
 

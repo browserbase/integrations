@@ -14,7 +14,7 @@ behavior; the literal `morphcloud` API calls remain pending a Morph key.
 | --- | --- | --- |
 | Python syntax | `python3 -c "import ast; ast.parse(open('main.py').read()); print('py-parse OK')"` | `py-parse OK` |
 | Build snapshot-equiv image | `docker build -t browsecli-sandbox:morph -f examples/sandboxes/morph/Dockerfile.equiv examples/sandboxes/morph` | Built OK; `browse --version` ran during build |
-| Run demo in container | `docker run --rm -e BROWSERBASE_API_KEY=*** -e BROWSERBASE_PROJECT_ID=*** browsecli-sandbox:morph /app/browsecli-demo.sh` | **✅ PASS — reached real content** |
+| Run demo in container | `docker run --rm -e BROWSERBASE_API_KEY=*** browsecli-sandbox:morph /app/browsecli-demo.sh` | **✅ PASS — reached real content** |
 
 ### Container run output (verbatim, keys redacted)
 
@@ -57,7 +57,6 @@ To run the literal Morph path:
 ```bash
 export MORPH_API_KEY=...
 export BROWSERBASE_API_KEY=...
-export BROWSERBASE_PROJECT_ID=...
 pip install -r requirements.txt
 python main.py
 ```

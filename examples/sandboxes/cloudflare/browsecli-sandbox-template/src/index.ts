@@ -20,7 +20,7 @@
  *
  * Request:  GET|POST /            → run the demo, stream stdout/stderr back
  *           POST /  {"targetUrl"} → override the protected site to visit
- * Secrets:  BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID  (wrangler secret put ...)
+ * Secrets:  BROWSERBASE_API_KEY  (wrangler secret put ...)
  */
 import { getSandbox, proxyToSandbox, type Sandbox } from "@cloudflare/sandbox";
 
@@ -34,9 +34,7 @@ interface Env {
   Sandbox: DurableObjectNamespace<Sandbox>;
   // Browserbase credentials — set with:
   //   wrangler secret put BROWSERBASE_API_KEY
-  //   wrangler secret put BROWSERBASE_PROJECT_ID
   BROWSERBASE_API_KEY: string;
-  BROWSERBASE_PROJECT_ID: string;
 }
 
 export default {
@@ -47,10 +45,10 @@ export default {
     const proxied = await proxyToSandbox(request, env);
     if (proxied) return proxied;
 
-    if (!env.BROWSERBASE_API_KEY || !env.BROWSERBASE_PROJECT_ID) {
+    if (!env.BROWSERBASE_API_KEY) {
       return new Response(
-        "Missing BROWSERBASE_API_KEY / BROWSERBASE_PROJECT_ID.\n" +
-          "Set them with: wrangler secret put BROWSERBASE_API_KEY (and *_PROJECT_ID)\n",
+        "Missing BROWSERBASE_API_KEY.\n" +
+          "Set it with: wrangler secret put BROWSERBASE_API_KEY\n",
         { status: 500 },
       );
     }
@@ -77,7 +75,6 @@ export default {
       const result = await sandbox.exec("/app/browsecli-demo.sh", {
         env: {
           BROWSERBASE_API_KEY: env.BROWSERBASE_API_KEY,
-          BROWSERBASE_PROJECT_ID: env.BROWSERBASE_PROJECT_ID,
           ...(targetUrl ? { TARGET_URL: targetUrl } : {}),
         },
       });

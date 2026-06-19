@@ -33,7 +33,7 @@ The credentials reach the job via the template's `SecretGroup` →
 | --- | --- | --- |
 | template JSON valid | `python3 -c "import json; json.load(open('examples/sandboxes/northflank/northflank-template.json')); print('json OK')"` | `json OK` |
 | image build | `docker build -t browsecli-sandbox:northflank -f examples/sandboxes/northflank/Dockerfile examples/sandboxes/northflank` | built OK (`naming to docker.io/library/browsecli-sandbox:northflank done`) |
-| live in-sandbox run | `docker run --rm -e BROWSERBASE_API_KEY=*** -e BROWSERBASE_PROJECT_ID=*** browsecli-sandbox:northflank /app/browsecli-demo.sh` | **✅ PASS** (see below) |
+| live in-sandbox run | `docker run --rm -e BROWSERBASE_API_KEY=*** browsecli-sandbox:northflank /app/browsecli-demo.sh` | **✅ PASS** (see below) |
 
 ### Live run output (key redacted, never echoed)
 

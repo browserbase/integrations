@@ -1,8 +1,6 @@
 # Local secrets for `wrangler dev`. Copy to `.dev.vars` and fill in.
 # Get credentials at https://www.browserbase.com/settings
 #
-# For deployed Workers, set these as encrypted secrets instead:
+# For deployed Workers, set it as an encrypted secret instead:
 #   wrangler secret put BROWSERBASE_API_KEY
-#   wrangler secret put BROWSERBASE_PROJECT_ID
 BROWSERBASE_API_KEY=bb_live_xxxxxxxxxxxxxxxxxxxxxxxx
-BROWSERBASE_PROJECT_ID=00000000-0000-0000-0000-000000000000

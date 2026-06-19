@@ -19,7 +19,6 @@
  * Required env (see .env.example):
  *   CSB_API_KEY               — CodeSandbox SDK key (https://codesandbox.io/t/api)
  *   BROWSERBASE_API_KEY       — Browserbase key   (https://www.browserbase.com/settings)
- *   BROWSERBASE_PROJECT_ID    — Browserbase project id
  *   Optional: TEMPLATE_ID (the id from `build`), TARGET_URL (default https://nowsecure.nl)
  *
  * Without CSB_API_KEY this script no-ops with a clear message (so it won't crash
@@ -50,7 +49,6 @@ async function main() {
   }
 
   const browserbaseApiKey = reqEnv('BROWSERBASE_API_KEY');
-  const browserbaseProjectId = reqEnv('BROWSERBASE_PROJECT_ID');
   // TEMPLATE_ID is printed by `npm run build:template`. If you skip the build,
   // omit it and the SDK creates a fresh Universal sandbox (slower; no preinstalled CLI).
   const templateId = process.env.TEMPLATE_ID;
@@ -86,7 +84,6 @@ async function main() {
     const output = await client.commands.run('./browsecli-demo.sh', {
       env: {
         BROWSERBASE_API_KEY: browserbaseApiKey,
-        BROWSERBASE_PROJECT_ID: browserbaseProjectId,
         TARGET_URL,
       },
     });

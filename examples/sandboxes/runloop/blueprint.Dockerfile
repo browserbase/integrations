@@ -24,7 +24,7 @@ WORKDIR /app
 COPY browsecli-demo.sh /app/browsecli-demo.sh
 RUN chmod +x /app/browsecli-demo.sh
 
-# BROWSERBASE_API_KEY (and BROWSERBASE_PROJECT_ID) are injected when the devbox
+# BROWSERBASE_API_KEY are injected when the devbox
 # is created (see main.py / index.ts). TARGET_URL optionally overrides the site.
 ENV TARGET_URL=https://nowsecure.nl
 

@@ -14,14 +14,13 @@ type-checked against the real `@vercel/sandbox` package.
 ### 1. Docker-equivalent in-sandbox flow — ✅ PASS
 
 ```bash
-eval "$(grep -E '^(BROWSERBASE_API_KEY|BROWSERBASE_PROJECT_ID)=' ~/Developer/scratchpad/.env)"
-export BROWSERBASE_API_KEY BROWSERBASE_PROJECT_ID
+eval "$(grep -E '^(BROWSERBASE_API_KEY)=' ~/Developer/scratchpad/.env)"
+export BROWSERBASE_API_KEY
 
 docker build -t browsecli-sandbox:vercel -f Dockerfile.equiv .
 
 docker run --rm \
   -e BROWSERBASE_API_KEY="$BROWSERBASE_API_KEY" \
-  -e BROWSERBASE_PROJECT_ID="$BROWSERBASE_PROJECT_ID" \
   browsecli-sandbox:vercel /app/browsecli-demo.sh
 ```
 

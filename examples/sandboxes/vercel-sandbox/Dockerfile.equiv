@@ -8,7 +8,6 @@
 #   docker build -t browsecli-sandbox:vercel -f Dockerfile.equiv .
 #   docker run --rm \
 #     -e BROWSERBASE_API_KEY="$BROWSERBASE_API_KEY" \
-#     -e BROWSERBASE_PROJECT_ID="$BROWSERBASE_PROJECT_ID" \
 #     browsecli-sandbox:vercel /app/browsecli-demo.sh
 FROM node:20-slim
 

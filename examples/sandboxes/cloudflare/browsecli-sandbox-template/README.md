@@ -50,13 +50,15 @@ so the Browserbase integration is known-good — this template leads with the
 | [`package.json`](./package.json) | Deps + scripts + the `cloudflare` metadata object (templates marketplace) |
 | `.dev.vars.example` / `.env.example` | Browserbase credentials placeholders |
 
+> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
+
 ## Run it
 
 ### 1. Install + set credentials
 
 ```bash
 npm install
-cp .dev.vars.example .dev.vars   # then fill in BROWSERBASE_API_KEY + BROWSERBASE_PROJECT_ID
+cp .dev.vars.example .dev.vars   # then fill in BROWSERBASE_API_KEY
 ```
 
 Get credentials at <https://www.browserbase.com/settings>.
@@ -78,7 +80,6 @@ curl -X POST http://localhost:8787/ -d '{"targetUrl":"https://www.g2.com"}'
 
 ```bash
 npx wrangler secret put BROWSERBASE_API_KEY
-npx wrangler secret put BROWSERBASE_PROJECT_ID
 npx wrangler deploy            # builds + pushes the image, provisions the Container
 curl https://<your-worker>.workers.dev/
 ```
@@ -94,7 +95,6 @@ end with Docker, using the same install + demo layer as the real image (see
 docker build -t browsecli-sandbox:cloudflare-test -f ../Dockerfile.test ..
 docker run --rm \
   -e BROWSERBASE_API_KEY=$BROWSERBASE_API_KEY \
-  -e BROWSERBASE_PROJECT_ID=$BROWSERBASE_PROJECT_ID \
   browsecli-sandbox:cloudflare-test /app/browsecli-demo.sh
 # → [browsecli-demo] RESULT: ✅ PASS — reached real content ...
 ```

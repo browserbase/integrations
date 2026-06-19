@@ -32,6 +32,6 @@ CSB_API_KEY=csb_... npx @codesandbox/sdk build . --name browsecli-sandbox
 
 ## Run the demo in a created sandbox
 
-Set `BROWSERBASE_API_KEY` + `BROWSERBASE_PROJECT_ID` as env on the command run
+Set `BROWSERBASE_API_KEY` as env on the command run
 (see `../create.mjs`), then run the `browse-demo` task or `./browsecli-demo.sh`.
 Expected tail: `RESULT: ✅ PASS — reached real content through the protected site`.

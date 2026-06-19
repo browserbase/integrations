@@ -47,7 +47,7 @@ RUN chmod +x /usr/local/bin/browsecli-demo.sh /app/entrypoint.sh \
     && cp /usr/local/bin/browsecli-demo.sh /app/browsecli-demo.sh \
     && chmod +x /app/browsecli-demo.sh
 
-# BROWSERBASE_API_KEY (and BROWSERBASE_PROJECT_ID) are injected at run time
+# BROWSERBASE_API_KEY are injected at run time
 # (Blaxel secrets / env). TARGET_URL optionally overrides the protected site.
 ENV TARGET_URL=https://nowsecure.nl
 

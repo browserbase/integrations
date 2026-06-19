@@ -9,7 +9,7 @@
 #   - runs in Verified browser mode (passes bot-detection fingerprinting)
 #   - auto-solves CAPTCHAs / challenges server-side
 #
-# Requires: BROWSERBASE_API_KEY (and usually BROWSERBASE_PROJECT_ID) in env.
+# Requires: BROWSERBASE_API_KEY in env.
 # Optional: TARGET_URL (default https://nowsecure.nl, a Cloudflare-protected page)
 #
 set -euo pipefail

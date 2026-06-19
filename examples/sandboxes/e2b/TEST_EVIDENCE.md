@@ -20,9 +20,9 @@ identical image, so the BrowseCLI path is unchanged.
 Creds loaded without printing:
 
 ```bash
-eval "$(grep -E '^(BROWSERBASE_API_KEY|BROWSERBASE_PROJECT_ID)=' ~/Developer/scratchpad/.env)"
-export BROWSERBASE_API_KEY BROWSERBASE_PROJECT_ID
-# -> creds loaded: API_KEY len=35, PROJECT_ID set=yes
+eval "$(grep -E '^(BROWSERBASE_API_KEY)=' ~/Developer/scratchpad/.env)"
+export BROWSERBASE_API_KEY
+# -> creds loaded: API_KEY len=35
 ```
 
 Build the E2B template image as a plain Docker image:
@@ -39,7 +39,6 @@ Run the demo inside the exact image:
 ```bash
 docker run --rm \
   -e BROWSERBASE_API_KEY="$BROWSERBASE_API_KEY" \
-  -e BROWSERBASE_PROJECT_ID="$BROWSERBASE_PROJECT_ID" \
   browsecli-sandbox:e2b /app/browsecli-demo.sh
 ```
 
@@ -109,7 +108,7 @@ behavior under test.
 ## How to finish the PENDING-KEY check (when an E2B key is available)
 
 ```bash
-cp .env.example .env   # add E2B_API_KEY, BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID
+cp .env.example .env   # add E2B_API_KEY, BROWSERBASE_API_KEY
 npm install
 npm i -g @e2b/cli && e2b auth login
 npm run build:template   # e2b template build  -> registers template "browsecli-sandbox"

@@ -15,7 +15,7 @@ Run:
     python main.py
 
 Required env (see .env.example):
-    E2B_API_KEY, BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID
+    E2B_API_KEY, BROWSERBASE_API_KEY
     Optional: TARGET_URL (default https://nowsecure.nl)
 """
 
@@ -42,7 +42,6 @@ def require_env(name: str) -> str:
 def main() -> None:
     require_env("E2B_API_KEY")  # read automatically by the SDK
     browserbase_api_key = require_env("BROWSERBASE_API_KEY")
-    browserbase_project_id = require_env("BROWSERBASE_PROJECT_ID")
 
     print(f'Creating E2B sandbox from template "{TEMPLATE}"...')
     sbx = Sandbox.create(TEMPLATE, timeout=600)  # 10 min
@@ -59,7 +58,6 @@ def main() -> None:
             "/home/user/browsecli-demo.sh",
             envs={
                 "BROWSERBASE_API_KEY": browserbase_api_key,
-                "BROWSERBASE_PROJECT_ID": browserbase_project_id,
                 "TARGET_URL": TARGET_URL,
             },
             on_stdout=lambda line: print(line, end=""),

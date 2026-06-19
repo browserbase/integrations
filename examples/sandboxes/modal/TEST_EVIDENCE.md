@@ -27,7 +27,7 @@ container's `CMD` runs — so container behavior == Function behavior.
 | --- | --- | --- |
 | py-parse | `python3 -c "import ast; ast.parse(open('browsecli_in_modal.py').read()); print('py-parse OK')"` | `py-parse OK` |
 | image build | `docker build -t browsecli-sandbox:modal -f Dockerfile.equiv .` | built OK (`naming to docker.io/library/browsecli-sandbox:modal done`) |
-| live in-sandbox run | `docker run --rm -e BROWSERBASE_API_KEY=*** -e BROWSERBASE_PROJECT_ID=*** browsecli-sandbox:modal /app/browsecli-demo.sh` | **✅ PASS** (see below) |
+| live in-sandbox run | `docker run --rm -e BROWSERBASE_API_KEY=*** browsecli-sandbox:modal /app/browsecli-demo.sh` | **✅ PASS** (see below) |
 | CI guard (no key) | simulated the Function's guard branch with `BROWSERBASE_API_KEY` unset | returned `0`, printed `skipping live run (no BROWSERBASE_API_KEY)` |
 
 ### Live run output (key redacted, never echoed)
@@ -89,7 +89,7 @@ token.
 Not Docker-equivalent — this is the literal Modal image builder + control plane + egress.
 
 ```
-$ export BROWSERBASE_API_KEY=... BROWSERBASE_PROJECT_ID=...
+$ export BROWSERBASE_API_KEY=...
 $ modal run browsecli_in_modal.py
 🔨 Created function reach_protected_site.
 [browsecli-demo] browse version: browse/0.8.5 linux-x64 node-v20.20.2

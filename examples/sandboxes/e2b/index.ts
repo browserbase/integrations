@@ -16,7 +16,7 @@
  *   npm start                # runs this file
  *
  * Required env (see .env.example):
- *   E2B_API_KEY, BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID
+ *   E2B_API_KEY, BROWSERBASE_API_KEY
  *   Optional: TARGET_URL (default https://nowsecure.nl)
  */
 import 'dotenv/config';
@@ -40,7 +40,6 @@ async function main() {
   // E2B_API_KEY is read from the environment by the SDK automatically.
   reqEnv('E2B_API_KEY');
   const browserbaseApiKey = reqEnv('BROWSERBASE_API_KEY');
-  const browserbaseProjectId = reqEnv('BROWSERBASE_PROJECT_ID');
 
   console.log(`Creating E2B sandbox from template "${TEMPLATE}"...`);
   const sbx = await Sandbox.create({
@@ -61,7 +60,6 @@ async function main() {
     const result = await sbx.commands.run('/home/user/browsecli-demo.sh', {
       envs: {
         BROWSERBASE_API_KEY: browserbaseApiKey,
-        BROWSERBASE_PROJECT_ID: browserbaseProjectId,
         TARGET_URL,
       },
       onStdout: (d: string) => {

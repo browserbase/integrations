@@ -53,12 +53,14 @@ can actually reach protected production sites.
 | `index.ts` | TS runner — `Sandbox.create({ template })`, uploads + runs the demo via `sbx.commands.run`. |
 | `main.py` | Python runner — same flow with the Python SDK. |
 | `package.json` | Deps for the TS runner (`e2b`, `tsx`, `dotenv`). |
-| `.env.example` | `E2B_API_KEY`, `BROWSERBASE_API_KEY`, `BROWSERBASE_PROJECT_ID`. |
+| `.env.example` | `E2B_API_KEY`, `BROWSERBASE_API_KEY`. |
+
+> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
 
 ## Run it on E2B
 
 ```bash
-cp .env.example .env   # fill in E2B_API_KEY, BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID
+cp .env.example .env   # fill in E2B_API_KEY, BROWSERBASE_API_KEY
 npm install
 
 # 1) Build the template image from e2b.Dockerfile (one-time / on image change).
@@ -95,7 +97,6 @@ with Docker before you ever build the E2B template:
 docker build -t browsecli-sandbox:e2b -f e2b.Dockerfile .
 docker run --rm \
   -e BROWSERBASE_API_KEY=$BROWSERBASE_API_KEY \
-  -e BROWSERBASE_PROJECT_ID=$BROWSERBASE_PROJECT_ID \
   browsecli-sandbox:e2b /app/browsecli-demo.sh
 ```
 

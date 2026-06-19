@@ -49,6 +49,8 @@ provide.
 - `Dockerfile.equiv` — the Docker-equivalent of the Daytona `Image`, for running
   the in-sandbox behavior locally (see [TEST_EVIDENCE.md](./TEST_EVIDENCE.md)).
 
+> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
+
 ## How to run
 
 ```bash
@@ -56,7 +58,6 @@ pip install -r requirements.txt
 
 export DAYTONA_API_KEY=dtn_...            # https://app.daytona.io/dashboard/keys
 export BROWSERBASE_API_KEY=bb_live_...    # https://www.browserbase.com/settings
-export BROWSERBASE_PROJECT_ID=...
 
 python main.py
 ```
@@ -93,7 +94,7 @@ image = (
 sandbox = daytona.create(CreateSandboxFromImageParams(image=image, resources=Resources(cpu=1, memory=2)))
 
 # Run the demo, injecting Browserbase creds per-exec (kept out of the image).
-resp = sandbox.process.exec("bash /app/browsecli-demo.sh", env={"BROWSERBASE_API_KEY": "...", "BROWSERBASE_PROJECT_ID": "..."})
+resp = sandbox.process.exec("bash /app/browsecli-demo.sh", env={"BROWSERBASE_API_KEY": "..."})
 print(resp.result)
 
 daytona.delete(sandbox)

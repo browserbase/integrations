@@ -50,6 +50,5 @@
 
   // Browserbase credentials are NOT stored here. Set them as encrypted secrets:
   //   wrangler secret put BROWSERBASE_API_KEY
-  //   wrangler secret put BROWSERBASE_PROJECT_ID
-  // For local `wrangler dev`, put them in .dev.vars (see .dev.vars.example).
+  // For local `wrangler dev`, put it in .dev.vars (see .dev.vars.example).
 }

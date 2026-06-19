@@ -38,7 +38,9 @@ which connects out over CDP to a **Verified Browserbase browser** that:
 | `index.ts` | TypeScript runner: same two commands via `@runloop/api-client`. |
 | `browsecli-demo.sh` | The load-bearing demo: create a Verified session, open a Cloudflare-protected page over CDP, assert real content (not a challenge wall). |
 | `package.json` / `requirements.txt` | TS / Python deps. |
-| `.env.example` | `RUNLOOP_API_KEY`, `BROWSERBASE_API_KEY`, `BROWSERBASE_PROJECT_ID`. |
+| `.env.example` | `RUNLOOP_API_KEY`, `BROWSERBASE_API_KEY`. |
+
+> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
 
 ## How to run
 
@@ -46,8 +48,8 @@ Get a Runloop key at [platform.runloop.ai](https://platform.runloop.ai) and
 Browserbase keys at [browserbase.com](https://www.browserbase.com).
 
 ```bash
-cp .env.example .env   # fill in the three keys, then export them
-export RUNLOOP_API_KEY=...  BROWSERBASE_API_KEY=...  BROWSERBASE_PROJECT_ID=...
+cp .env.example .env   # fill in both keys, then export them
+export RUNLOOP_API_KEY=...  BROWSERBASE_API_KEY=...
 ```
 
 ### Python

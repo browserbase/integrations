@@ -13,7 +13,7 @@ proven below.
 | Command / flow | Observed output | Confidence / sufficiency |
 | --- | --- | --- |
 | `docker build -t browsecli-sandbox:runloop -f examples/sandboxes/runloop/blueprint.Dockerfile examples/sandboxes/runloop` | Build succeeded; `browse/0.8.5 linux-arm64 node-v20.20.2` printed; demo script copied + chmod'd | Proves the Blueprint image builds and bakes in `node` + `browse` CLI exactly as a Runloop devbox would. |
-| `docker run --rm -e BROWSERBASE_API_KEY=*** -e BROWSERBASE_PROJECT_ID=*** browsecli-sandbox:runloop /app/browsecli-demo.sh` | `session ready: c9abe7d5-…` → `page title : nowsecure.nl` → `body length: 162831 chars` → `RESULT: ✅ PASS — reached real content through the protected site from inside the sandbox` | Proves the load-bearing path: a Verified Browserbase session (`--proxies --verified --solve-captchas`) reaches a Cloudflare-protected page over CDP and returns real content, not a challenge wall. This is identical to what the devbox runs via `execute_sync`. |
+| `docker run --rm -e BROWSERBASE_API_KEY=*** browsecli-sandbox:runloop /app/browsecli-demo.sh` | `session ready: c9abe7d5-…` → `page title : nowsecure.nl` → `body length: 162831 chars` → `RESULT: ✅ PASS — reached real content through the protected site from inside the sandbox` | Proves the load-bearing path: a Verified Browserbase session (`--proxies --verified --solve-captchas`) reaches a Cloudflare-protected page over CDP and returns real content, not a challenge wall. This is identical to what the devbox runs via `execute_sync`. |
 | `python3 -c "import ast; ast.parse(open('examples/sandboxes/runloop/main.py').read()); print('py-parse OK')"` | `py-parse OK` | Proves `main.py` is syntactically valid Python. |
 
 ### Raw output of the live container run

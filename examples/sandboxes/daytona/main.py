@@ -45,7 +45,6 @@ Run it:
     pip install -r requirements.txt
     export DAYTONA_API_KEY=dtn_...
     export BROWSERBASE_API_KEY=bb_live_...
-    export BROWSERBASE_PROJECT_ID=...
     python main.py
 """
 
@@ -66,7 +65,7 @@ TARGET_URL = os.environ.get("TARGET_URL", "https://nowsecure.nl")
 # never has to be baked into the image or snapshot.
 BROWSERBASE_ENV = {
     k: os.environ[k]
-    for k in ("BROWSERBASE_API_KEY", "BROWSERBASE_PROJECT_ID")
+    for k in ("BROWSERBASE_API_KEY",)
     if os.environ.get(k)
 }
 
@@ -101,9 +100,8 @@ def main() -> int:
     if not BROWSERBASE_ENV.get("BROWSERBASE_API_KEY"):
         print(
             "[browsecli-in-daytona] BROWSERBASE_API_KEY is not set. "
-            "Set it (and BROWSERBASE_PROJECT_ID) before running:\n"
-            "  export BROWSERBASE_API_KEY=bb_live_...\n"
-            "  export BROWSERBASE_PROJECT_ID=..."
+            "Set it before running:\n"
+            "  export BROWSERBASE_API_KEY=bb_live_..."
         )
         return 1
 

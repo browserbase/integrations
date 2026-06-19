@@ -9,7 +9,6 @@
   "arguments": {
     "REGION": "us-central",
     "BROWSERBASE_API_KEY": "",
-    "BROWSERBASE_PROJECT_ID": "",
     "TARGET_URL": "https://nowsecure.nl",
     "REPO_URL": "https://github.com/browserbase/browserbase-integrations",
     "REPO_BRANCH": "main",
@@ -49,8 +48,7 @@
                   "priority": 10,
                   "secrets": {
                     "variables": {
-                      "BROWSERBASE_API_KEY": "${args.BROWSERBASE_API_KEY}",
-                      "BROWSERBASE_PROJECT_ID": "${args.BROWSERBASE_PROJECT_ID}"
+                      "BROWSERBASE_API_KEY": "${args.BROWSERBASE_API_KEY}"
                     }
                   },
                   "addToAllJobs": true,

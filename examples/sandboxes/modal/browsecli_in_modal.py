@@ -29,12 +29,12 @@
 # To run it:
 #
 # ```bash
-# export BROWSERBASE_API_KEY=bb_live_...   # plus BROWSERBASE_PROJECT_ID=...
+# export BROWSERBASE_API_KEY=bb_live_...
 # modal run browsecli_in_modal.py
 # ```
 #
-# (Or store them once as a named Modal Secret — `modal secret create browserbase
-# BROWSERBASE_API_KEY=... BROWSERBASE_PROJECT_ID=...` — and swap the
+# (Or store it once as a named Modal Secret — `modal secret create browserbase
+# BROWSERBASE_API_KEY=...` — and swap the
 # `Secret.from_dict(...)` below for `modal.Secret.from_name("browserbase")`.)
 
 import os
@@ -76,7 +76,6 @@ app = modal.App("browsecli-in-modal", image=image)
 browserbase_secret = modal.Secret.from_dict(
     {
         "BROWSERBASE_API_KEY": os.environ.get("BROWSERBASE_API_KEY", ""),
-        "BROWSERBASE_PROJECT_ID": os.environ.get("BROWSERBASE_PROJECT_ID", ""),
     }
 )
 

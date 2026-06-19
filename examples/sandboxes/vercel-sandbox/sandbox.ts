@@ -25,7 +25,6 @@ import { Sandbox } from '@vercel/sandbox';
 
 const {
   BROWSERBASE_API_KEY,
-  BROWSERBASE_PROJECT_ID,
   // Vercel Sandbox auth — see https://vercel.com/docs/vercel-sandbox
   VERCEL_TOKEN,
   VERCEL_TEAM_ID,
@@ -43,7 +42,6 @@ function requireEnv(name: string, value: string | undefined): string {
 
 async function main() {
   requireEnv('BROWSERBASE_API_KEY', BROWSERBASE_API_KEY);
-  requireEnv('BROWSERBASE_PROJECT_ID', BROWSERBASE_PROJECT_ID);
   requireEnv('VERCEL_TOKEN', VERCEL_TOKEN);
   requireEnv('VERCEL_TEAM_ID', VERCEL_TEAM_ID);
   requireEnv('VERCEL_PROJECT_ID', VERCEL_PROJECT_ID);
@@ -89,7 +87,6 @@ async function main() {
       args: ['-lc', 'chmod +x browsecli-demo.sh && ./browsecli-demo.sh'],
       env: {
         BROWSERBASE_API_KEY: BROWSERBASE_API_KEY!,
-        BROWSERBASE_PROJECT_ID: BROWSERBASE_PROJECT_ID!,
         ...(TARGET_URL ? { TARGET_URL } : {}),
       },
       stderr: process.stderr,

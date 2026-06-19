@@ -33,13 +33,12 @@ the only outbound access the sandbox needs is to `*.browserbase.com` and
 
 <Steps>
   <Step title="Get your Browserbase credentials">
-    Grab your **API key** and **Project ID** from the
+    Grab your **API key** from the
     [dashboard](https://www.browserbase.com/overview) (the free plan works).
   </Step>
   <Step title="Export them where the sandbox can read them">
     ```bash
     export BROWSERBASE_API_KEY=bb_live_xxx
-    export BROWSERBASE_PROJECT_ID=xxxxxxxx-xxxx-xxxx
     ```
     This is the only credential the browser needs — every template below reuses it.
   </Step>
@@ -67,6 +66,10 @@ Prove the core path on your laptop first — the browser still runs on Browserba
   </Step>
 </Steps>
 
+<Note>
+  Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see [pricing](https://www.browserbase.com/pricing) and [Verified](https://www.browserbase.com/verified). On lower plans, drop `--verified` (you'll get Basic stealth).
+</Note>
+
 Once that returns the real page, drop the same logic into a sandbox. Every template runs
 the committed [`browsecli-demo.sh`](https://github.com/browserbase/integrations/blob/main/examples/sandboxes/_shared/browsecli-demo.sh),
 which creates the Verified session, opens the protected page over CDP, and asserts real
@@ -74,8 +77,8 @@ content with a clear **PASS / FAIL**.
 
 ## Pick your sandbox
 
-Each tab is a drop-in template in that provider's native format. Set the two Browserbase
-env vars above plus the provider's own key, then run.
+Each tab is a drop-in template in that provider's native format. Set the `BROWSERBASE_API_KEY`
+env var above plus the provider's own key, then run.
 
 <Tabs>
   <Tab title="E2B">
@@ -115,7 +118,7 @@ env vars above plus the provider's own key, then run.
   <Tab title="Cloudflare">
     ```bash
     cd cloudflare/browsecli-sandbox-template && npm i
-    # add BROWSERBASE_API_KEY + BROWSERBASE_PROJECT_ID to .dev.vars (or `wrangler secret put`)
+    # add BROWSERBASE_API_KEY to .dev.vars (or `wrangler secret put`)
     wrangler deploy   # a Worker triggers a Container that runs `browse`
     ```
   </Tab>
@@ -123,7 +126,7 @@ env vars above plus the provider's own key, then run.
     ```bash
     cd fly
     fly launch --no-deploy
-    fly secrets set BROWSERBASE_API_KEY=… BROWSERBASE_PROJECT_ID=…
+    fly secrets set BROWSERBASE_API_KEY=…
     fly machine run . /app/browsecli-demo.sh --rm   # one-shot
     ```
   </Tab>
@@ -149,7 +152,7 @@ env vars above plus the provider's own key, then run.
   </Tab>
   <Tab title="Northflank">
     Publish the IaC template (`northflank-template.json`) as a shareable template, or run
-    it from the dashboard / API with the two Browserbase secrets set.
+    it from the dashboard / API with the Browserbase API key set.
   </Tab>
   <Tab title="Morph">
     ```bash
@@ -168,7 +171,7 @@ Run the exact container any OCI-based sandbox executes, on your machine:
 ```bash Docker
 cd _shared
 docker build -t browsecli-sandbox:shared .
-docker run --rm -e BROWSERBASE_API_KEY -e BROWSERBASE_PROJECT_ID browsecli-sandbox:shared
+docker run --rm -e BROWSERBASE_API_KEY browsecli-sandbox:shared
 # → [browsecli-demo] RESULT: ✅ PASS — reached real content … from inside the sandbox
 ```
 </CodeGroup>

@@ -26,7 +26,7 @@ WORKDIR /app
 COPY browsecli-demo.sh /app/browsecli-demo.sh
 RUN chmod +x /app/browsecli-demo.sh
 
-# BROWSERBASE_API_KEY (and BROWSERBASE_PROJECT_ID) are injected at run time by
+# BROWSERBASE_API_KEY are injected at run time by
 # the Worker via the sandbox `env` option. TARGET_URL optionally overrides the
 # protected site to visit (default: a Cloudflare-protected page).
 ENV TARGET_URL=https://nowsecure.nl

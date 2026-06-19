@@ -18,7 +18,7 @@
  *   npm run create-blueprint                 build the reusable devbox image once
  *   npm run start -- run [--target-url URL]  create a devbox + run the demo
  *
- * Env: RUNLOOP_API_KEY, BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID
+ * Env: RUNLOOP_API_KEY, BROWSERBASE_API_KEY
  */
 
 import { readFileSync } from "node:fs";
@@ -66,7 +66,6 @@ async function run(targetUrl: string): Promise<number> {
 
   const environment_variables: Record<string, string> = {
     BROWSERBASE_API_KEY: bbKey,
-    BROWSERBASE_PROJECT_ID: process.env.BROWSERBASE_PROJECT_ID ?? "",
     TARGET_URL: targetUrl,
   };
 

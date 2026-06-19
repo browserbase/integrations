@@ -37,7 +37,9 @@ So this example keeps the browser **out** of the Function. The Function runs the
   CDP, and assert real content (not a challenge wall).
 - `Dockerfile.equiv` — local Docker mirror of the Modal image build, used to prove
   the in-sandbox behavior without a Modal token (see Testing).
-- `.env.example` — the two Browserbase env vars.
+- `.env.example` — the Browserbase env var (`BROWSERBASE_API_KEY`).
+
+> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
 
 ## How to run
 
@@ -52,8 +54,7 @@ So this example keeps the browser **out** of the Function. The Function runs the
 
    ```bash
    modal secret create browserbase \
-     BROWSERBASE_API_KEY=bb_live_... \
-     BROWSERBASE_PROJECT_ID=...
+     BROWSERBASE_API_KEY=bb_live_...
    ```
 
    Get credentials at https://www.browserbase.com/settings.

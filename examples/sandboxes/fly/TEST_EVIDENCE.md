@@ -28,7 +28,7 @@ the same script exercised below, so container behavior == Machine behavior.
 | --- | --- | --- |
 | toml valid | `python3 -c "import tomllib; tomllib.load(open('examples/sandboxes/fly/fly.toml','rb')); print('toml OK')"` (fell back to `tomli` on Python 3.9 — same parser/API) | `toml OK` |
 | image build | `docker build -t browsecli-sandbox:fly -f examples/sandboxes/fly/Dockerfile examples/sandboxes/fly` | built OK (`naming to docker.io/library/browsecli-sandbox:fly done`) |
-| live in-sandbox run | `docker run --rm -e BROWSERBASE_API_KEY=*** -e BROWSERBASE_PROJECT_ID=*** browsecli-sandbox:fly /app/browsecli-demo.sh` | **✅ PASS** (see below) |
+| live in-sandbox run | `docker run --rm -e BROWSERBASE_API_KEY=*** browsecli-sandbox:fly /app/browsecli-demo.sh` | **✅ PASS** (see below) |
 
 ### Live run output (key redacted, never echoed)
 
@@ -67,8 +67,8 @@ the drop-in `tomli` backport — identical API and result.)
 
 | Check | Command | Why pending |
 | --- | --- | --- |
-| literal app deploy | `fly launch --no-deploy && fly secrets set BROWSERBASE_API_KEY=... BROWSERBASE_PROJECT_ID=... && fly deploy` | needs `fly auth login` + a Fly account. Image steps, the demo script, and `fly.toml` validity are all verified locally above. |
-| literal one-shot Machine | `fly machine run . /app/browsecli-demo.sh --rm -e BROWSERBASE_API_KEY=... -e BROWSERBASE_PROJECT_ID=...` | same — needs a Fly token. This is the idiomatic run-once primitive; the underlying image + script behavior is proven via `docker run` above. |
+| literal app deploy | `fly launch --no-deploy && fly secrets set BROWSERBASE_API_KEY=... && fly deploy` | needs `fly auth login` + a Fly account. Image steps, the demo script, and `fly.toml` validity are all verified locally above. |
+| literal one-shot Machine | `fly machine run . /app/browsecli-demo.sh --rm -e BROWSERBASE_API_KEY=...` | same — needs a Fly token. This is the idiomatic run-once primitive; the underlying image + script behavior is proven via `docker run` above. |
 | Sprite run | `sprite create ... && sprite exec -- ...` (see README) | needs a Sprites account (`sprite org auth`). Sprites run the same `browse` CLI on pre-installed Node 22; behavior is the same as the verified Docker run. |
 
 ## Confidence

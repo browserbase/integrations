@@ -29,7 +29,6 @@ Usage:
 Env (in .env or your shell):
     RUNLOOP_API_KEY         from platform.runloop.ai  (provisions devboxes)
     BROWSERBASE_API_KEY     from browserbase.com       (the Verified browser)
-    BROWSERBASE_PROJECT_ID  from browserbase.com
 """
 
 from __future__ import annotations
@@ -81,7 +80,6 @@ def run(target_url: str) -> int:
 
     env = {
         "BROWSERBASE_API_KEY": bb_key,
-        "BROWSERBASE_PROJECT_ID": os.environ.get("BROWSERBASE_PROJECT_ID", ""),
         "TARGET_URL": target_url,
     }
 
