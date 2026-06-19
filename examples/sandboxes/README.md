@@ -65,23 +65,22 @@ If that returns the real page, you're ready to put it inside a sandbox.
 
 ## Part 2 — Pick your sandbox
 
-Each folder is a drop-in template in that provider's native format. **Tested** = run
-end-to-end on the provider's real cloud; **Verified (container)** = run inside the exact
-OCI image that provider's sandbox executes.
+Each folder is a drop-in template in that provider's native format. Set your
+Browserbase API key plus the provider's own key, then run.
 
-| Sandbox | Folder | Run it | Status |
-| --- | --- | --- | --- |
-| **E2B** | [`e2b/`](./e2b) | `npm i && e2b template create … && npm start` | ✅ Tested (real API) |
-| **Modal** | [`modal/`](./modal) | `modal run browsecli_in_modal.py` | ✅ Tested (real API) |
-| **Vercel Sandbox** | [`vercel-sandbox/`](./vercel-sandbox) | `pnpm i && npx tsx sandbox.ts` | ✅ Tested (real API) |
-| **Daytona** | [`daytona/`](./daytona) | `pip install daytona && python main.py` | ⚠️ Needs egress (see note) |
-| **Cloudflare** | [`cloudflare/`](./cloudflare) | `npm i && wrangler deploy` | ✅ Verified (container) |
-| **Fly.io** | [`fly/`](./fly) | `fly launch && fly deploy` | ✅ Verified (container) |
-| **Northflank** | [`northflank/`](./northflank) | run the template (UI / API) | ✅ Verified (container) |
-| **CodeSandbox SDK** | [`codesandbox/`](./codesandbox) | `npx @codesandbox/sdk build ./tpl && node create.mjs` | ✅ Verified (container) |
-| **Runloop** | [`runloop/`](./runloop) | `python main.py` | ✅ Verified (container) |
-| **Blaxel** | [`blaxel/`](./blaxel) | `bl deploy` | ✅ Verified (container) |
-| **Morph** | [`morph/`](./morph) | `python main.py` | ✅ Verified (container) |
+| Sandbox | Folder | Run it |
+| --- | --- | --- |
+| **E2B** | [`e2b/`](./e2b) | `npm i && e2b template create … && npm start` |
+| **Modal** | [`modal/`](./modal) | `modal run browsecli_in_modal.py` |
+| **Vercel Sandbox** | [`vercel-sandbox/`](./vercel-sandbox) | `pnpm i && npx tsx sandbox.ts` |
+| **Daytona** | [`daytona/`](./daytona) | `pip install daytona && python main.py` — needs a Tier 3/4 org ([why](./daytona)) |
+| **Cloudflare** | [`cloudflare/`](./cloudflare) | `npm i && wrangler deploy` |
+| **Fly.io** | [`fly/`](./fly) | `fly launch && fly deploy` |
+| **Northflank** | [`northflank/`](./northflank) | run the template (UI / API) |
+| **CodeSandbox SDK** | [`codesandbox/`](./codesandbox) | `npx @codesandbox/sdk build ./tpl && node create.mjs` |
+| **Runloop** | [`runloop/`](./runloop) | `python main.py` |
+| **Blaxel** | [`blaxel/`](./blaxel) | `bl deploy` |
+| **Morph** | [`morph/`](./morph) | `python main.py` |
 
 Every template ends with: `✅ PASS — reached real content through the protected site from inside the sandbox`.
 
