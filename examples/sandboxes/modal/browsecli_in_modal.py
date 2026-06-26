@@ -37,6 +37,7 @@
 # ```
 
 import os
+import shlex
 import subprocess
 
 import modal
@@ -97,7 +98,7 @@ DEFAULT_TASK = (
     "Return a comparison table across all three companies and cite each filing's URL."
 )
 MODEL = "claude-sonnet-4-5"
-MAX_STEPS = 30
+MAX_STEPS = 40
 
 SYSTEM_PROMPT = f"""You are an autonomous deep-research agent. You answer questions by investigating the live web with a real browser that runs remotely on Browserbase. Each tool call runs: browse <your args> (every call is automatically scoped to one shared session "{SESSION}").
 Useful commands:
@@ -132,8 +133,12 @@ def run_browse(args: str) -> str:
     """Execute one `browse` command against the shared remote session."""
     print(f"-> browse {args}")
     try:
+        # Tokenize the model's free-form arg string and re-quote each piece, so a
+        # URL with shell metacharacters like `&` (e.g. SEC EDGAR query strings)
+        # isn't split by the shell into broken commands.
+        cmd = "browse " + " ".join(shlex.quote(a) for a in shlex.split(args))
         result = subprocess.run(
-            ["bash", "-lc", f"browse {args} --session {SESSION}"],
+            ["bash", "-lc", f"{cmd} --session {SESSION}"],
             capture_output=True,
             text=True,
             timeout=45,

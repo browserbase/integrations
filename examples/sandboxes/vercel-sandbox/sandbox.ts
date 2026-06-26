@@ -33,6 +33,7 @@ Use one named session so every command shares one browser:
   browse get markdown body --session agent     # read the current page as markdown (keeps links)
   browse get text body --session agent         # read the current page as plain text
 Run \`browse --help\` to discover more commands.
+Since you're typing real shell commands, wrap any URL containing shell metacharacters (e.g. & or ?) in single quotes so the shell doesn't split it, e.g. browse open 'https://example.com/path?a=1&b=2' --remote --session agent.
 
 Plan your own research: break the question into sub-questions, find and open relevant sources, follow links, and read pages to gather evidence. Use several independent sources and cross-check key facts. If a page errors or comes back empty, try a different source instead of retrying it unchanged. When you can answer thoroughly, run \`browse stop --session agent\` and return a concise, well-sourced synthesis that cites the URLs you used.`;
 
@@ -99,7 +100,7 @@ try {
     model: anthropic('claude-sonnet-4-5'),
     tools,
     instructions: system,
-    stopWhen: stepCountIs(30),
+    stopWhen: stepCountIs(40),
   });
 
   console.log('› Running the agent (loop on host, bash in the sandbox)…\n');
