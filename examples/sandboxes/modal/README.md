@@ -26,8 +26,11 @@ to a remote Browserbase browser over CDP.
 └──────────────────────────────┘    page data       └────────────────────────┘
 ```
 
-The agent's default task: go to Hacker News, find the most controversial post
-today, read the top comments, and summarize the debate.
+The agent's default task is a deep-research example: pull the most recent 10-Q
+filing for Snowflake, Datadog, and MongoDB from SEC EDGAR and return a comparison
+of their quarterly revenue, growth, RPO, and top risk factor. The agent plans its
+own steps — the prompt has no site-specific instructions. Override the goal with
+`--task "..."`.
 
 ## Files
 
