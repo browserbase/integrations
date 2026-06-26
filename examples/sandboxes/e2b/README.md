@@ -1,127 +1,93 @@
-# BrowseCLI in an E2B sandbox
+# Browser agent in an E2B sandbox
 
-Run the Browserbase [`browse`](https://github.com/browserbase/stagehand/tree/main/packages/cli)
-CLI **inside an [E2B](https://e2b.dev) sandbox** to reach any site through a
-**Verified Browserbase browser** over CDP — residential IP (no datacenter-IP
-blocking), Verified browser mode (passes bot detection), and automatic
-server-side CAPTCHA solving.
+Run a small browser **agent** inside an [E2B](https://e2b.dev) sandbox. The agent
+(built on the [Vercel AI SDK](https://sdk.vercel.ai)) has a single tool — the
+Browserbase [`browse`](https://github.com/browserbase/stagehand/tree/main/packages/cli)
+CLI — and uses it to drive a **remote Browserbase browser** over CDP.
 
-The agent loop runs **in the sandbox**; the browser runs **on Browserbase**.
+The agent loop runs **in the sandbox**; the browser runs **on Browserbase**, so
+no Chrome/Chromium is installed in the sandbox image.
 
 ```
-┌──────────────────────────┐        CDP over wss         ┌──────────────────────────┐
-│  E2B sandbox (Firecracker)│ ──────────────────────────▶ │  Browserbase Verified     │
-│  node + `browse` CLI      │                              │  browser (residential IP, │
-│  your agent loop          │ ◀──────────────────────────│  stealth, CAPTCHA solve)   │
-└──────────────────────────┘        page data / refs      └──────────────────────────┘
+┌───────────────────────────┐        CDP over wss         ┌───────────────────────────┐
+│  E2B sandbox (Firecracker) │ ──────────────────────────▶ │  Browserbase browser       │
+│  node + AI SDK agent loop  │                              │  (remote, headless)        │
+│  tool: `browse` CLI        │ ◀──────────────────────────│                            │
+└───────────────────────────┘        page data            └───────────────────────────┘
 ```
 
-## Why this recipe (vs what E2B already ships)
+The default task: go to Hacker News, find the most controversial post, read the
+top comments, and summarize the debate. Override it with the `TASK` env var.
 
-E2B already has two browser stories in the cookbook:
+## How it works
 
-- **[`mcp-browserbase-js`](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/mcp-browserbase-js)** —
-  runs Browserbase as an **MCP server** inside the sandbox and points an OpenAI
-  agent at it through E2B's MCP gateway. Great for "give a model a browser tool,"
-  but it's an MCP-gateway pattern, not a CLI you script.
-- A **Kernel-backed browser** template — an in-sandbox browser primitive.
-
-This example fills the slot Kernel occupies, but with **anti-bot as the headline**:
-a vanilla Firecracker/OCI sandbox browser has a **datacenter IP** (instantly
-blocked by Cloudflare/Akamai/DataDome), no fingerprint hardening, and no CAPTCHA
-solving. Here the browser never runs in the sandbox at all — the sandbox runs the
-`browse` CLI (or your agent loop) and connects out over CDP to a **Verified
-Browserbase browser** that uses a residential IP, passes bot detection, and
-solves challenges server-side. Same isolation guarantees from E2B; a browser that
-can actually reach protected production sites.
-
-| | This recipe | In-sandbox Chrome / Kernel | `mcp-browserbase-js` |
-| --- | --- | --- | --- |
-| Where the browser runs | Browserbase (remote) | Inside the sandbox | Browserbase (via MCP) |
-| Egress IP | Residential / Verified | Datacenter (blocked) | Residential / Verified |
-| Bot-detection fingerprint | Hardened (Verified mode) | Raw headless | Hardened |
-| CAPTCHA / challenge solving | Automatic, server-side | None | Automatic |
-| How you drive it | `browse` CLI / your loop | CDP / Playwright | MCP tool calls from a model |
+1. The driver (`index.ts`) creates a sandbox from the `browsecli-sandbox` template
+   (Node + the `browse` CLI, no browser).
+2. It uploads `agent.mjs` into the sandbox, installs the agent's deps
+   (`ai`, `@ai-sdk/anthropic`, `zod`) there, and runs `node agent.mjs`.
+3. The agent calls `browse open <url> --remote`, `browse get markdown body`,
+   etc. Each call drives a remote Browserbase browser; the browser never runs in
+   the sandbox.
+4. The agent prints a `FINAL ANSWER` summarizing what it found.
 
 ## Files
 
 | File | Purpose |
 | --- | --- |
+| `agent.mjs` | The agent (Vercel AI SDK `generateText`); its only tool shells out to `browse`. Runs **inside** the sandbox. |
+| `index.ts` | Driver — `Sandbox.create({ template })`, uploads the agent, installs its deps, runs it, streams output. |
 | `e2b.Dockerfile` | The template image: `node:20-slim` + `npm i -g browse`. **No Chrome.** |
 | `e2b.toml` | E2B template config (`template_name`, `dockerfile`, `start_cmd`, resources). |
-| `browsecli-demo.sh` | The demo: create a Verified session → open a Cloudflare-protected page over CDP → assert real content. |
-| `index.ts` | TS runner — `Sandbox.create({ template })`, uploads + runs the demo via `sbx.commands.run`. |
-| `main.py` | Python runner — same flow with the Python SDK. |
-| `package.json` | Deps for the TS runner (`e2b`, `tsx`, `dotenv`). |
-| `.env.example` | `E2B_API_KEY`, `BROWSERBASE_API_KEY`. |
+| `package.json` | Deps for the TS driver (`e2b`, `tsx`, `dotenv`). |
+| `.env.example` | `E2B_API_KEY`, `ANTHROPIC_API_KEY`, `BROWSERBASE_API_KEY`. |
 
-> **Note:** Verified browsers/sessions (residential IP + automatic CAPTCHA solving) require a Browserbase **Scale** plan — see https://www.browserbase.com/pricing and https://www.browserbase.com/verified. On lower plans, drop `--verified` (you'll get Basic stealth).
-
-## Run it on E2B
+## Setup
 
 ```bash
-cp .env.example .env   # fill in E2B_API_KEY, BROWSERBASE_API_KEY
+cp .env.example .env   # fill in E2B_API_KEY, ANTHROPIC_API_KEY, BROWSERBASE_API_KEY
 npm install
+```
 
-# 1) Build the template image from e2b.Dockerfile (one-time / on image change).
-#    Requires the e2b CLI:  npm i -g @e2b/cli   (then `e2b auth login`)
-npm run build:template        # == e2b template build  (reads e2b.toml)
+You need three keys:
 
-# 2) Run the SDK script: creates a sandbox from the template and runs the demo.
+- `E2B_API_KEY` — https://e2b.dev/docs/api-key
+- `ANTHROPIC_API_KEY` — https://console.anthropic.com
+- `BROWSERBASE_API_KEY` — https://www.browserbase.com (Settings)
+
+## Build the template (one-time / on image change)
+
+The driver creates sandboxes from a template built from `e2b.Dockerfile`.
+Build it with the [E2B CLI](https://e2b.dev/docs/cli):
+
+```bash
+npm i -g @e2b/cli
+e2b auth login
+npm run build:template        # == e2b template build (reads e2b.toml)
+```
+
+## Run it
+
+```bash
 npm start                     # == tsx index.ts
 ```
 
-Python instead of TS:
+Override the task:
 
 ```bash
-pip install e2b python-dotenv
-e2b template build
-python main.py
+TASK="Open example.com and summarize the page." npm start
 ```
 
 Expected tail of output:
 
 ```
-[browsecli-demo] RESULT: ✅ PASS — reached real content through the protected site from inside the sandbox
-✅ Done — reached real content through a Verified Browserbase browser from inside E2B.
+===== FINAL ANSWER =====
+<the agent's summary of the comment thread>
 ```
 
-Override the target with `TARGET_URL=https://… npm start`.
+## Notes
 
-### Local Docker-equivalent (no E2B account needed)
-
-`e2b.Dockerfile` is a plain OCI image, so you can prove the BrowseCLI path end-to-end
-with Docker before you ever build the E2B template:
-
-```bash
-docker build -t browsecli-sandbox:e2b -f e2b.Dockerfile .
-docker run --rm \
-  -e BROWSERBASE_API_KEY=$BROWSERBASE_API_KEY \
-  browsecli-sandbox:e2b /app/browsecli-demo.sh
-```
-
-See `TEST_EVIDENCE.md` for actual output.
-
-## Publish path
-
-PR this as a new example folder into the E2B cookbook:
-
-- **https://github.com/e2b-dev/e2b-cookbook/tree/main/examples** → add `examples/browsecli-in-e2b`
-
-Mirror the cookbook conventions already used by
-[`mcp-browserbase-js`](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/mcp-browserbase-js):
-MIT license, an `env.template`/`.env.example`, a `README.md`, and a runnable
-`index.ts` (+ optional `main.py`). Position it as the **anti-bot / Verified
-browser over CDP** recipe — the slot the Kernel browser template occupies — and
-lead with "reach protected production sites a datacenter-IP sandbox browser can't."
-
-### Suggested outreach
-
-- Open the PR against `e2b-dev/e2b-cookbook` and tag the maintainers in the
-  description, framing it as the complement to `mcp-browserbase-js`: that example
-  is "model drives a browser via MCP"; this one is "your agent loop runs in the
-  sandbox and scripts a Verified browser via the `browse` CLI." Lead with the
-  anti-bot/CAPTCHA angle so the value vs in-sandbox Chrome is obvious at a glance.
-- Loop in the E2B ↔ Browserbase integration relationship (the team behind the
-  existing Browserbase MCP example) to co-promote — a short "use a Verified
-  Browserbase browser from E2B" post/snippet pairs naturally with the cookbook PR.
+- The agent uses a plain remote browser (`browse open <url> --remote`), which
+  works on **any Browserbase plan**.
+- Verified browsers (residential IP + automatic CAPTCHA solving) are a Scale-plan
+  upgrade. To use one, add `--verified` to the `browse open` calls in `agent.mjs`.
+  See https://www.browserbase.com/pricing.
