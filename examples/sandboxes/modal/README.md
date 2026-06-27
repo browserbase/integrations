@@ -26,11 +26,11 @@ to a remote Browserbase browser over CDP.
 └──────────────────────────────┘    page data       └────────────────────────┘
 ```
 
-The agent's default task is a deep-research example: pull the most recent 10-Q
-filing for Snowflake, Datadog, and MongoDB from SEC EDGAR and return a comparison
-of their quarterly revenue, growth, RPO, and top risk factor. The agent plans its
-own steps — the prompt has no site-specific instructions. Override the goal with
-`--task "..."`.
+The agent's default task is a deep-research example: for Snowflake, Datadog, and
+MongoDB, find each company's most recent 10-Q on SEC EDGAR (filing date, fiscal
+period, primary-document URL) plus the date of its most recent 10-K, and return a
+comparison table. The agent plans its own steps — the prompt has no site-specific
+instructions. Override the goal with `--task "..."`.
 
 ## Files
 
