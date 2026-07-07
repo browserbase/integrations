@@ -24,6 +24,7 @@ integrations/
 │   └── integrations/
 │       ├── agentkit/             # AgentKit implementations
 │       ├── agno/                 # Agno agent framework integration
+│       ├── arize/                # Arize AX observability & tracing
 │       ├── braintrust/           # Evaluation and testing tools
 │       ├── browser-use/          # Browser Use automation
 │       ├── cartesia/             # Cartesia integration
