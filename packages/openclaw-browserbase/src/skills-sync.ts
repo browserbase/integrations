@@ -7,7 +7,8 @@ import { pipeline } from 'node:stream/promises';
 
 import { x } from 'tar';
 
-const TARBALL_BASE = 'https://codeload.github.com/browserbase/skills/tar.gz';
+const TARBALL_BASE =
+  'https://codeload.github.com/browserbase/browse-plugin/tar.gz';
 const DEFAULT_SKILLS_REF = 'main';
 
 /**
@@ -114,7 +115,7 @@ export async function syncBrowserbaseSkills(options?: {
   const tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'bb-skills-sync-'));
 
   try {
-    // The tarball has a root directory like "skills-<sha>/" containing "skills/browser/", etc.
+    // The tarball has a root directory like "browse-plugin-<sha>/" containing "skills/browse/", etc.
     // We want to strip: (1) the repo root prefix, (2) the "skills/" prefix.
     // That's strip: 2, and we filter to only entries under the "skills/" subtree.
     await pipeline(
@@ -123,7 +124,7 @@ export async function syncBrowserbaseSkills(options?: {
         cwd: tmpDir,
         strip: 2,
         filter: entryPath => {
-          // Entry paths look like: "skills-<sha>/skills/browser/SKILL.md"
+          // Entry paths look like: "browse-plugin-<sha>/skills/browse/SKILL.md"
           // After the first "/" is the repo-relative path.
           const repoRelative = entryPath.replace(/^[^/]+\//, '');
           return repoRelative.startsWith(SKILLS_SOURCE_PREFIX);
