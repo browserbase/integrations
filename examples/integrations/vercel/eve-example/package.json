@@ -1,0 +1,29 @@
+{
+  "name": "browserbase-eve-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.9.0",
+  "scripts": {
+    "build": "eve build",
+    "dev": "eve dev",
+    "start": "eve start",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@browserbasehq/eve": "workspace:*",
+    "ai": "^7.0.26",
+    "eve": "0.25.3",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "7.0.2"
+  },
+  "overrides": {
+    "ai": "^7.0.26"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
