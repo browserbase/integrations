@@ -1,9 +1,30 @@
 import { Stagehand } from '@browserbasehq/stagehand';
 
 import extension from '../extension';
+import { createBrowserbaseClient } from './browserbase';
 import { browserSession, type BrowserSessionState } from './session-state';
 
 type StagehandOperation<T> = (stagehand: Stagehand) => Promise<T>;
+
+interface StagehandConnection {
+  stagehand: Stagehand;
+  created: boolean;
+}
+
+export interface BrowserSessionResult extends BrowserSessionState {
+  created: boolean;
+}
+
+async function isTerminalBrowserSession(sessionId: string): Promise<boolean> {
+  try {
+    const session = await createBrowserbaseClient().sessions.retrieve(sessionId);
+    return !['PENDING', 'RUNNING'].includes(session.status);
+  } catch {
+    // A failed status check may be transient. Preserve the durable session id so
+    // the next tool call can retry instead of leaking a keep-alive session.
+    return false;
+  }
+}
 
 function createStagehand(): Stagehand {
   const { apiKey, model, proxies, sessionTimeoutSeconds } = extension.config;
@@ -35,15 +56,21 @@ function resumeStagehand(sessionId: string): Stagehand {
   });
 }
 
-async function connect(): Promise<Stagehand> {
+async function connect(): Promise<StagehandConnection> {
   const current = browserSession.get();
 
   if (current.id) {
     const resumed = resumeStagehand(current.id);
     try {
       await resumed.init();
-      return resumed;
-    } catch {
+      return { stagehand: resumed, created: false };
+    } catch (error) {
+      await resumed.close().catch(() => {});
+
+      if (!(await isTerminalBrowserSession(current.id))) {
+        throw error;
+      }
+
       browserSession.update(() => ({ id: null, url: null }));
     }
   }
@@ -54,13 +81,13 @@ async function connect(): Promise<Stagehand> {
     id: created.browserbaseSessionID ?? null,
     url: created.browserbaseSessionURL ?? null,
   }));
-  return created;
+  return { stagehand: created, created: true };
 }
 
 export async function withStagehand<T>(
   operation: StagehandOperation<T>
 ): Promise<T> {
-  const stagehand = await connect();
+  const { stagehand } = await connect();
   try {
     return await operation(stagehand);
   } finally {
@@ -68,10 +95,10 @@ export async function withStagehand<T>(
   }
 }
 
-export async function createBrowserSession(): Promise<BrowserSessionState> {
-  const stagehand = await connect();
+export async function createBrowserSession(): Promise<BrowserSessionResult> {
+  const { stagehand, created } = await connect();
   try {
-    return browserSession.get();
+    return { ...browserSession.get(), created };
   } finally {
     await stagehand.close();
   }
@@ -92,12 +119,9 @@ export async function closeBrowserSession(): Promise<BrowserSessionState> {
     keepAlive: false,
   });
 
-  try {
-    await stagehand.init();
-    await stagehand.close();
-  } finally {
-    browserSession.update(() => ({ id: null, url: null }));
-  }
+  await stagehand.init();
+  await stagehand.close();
+  browserSession.update(() => ({ id: null, url: null }));
 
   return current;
 }

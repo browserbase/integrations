@@ -11,7 +11,7 @@ export default defineTool({
   }),
   async execute({ url }) {
     return withStagehand(async stagehand => {
-      const page = stagehand.context.pages()[0];
+      const page = await stagehand.context.awaitActivePage();
       await page.goto(url);
       return { url: page.url(), title: await page.title() };
     });
