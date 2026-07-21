@@ -88,9 +88,11 @@ OpenAI or other model-provider API key. The Browserbase API key covers both the
 browser session and Stagehand inference.
 
 The extension uses Browserbase `keepAlive` sessions so it can reconnect across
-Eve workflow steps and Vercel function invocations. Close the session after the
-task to avoid leaving billable browser time running. Keep-alive availability
-depends on your Browserbase plan.
+Eve workflow steps and Vercel function invocations. Parallel browser calls made
+inside one Eve workflow step are queued in that step's managed runtime; durable
+state reconnects later steps and invocations. Close the session after the task
+to avoid leaving billable browser time running. Keep-alive availability depends
+on your Browserbase plan.
 
 ## Build
 

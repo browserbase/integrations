@@ -1,3 +1,6 @@
+// Eve executes parallel tool calls from one model step in the same managed
+// runtime. Durable state carries the session ID between later workflow steps;
+// this lock only queues the parallel calls within the current step/runtime.
 const sessionTails = new Map<string, Promise<void>>();
 
 export async function withSessionLock<T>(

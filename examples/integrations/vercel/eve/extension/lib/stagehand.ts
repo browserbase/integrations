@@ -1,8 +1,11 @@
+import { randomUUID } from 'node:crypto';
+
 import { Stagehand } from '@browserbasehq/stagehand';
 import { APIError } from '@browserbasehq/sdk';
 
 import extension from '../extension';
 import { createBrowserbaseClient } from './browserbase';
+import { disconnectStagehand } from './disconnect';
 import { withSessionLock } from './session-lock';
 import { browserSession, type BrowserSessionState } from './session-state';
 
@@ -18,13 +21,18 @@ export interface BrowserSessionResult extends BrowserSessionState {
 }
 
 type RemoteSessionState = 'active' | 'terminal' | 'unknown';
+const ACTIVE_SESSION_STATUSES = new Set(['PENDING', 'RUNNING']);
+
+function browserbaseSessionUrl(sessionId: string): string {
+  return `https://www.browserbase.com/sessions/${sessionId}`;
+}
 
 async function getRemoteSessionState(
   sessionId: string
 ): Promise<RemoteSessionState> {
   try {
     const session = await createBrowserbaseClient().sessions.retrieve(sessionId);
-    return ['PENDING', 'RUNNING'].includes(session.status)
+    return ACTIVE_SESSION_STATUSES.has(session.status)
       ? 'active'
       : 'terminal';
   } catch (error) {
@@ -34,7 +42,29 @@ async function getRemoteSessionState(
   }
 }
 
-function createStagehand(): Stagehand {
+async function persistPartiallyCreatedSession(
+  initAttemptId: string
+): Promise<void> {
+  try {
+    const sessions = await createBrowserbaseClient().sessions.list({
+      q: `user_metadata['eve']['initAttemptId']:'${initAttemptId}'`,
+    });
+    const active = sessions.find(session =>
+      ACTIVE_SESSION_STATUSES.has(session.status)
+    );
+    if (!active) return;
+
+    browserSession.update(() => ({
+      id: active.id,
+      url: browserbaseSessionUrl(active.id),
+    }));
+  } catch {
+    // Preserve the original Stagehand init error. The attempt metadata remains
+    // attached in Browserbase for diagnosis if recovery itself is unavailable.
+  }
+}
+
+function createStagehand(initAttemptId: string): Stagehand {
   const { apiKey, model, proxies, sessionTimeoutSeconds } = extension.config;
 
   return new Stagehand({
@@ -47,6 +77,9 @@ function createStagehand(): Stagehand {
       keepAlive: true,
       timeout: sessionTimeoutSeconds,
       proxies,
+      userMetadata: {
+        eve: { initAttemptId },
+      },
     },
   });
 }
@@ -73,7 +106,7 @@ async function connect(): Promise<StagehandConnection> {
       await resumed.init();
       return { stagehand: resumed, created: false };
     } catch (error) {
-      await resumed.close().catch(() => {});
+      await disconnectStagehand(resumed);
 
       if ((await getRemoteSessionState(current.id)) !== 'terminal') {
         throw error;
@@ -83,8 +116,15 @@ async function connect(): Promise<StagehandConnection> {
     }
   }
 
-  const created = createStagehand();
-  await created.init();
+  const initAttemptId = randomUUID();
+  const created = createStagehand(initAttemptId);
+  try {
+    await created.init();
+  } catch (error) {
+    await persistPartiallyCreatedSession(initAttemptId);
+    await disconnectStagehand(created);
+    throw error;
+  }
   browserSession.update(() => ({
     id: created.browserbaseSessionID ?? null,
     url: created.browserbaseSessionURL ?? null,
@@ -101,7 +141,7 @@ export async function withStagehand<T>(
     try {
       return await operation(stagehand);
     } finally {
-      await stagehand.close();
+      await disconnectStagehand(stagehand);
     }
   });
 }
@@ -114,7 +154,7 @@ export async function createBrowserSession(
     try {
       return { ...browserSession.get(), created };
     } finally {
-      await stagehand.close();
+      await disconnectStagehand(stagehand);
     }
   });
 }
