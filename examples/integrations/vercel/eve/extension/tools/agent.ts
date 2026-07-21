@@ -10,8 +10,8 @@ export default defineTool({
     instruction: z.string().min(1).describe('The browser task to complete.'),
     maxSteps: z.number().int().min(1).max(50).default(20),
   }),
-  async execute({ instruction, maxSteps }) {
-    return withStagehand(async stagehand => {
+  async execute({ instruction, maxSteps }, ctx) {
+    return withStagehand(ctx.session.id, async stagehand => {
       const agent = stagehand.agent();
       return agent.execute({
         instruction,

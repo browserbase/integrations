@@ -14,9 +14,9 @@ export default defineTool({
     instruction: z.string().min(1).describe('What data to extract.'),
     schema: jsonSchema,
   }),
-  async execute({ instruction, schema }) {
+  async execute({ instruction, schema }, ctx) {
     const outputSchema = z.fromJSONSchema(schema);
-    return withStagehand(stagehand =>
+    return withStagehand(ctx.session.id, stagehand =>
       stagehand.extract(instruction, outputSchema)
     );
   },

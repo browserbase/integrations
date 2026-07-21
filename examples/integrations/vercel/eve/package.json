@@ -36,7 +36,8 @@
     "build": "eve extension build",
     "prepare": "eve extension build",
     "typecheck": "tsc",
-    "check": "pnpm typecheck && pnpm build"
+    "check": "pnpm typecheck && pnpm test && pnpm build",
+    "test": "node --test tests/*.test.ts"
   },
   "dependencies": {
     "@browserbasehq/sdk": "2.16.0",

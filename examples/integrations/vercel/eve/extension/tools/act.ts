@@ -14,7 +14,9 @@ export default defineTool({
         'A precise single action, such as clicking or filling a field.'
       ),
   }),
-  async execute({ instruction }) {
-    return withStagehand(stagehand => stagehand.act(instruction));
+  async execute({ instruction }, ctx) {
+    return withStagehand(ctx.session.id, stagehand =>
+      stagehand.act(instruction)
+    );
   },
 });

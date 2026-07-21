@@ -9,8 +9,8 @@ export default defineTool({
   inputSchema: z.object({
     url: z.url().describe('The absolute URL to open.'),
   }),
-  async execute({ url }) {
-    return withStagehand(async stagehand => {
+  async execute({ url }, ctx) {
+    return withStagehand(ctx.session.id, async stagehand => {
       const page = await stagehand.context.awaitActivePage();
       await page.goto(url);
       return { url: page.url(), title: await page.title() };

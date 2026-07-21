@@ -1,7 +1,9 @@
 import { Stagehand } from '@browserbasehq/stagehand';
+import { APIError } from '@browserbasehq/sdk';
 
 import extension from '../extension';
 import { createBrowserbaseClient } from './browserbase';
+import { withSessionLock } from './session-lock';
 import { browserSession, type BrowserSessionState } from './session-state';
 
 type StagehandOperation<T> = (stagehand: Stagehand) => Promise<T>;
@@ -15,14 +17,20 @@ export interface BrowserSessionResult extends BrowserSessionState {
   created: boolean;
 }
 
-async function isTerminalBrowserSession(sessionId: string): Promise<boolean> {
+type RemoteSessionState = 'active' | 'terminal' | 'unknown';
+
+async function getRemoteSessionState(
+  sessionId: string
+): Promise<RemoteSessionState> {
   try {
     const session = await createBrowserbaseClient().sessions.retrieve(sessionId);
-    return !['PENDING', 'RUNNING'].includes(session.status);
-  } catch {
-    // A failed status check may be transient. Preserve the durable session id so
-    // the next tool call can retry instead of leaking a keep-alive session.
-    return false;
+    return ['PENDING', 'RUNNING'].includes(session.status)
+      ? 'active'
+      : 'terminal';
+  } catch (error) {
+    return error instanceof APIError && error.status === 404
+      ? 'terminal'
+      : 'unknown';
   }
 }
 
@@ -67,7 +75,7 @@ async function connect(): Promise<StagehandConnection> {
     } catch (error) {
       await resumed.close().catch(() => {});
 
-      if (!(await isTerminalBrowserSession(current.id))) {
+      if ((await getRemoteSessionState(current.id)) !== 'terminal') {
         throw error;
       }
 
@@ -85,43 +93,65 @@ async function connect(): Promise<StagehandConnection> {
 }
 
 export async function withStagehand<T>(
+  sessionId: string,
   operation: StagehandOperation<T>
 ): Promise<T> {
-  const { stagehand } = await connect();
-  try {
-    return await operation(stagehand);
-  } finally {
-    await stagehand.close();
-  }
-}
-
-export async function createBrowserSession(): Promise<BrowserSessionResult> {
-  const { stagehand, created } = await connect();
-  try {
-    return { ...browserSession.get(), created };
-  } finally {
-    await stagehand.close();
-  }
-}
-
-export async function closeBrowserSession(): Promise<BrowserSessionState> {
-  const current = browserSession.get();
-  if (!current.id) return current;
-
-  const stagehand = new Stagehand({
-    env: 'BROWSERBASE',
-    apiKey: extension.config.apiKey,
-    browserbaseSessionID: current.id,
-    disablePino: true,
-    // Eve bundles Stagehand without its CLI-only crash supervisor entrypoint.
-    // This path closes the session explicitly, so supervisor logging is not useful.
-    logger: () => {},
-    keepAlive: false,
+  return withSessionLock(sessionId, async () => {
+    const { stagehand } = await connect();
+    try {
+      return await operation(stagehand);
+    } finally {
+      await stagehand.close();
+    }
   });
+}
 
-  await stagehand.init();
-  await stagehand.close();
-  browserSession.update(() => ({ id: null, url: null }));
+export async function createBrowserSession(
+  sessionId: string
+): Promise<BrowserSessionResult> {
+  return withSessionLock(sessionId, async () => {
+    const { stagehand, created } = await connect();
+    try {
+      return { ...browserSession.get(), created };
+    } finally {
+      await stagehand.close();
+    }
+  });
+}
 
-  return current;
+export async function closeBrowserSession(
+  sessionId: string
+): Promise<BrowserSessionState> {
+  return withSessionLock(sessionId, async () => {
+    const current = browserSession.get();
+    if (!current.id) return current;
+
+    if ((await getRemoteSessionState(current.id)) === 'terminal') {
+      browserSession.update(() => ({ id: null, url: null }));
+      return current;
+    }
+
+    const stagehand = new Stagehand({
+      env: 'BROWSERBASE',
+      apiKey: extension.config.apiKey,
+      browserbaseSessionID: current.id,
+      disablePino: true,
+      // Eve bundles Stagehand without its CLI-only crash supervisor entrypoint.
+      // This path closes the session explicitly, so supervisor logging is not useful.
+      logger: () => {},
+      keepAlive: false,
+    });
+
+    try {
+      await stagehand.init();
+      await stagehand.close();
+    } catch (error) {
+      if ((await getRemoteSessionState(current.id)) !== 'terminal') {
+        throw error;
+      }
+    }
+
+    browserSession.update(() => ({ id: null, url: null }));
+    return current;
+  });
 }

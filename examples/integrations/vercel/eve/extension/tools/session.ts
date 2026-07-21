@@ -10,16 +10,16 @@ export default defineDynamic({
         description:
           'Create a Browserbase browser session for this Eve conversation, or reconnect if one already exists.',
         inputSchema: z.object({}),
-        async execute() {
-          return createBrowserSession();
+        async execute(_input, ctx) {
+          return createBrowserSession(ctx.session.id);
         },
       }),
       stop_session: defineTool({
         description:
           'Stop the Browserbase browser session for this Eve conversation and release its resources.',
         inputSchema: z.object({}),
-        async execute() {
-          const session = await closeBrowserSession();
+        async execute(_input, ctx) {
+          const session = await closeBrowserSession(ctx.session.id);
           return { ...session, stopped: Boolean(session.id) };
         },
       }),

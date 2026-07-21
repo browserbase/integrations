@@ -12,7 +12,9 @@ export default defineTool({
       .min(1)
       .describe('The elements or actions to find on the page.'),
   }),
-  async execute({ instruction }) {
-    return withStagehand(stagehand => stagehand.observe(instruction));
+  async execute({ instruction }, ctx) {
+    return withStagehand(ctx.session.id, stagehand =>
+      stagehand.observe(instruction)
+    );
   },
 });
