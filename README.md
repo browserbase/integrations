@@ -25,6 +25,7 @@ integrations/
 │       ├── agentkit/             # AgentKit implementations
 │       ├── agno/                 # Agno agent framework integration
 │       ├── braintrust/           # Evaluation and testing tools
+│       ├── box/                  # Box AI document Q&A, OCR, and metadata extraction
 │       ├── browser-use/          # Browser Use automation
 │       ├── cartesia/             # Cartesia integration
 │       ├── cloudflare/           # Cloudflare integration
