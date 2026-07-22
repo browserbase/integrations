@@ -1,0 +1,57 @@
+{
+  "name": "@browserbasehq/eve",
+  "version": "0.1.0",
+  "description": "An Eve extension that gives agents Browserbase-powered Stagehand browser tools.",
+  "type": "module",
+  "packageManager": "pnpm@10.9.0",
+  "license": "MIT",
+  "keywords": [
+    "browserbase",
+    "eve",
+    "stagehand",
+    "browser-automation",
+    "ai-agents"
+  ],
+  "eve": {
+    "extension": {
+      "source": "./extension",
+      "dist": "./dist/extension"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.mjs"
+    },
+    "./tools": {
+      "types": "./dist/tools/index.d.ts",
+      "default": "./dist/tools/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "eve extension build",
+    "prepare": "eve extension build",
+    "typecheck": "tsc",
+    "check": "pnpm typecheck && pnpm build"
+  },
+  "dependencies": {
+    "@browserbasehq/sdk": "2.16.0",
+    "@browserbasehq/stagehand": "3.7.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "eve": "0.25.3",
+    "typescript": "7.0.2"
+  },
+  "peerDependencies": {
+    "eve": "*"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
