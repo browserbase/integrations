@@ -6,6 +6,10 @@ import { APIError } from '@browserbasehq/sdk';
 import extension from '../extension';
 import { createBrowserbaseClient } from './browserbase';
 import { disconnectStagehand } from './disconnect';
+import {
+  createInitAttemptMetadata,
+  createInitAttemptQuery,
+} from './session-metadata';
 import { withSessionLock } from './session-lock';
 import { browserSession, type BrowserSessionState } from './session-state';
 
@@ -47,7 +51,7 @@ async function persistPartiallyCreatedSession(
 ): Promise<void> {
   try {
     const sessions = await createBrowserbaseClient().sessions.list({
-      q: `user_metadata['eve']['initAttemptId']:'${initAttemptId}'`,
+      q: createInitAttemptQuery(initAttemptId),
     });
     const active = sessions.find(session =>
       ACTIVE_SESSION_STATUSES.has(session.status)
@@ -77,9 +81,7 @@ function createStagehand(initAttemptId: string): Stagehand {
       keepAlive: true,
       timeout: sessionTimeoutSeconds,
       proxies,
-      userMetadata: {
-        eve: { initAttemptId },
-      },
+      userMetadata: createInitAttemptMetadata(initAttemptId),
     },
   });
 }
