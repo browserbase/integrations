@@ -1,5 +1,3 @@
-import { randomUUID } from 'node:crypto';
-
 import { Stagehand } from '@browserbasehq/stagehand';
 
 import extension from '../extension';
@@ -7,13 +5,8 @@ import { createBrowserbaseClient } from './browserbase';
 import { disconnectStagehand } from './disconnect';
 import {
   getRemoteSessionState,
-  isActiveSessionStatus,
   releaseBrowserbaseSession,
 } from './release-session';
-import {
-  createInitAttemptMetadata,
-  createInitAttemptQuery,
-} from './session-metadata';
 import { withSessionLock } from './session-lock';
 import { browserSession, type BrowserSessionState } from './session-state';
 
@@ -28,33 +21,7 @@ export interface BrowserSessionResult extends BrowserSessionState {
   created: boolean;
 }
 
-function browserbaseSessionUrl(sessionId: string): string {
-  return `https://www.browserbase.com/sessions/${sessionId}`;
-}
-
-async function persistPartiallyCreatedSession(
-  initAttemptId: string
-): Promise<void> {
-  try {
-    const sessions = await createBrowserbaseClient().sessions.list({
-      q: createInitAttemptQuery(initAttemptId),
-    });
-    const active = sessions.find(session =>
-      isActiveSessionStatus(session.status)
-    );
-    if (!active) return;
-
-    browserSession.update(() => ({
-      id: active.id,
-      url: browserbaseSessionUrl(active.id),
-    }));
-  } catch {
-    // Preserve the original Stagehand init error. The attempt metadata remains
-    // attached in Browserbase for diagnosis if recovery itself is unavailable.
-  }
-}
-
-function createStagehand(initAttemptId: string): Stagehand {
+function createStagehand(): Stagehand {
   const { apiKey, model, proxies, sessionTimeoutSeconds } = extension.config;
 
   return new Stagehand({
@@ -67,7 +34,6 @@ function createStagehand(initAttemptId: string): Stagehand {
       keepAlive: true,
       timeout: sessionTimeoutSeconds,
       proxies,
-      userMetadata: createInitAttemptMetadata(initAttemptId),
     },
   });
 }
@@ -105,12 +71,10 @@ async function connect(): Promise<StagehandConnection> {
     }
   }
 
-  const initAttemptId = randomUUID();
-  const created = createStagehand(initAttemptId);
+  const created = createStagehand();
   try {
     await created.init();
   } catch (error) {
-    await persistPartiallyCreatedSession(initAttemptId);
     await disconnectStagehand(created);
     throw error;
   }

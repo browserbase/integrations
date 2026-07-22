@@ -11,7 +11,7 @@ interface BrowserbaseSessionRecord {
   status: BrowserbaseSessionStatus;
 }
 
-export interface BrowserbaseSessionApi {
+interface BrowserbaseSessionApi {
   retrieve(sessionId: string): Promise<BrowserbaseSessionRecord>;
   update(
     sessionId: string,
@@ -23,7 +23,7 @@ export type RemoteSessionState = 'active' | 'terminal' | 'unknown';
 
 const RELEASE_POLL_DELAYS_MS = [100, 250, 500, 1_000] as const;
 
-export function isActiveSessionStatus(
+function isActiveSessionStatus(
   status: BrowserbaseSessionStatus
 ): boolean {
   return status === 'PENDING' || status === 'RUNNING';
