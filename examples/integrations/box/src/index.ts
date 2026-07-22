@@ -258,8 +258,29 @@ async function getDownload(
   };
 }
 
-function boxAccessToken(): string {
-  return env('BOX_DEVELOPER_TOKEN');
+async function boxAccessToken(): Promise<string> {
+  const response = await fetch('https://api.box.com/oauth2/token', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: env('BOX_CLIENT_ID'),
+      client_secret: env('BOX_CLIENT_SECRET'),
+      box_subject_type: 'enterprise',
+      box_subject_id: env('BOX_ENTERPRISE_ID'),
+    }),
+  });
+
+  if (!response.ok) {
+    await responseError(response, 'Authenticating with Box');
+  }
+
+  const body = (await response.json()) as { access_token?: string };
+  if (!body.access_token) {
+    throw new Error('Box did not return an access token.');
+  }
+
+  return body.access_token;
 }
 
 function uniqueBoxName(filename: string, role: Source['role']): string {
@@ -271,7 +292,8 @@ function uniqueBoxName(filename: string, role: Source['role']): string {
 async function uploadToBox(
   token: string,
   file: DownloadedFile,
-  role: Source['role']
+  role: Source['role'],
+  folderId: string
 ): Promise<BoxFile> {
   const name = uniqueBoxName(file.filename, role);
   const form = new FormData();
@@ -279,7 +301,7 @@ async function uploadToBox(
     'attributes',
     JSON.stringify({
       name,
-      parent: { id: process.env.BOX_FOLDER_ID ?? '0' },
+      parent: { id: folderId },
     })
   );
   form.append('file', new Blob([file.bytes], { type: file.mimeType }), name);
@@ -311,7 +333,8 @@ async function boxAiRequest<T>(
   path: string,
   body: Record<string, unknown>
 ): Promise<T> {
-  for (let attempt = 1; attempt <= 5; attempt += 1) {
+  const maxAttempts = 6;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const response = await fetch(`https://api.box.com/2.0${path}`, {
       method: 'POST',
       headers: {
@@ -325,9 +348,24 @@ async function boxAiRequest<T>(
       return (await response.json()) as T;
     }
 
-    if (attempt < 5 && (response.status === 400 || response.status >= 429)) {
-      console.log(`Box AI is not ready yet; retrying (${attempt}/5)...`);
-      await new Promise(resolve => setTimeout(resolve, 3_000));
+    const retryable =
+      response.status === 400 ||
+      response.status === 412 ||
+      response.status === 429 ||
+      response.status >= 500;
+    if (attempt < maxAttempts && retryable) {
+      const retryAfterHeader = response.headers.get('retry-after');
+      const retryAfter =
+        retryAfterHeader === null ? Number.NaN : Number(retryAfterHeader);
+      const delayMs =
+        Number.isFinite(retryAfter) && retryAfter >= 0
+          ? retryAfter * 1_000
+          : Math.min(2 ** attempt * 1_000, 30_000);
+      console.log(
+        `Box AI is not ready yet; retrying in ${Math.ceil(delayMs / 1_000)}s ` +
+          `(${attempt}/${maxAttempts})...`
+      );
+      await new Promise(resolve => setTimeout(resolve, delayMs));
       continue;
     }
 
@@ -436,6 +474,8 @@ async function downloadWithStagehand(): Promise<{
 
 async function main() {
   console.log('Starting Browserbase + Box compliance intake...');
+  const folderId = env('BOX_FOLDER_ID');
+  const token = await boxAccessToken();
   const configuredSources = sources();
   const { stagehand, sessionId, files } = await downloadWithStagehand();
 
@@ -446,10 +486,9 @@ async function main() {
       );
     }
 
-    const token = boxAccessToken();
     const [sdsFile, labelFile] = await Promise.all([
-      uploadToBox(token, files[0], 'sds'),
-      uploadToBox(token, files[1], 'label'),
+      uploadToBox(token, files[0], 'sds', folderId),
+      uploadToBox(token, files[1], 'label', folderId),
     ]);
 
     const [qa, sdsExtraction, labelExtraction] = await Promise.all([

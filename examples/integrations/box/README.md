@@ -27,16 +27,21 @@ SDS and label pair.
 
 - Node.js 18 or newer
 - A Browserbase API key
-- A Box Platform App with:
+- A Box Server App using Client Credentials Grant with:
   - Read and write access to files and folders
   - Manage AI enabled
+- A Box folder shared with the app's service account using the **Editor** role
 - A Box plan with access to the Box AI API
 
-This demo uses one authentication method: a Box Developer Token. In the
-[Box Developer Console](https://app.box.com/developers/console), select your app,
-open **Configuration**, and click **Generate Developer Token**. Add the resulting
-token to `.env` as `BOX_DEVELOPER_TOKEN`. Developer Tokens expire after 60 minutes,
-so generate a fresh one when an existing token stops working.
+In the [Box Developer Console](https://app.box.com/developers/console), create a
+**Server** app using **Client Credentials Grant**, enable the required scopes, and
+authorize it. Copy its Client ID, Client Secret, and Enterprise ID into `.env`.
+The demo exchanges those credentials for a temporary service-account access token
+at runtime, so it does not require an interactive login or a Developer Token.
+
+Copy the service account email from the app's details, share a project folder with
+that account using the **Editor** role, and set `BOX_FOLDER_ID` to the number in the
+folder's Box URL. The agent can access only content available to its service account.
 
 ## Run it
 
@@ -58,19 +63,25 @@ The command prints:
 
 ## Configuration
 
-| Variable              | Required | Description                                                         |
-| --------------------- | -------- | ------------------------------------------------------------------- |
-| `BROWSERBASE_API_KEY` | Yes      | Browserbase browser and Model Gateway API key                       |
-| `BOX_DEVELOPER_TOKEN` | Yes      | Short-lived Box Developer Token                                     |
-| `BOX_FOLDER_ID`       | No       | Destination folder; defaults to the authenticated user's root (`0`) |
-| `SDS_PAGE_URL`        | No       | Web page containing the SDS link                                    |
-| `SDS_LINK_TEXT`       | No       | Accessible name of the SDS download link                            |
-| `LABEL_PAGE_URL`      | No       | Web page containing the label-image link                            |
-| `LABEL_LINK_TEXT`     | No       | Accessible name of the label download link                          |
+| Variable              | Required | Description                                        |
+| --------------------- | -------- | -------------------------------------------------- |
+| `BROWSERBASE_API_KEY` | Yes      | Browserbase browser and Model Gateway API key      |
+| `BOX_CLIENT_ID`       | Yes      | Box Server App client ID                           |
+| `BOX_CLIENT_SECRET`   | Yes      | Box Server App client secret                       |
+| `BOX_ENTERPRISE_ID`   | Yes      | Enterprise that owns the app's service account     |
+| `BOX_FOLDER_ID`       | Yes      | Destination folder shared with the service account |
+| `SDS_PAGE_URL`        | No       | Web page containing the SDS link                   |
+| `SDS_LINK_TEXT`       | No       | Accessible name of the SDS download link           |
+| `LABEL_PAGE_URL`      | No       | Web page containing the label-image link           |
+| `LABEL_LINK_TEXT`     | No       | Accessible name of the label download link         |
 
 The source page and its file should share an origin so the demo can add the HTML
 `download` attribute before clicking the link. This is what reliably sends PDFs
 and images into Browserbase download storage instead of opening them in a tab.
+
+New Box files can take a short time to become available to Box AI. The demo
+retries transient readiness, rate-limit, and server responses with bounded
+exponential backoff before failing.
 
 ## Why structured extraction
 
@@ -88,6 +99,8 @@ and compares the structured results in application code.
 - [Browserbase downloads](https://docs.browserbase.com/platform/browser/files/downloads)
 - [Stagehand](https://docs.stagehand.dev/v3/first-steps/quickstart)
 - [Box file uploads](https://developer.box.com/reference/post-files-content)
+- [Connect an AI agent to Box](https://developer.box.com/tutorials/connect-an-agent-to-box)
+- [Box Client Credentials Grant](https://developer.box.com/guides/authentication/client-credentials)
 - [Box AI Q&A](https://developer.box.com/reference/post-ai-ask)
 - [Box AI structured extraction](https://developer.box.com/reference/post-ai-extract-structured)
 - [Box metadata instances](https://developer.box.com/guides/metadata/instances/create)
