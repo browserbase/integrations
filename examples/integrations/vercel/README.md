@@ -20,7 +20,8 @@ BrowseGPT is a chat interface that allows users to search the web and get answer
 
 The second example shows how to use Puppeteer with Vercel on Fluid Compute. It demonstrates setting up a Next.js application with Puppeteer for browser automation tasks, deployed on Vercel's Fluid Compute infrastructure which provides longer execution times needed for browser automation.
 
-The [Eve extension](./eve/) gives Eve agents a persistent Browserbase browser
-through Stagehand's `act`, `observe`, `extract`, and autonomous agent primitives.
-The sibling [example agent](./eve-example/) mounts the extension in a runnable
-pnpm workspace.
+The [`@browserbasehq/eve`](../../../packages/eve-browserbase/) package gives Eve
+agents a persistent Browserbase browser through Stagehand's `act`, `observe`,
+`extract`, and autonomous agent primitives. The
+[example agent](./eve-example/) mounts the extension in a runnable pnpm
+workspace.

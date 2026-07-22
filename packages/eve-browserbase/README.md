@@ -38,7 +38,7 @@ export default browserbase({
 Start Eve and give the agent a browser task:
 
 ```bash
-npx eve dev
+pnpm exec eve dev
 ```
 
 ```text
@@ -47,23 +47,24 @@ five stories.
 ```
 
 The extension keeps the Browserbase session ID in Eve's durable per-session
-state. Each tool reconnects to that browser, performs one operation, and
-disconnects without terminating it. `browserbase__create_session` creates or
-reconnects the browser explicitly, and `browserbase__stop_session` terminates it.
+state. Each browser tool reconnects to that browser, performs one operation,
+and disconnects without terminating it. `browserbase__create_session` creates
+or reconnects the browser explicitly, and `browserbase__stop_session`
+terminates it.
 
 ## Tools
 
-| Tool             | Purpose                                                   |
-| ---------------- | --------------------------------------------------------- |
-| `search`         | Find relevant public web pages with Browserbase Search.   |
-| `fetch`          | Retrieve raw, markdown, or structured page content.       |
-| `create_session` | Create or reconnect the Browserbase session.              |
-| `stop_session`   | Stop the Browserbase session and release resources.       |
-| `navigate`       | Open a URL in the current browser.                        |
-| `observe`        | Find relevant elements and candidate actions.             |
-| `act`            | Perform one natural-language page interaction.            |
-| `extract`        | Return data validated against a supplied JSON Schema.     |
-| `agent`          | Run a multi-step autonomous Stagehand task.               |
+| Tool             | Purpose                                                 |
+| ---------------- | ------------------------------------------------------- |
+| `search`         | Find relevant public web pages with Browserbase Search. |
+| `fetch`          | Retrieve raw, markdown, or structured page content.     |
+| `create_session` | Create or reconnect the Browserbase session.            |
+| `stop_session`   | Stop the Browserbase session and release resources.     |
+| `navigate`       | Open a URL in the current browser.                      |
+| `observe`        | Find relevant elements and candidate actions.           |
+| `act`            | Perform one natural-language page interaction.          |
+| `extract`        | Return data validated against a supplied JSON Schema.   |
+| `agent`          | Run a multi-step autonomous Stagehand task.             |
 
 Use Search → Fetch → browser as an escalation path: discover sources cheaply,
 retrieve straightforward content without a session, and create a browser only
@@ -76,12 +77,12 @@ workflows that need Stagehand to plan several steps on its own.
 
 ## Configuration
 
-| Option                  | Default               | Description                                             |
-| ----------------------- | --------------------- | ------------------------------------------------------- |
-| `apiKey`                | required              | Browserbase API key for browsers and Model Gateway.     |
-| `model`                 | `openai/gpt-5.4-mini` | Stagehand Model Gateway model identifier.               |
-| `sessionTimeoutSeconds` | `900`                 | Session timeout, from 60 to 21,600 seconds.             |
-| `proxies`               | `false`               | Enable Browserbase proxies for new sessions.            |
+| Option                  | Default               | Description                                         |
+| ----------------------- | --------------------- | --------------------------------------------------- |
+| `apiKey`                | required              | Browserbase API key for browsers and Model Gateway. |
+| `model`                 | `openai/gpt-5.4-mini` | Stagehand Model Gateway model identifier.           |
+| `sessionTimeoutSeconds` | `900`                 | Session timeout, from 60 to 21,600 seconds.         |
+| `proxies`               | `false`               | Enable Browserbase proxies for new sessions.        |
 
 Stagehand runs through Browserbase Model Gateway, so consumers do not need an
 OpenAI or other model-provider API key. The Browserbase API key covers both the
@@ -110,7 +111,7 @@ run `nvm install 24.16.0` first if needed.
 
 ## Example agent
 
-The sibling [`eve-example`](../eve-example/) directory contains a runnable Eve
-agent that mounts this package locally. It includes the agent instructions,
-environment template, and a Browserbase research prompt for a complete smoke
-test.
+The [`eve-example`](../../examples/integrations/vercel/eve-example/) directory
+contains a runnable Eve agent that mounts this package locally. It includes the
+agent instructions, environment template, and a Browserbase research prompt for
+a complete smoke test.

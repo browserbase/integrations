@@ -9,17 +9,18 @@ its tools are available as `browserbase__create_session`,
 
 ## Run it
 
-From the sibling `eve` extension directory:
+From the repository root, enter the `eve` package directory:
 
 ```bash
-cd ../eve
+cd packages/eve-browserbase
 nvm use
 pnpm install
 pnpm build
-cp ../eve-example/.env.example ../eve-example/.env
+cp ../../examples/integrations/vercel/eve-example/.env.example ../../examples/integrations/vercel/eve-example/.env
 ```
 
-Fill in the values in `../eve-example/.env`, then start the agent:
+Fill in the values in `../../examples/integrations/vercel/eve-example/.env`,
+then start the agent from the same `packages/eve-browserbase` directory:
 
 ```bash
 pnpm --filter browserbase-eve-example dev
@@ -44,5 +45,5 @@ The environment requires:
   `VERCEL_OIDC_TOKEN` can be used instead.
 
 The dependency on `@browserbasehq/eve` uses pnpm's `workspace:*` protocol, so
-the example exercises the sibling extension without publishing it first. The
+the example exercises the local package without publishing it first. The
 workspace-level install provides dependencies for both packages.
