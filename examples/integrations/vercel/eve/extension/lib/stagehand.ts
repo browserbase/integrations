@@ -1,11 +1,15 @@
 import { randomUUID } from 'node:crypto';
 
 import { Stagehand } from '@browserbasehq/stagehand';
-import { APIError } from '@browserbasehq/sdk';
 
 import extension from '../extension';
 import { createBrowserbaseClient } from './browserbase';
 import { disconnectStagehand } from './disconnect';
+import {
+  getRemoteSessionState,
+  isActiveSessionStatus,
+  releaseBrowserbaseSession,
+} from './release-session';
 import {
   createInitAttemptMetadata,
   createInitAttemptQuery,
@@ -24,26 +28,8 @@ export interface BrowserSessionResult extends BrowserSessionState {
   created: boolean;
 }
 
-type RemoteSessionState = 'active' | 'terminal' | 'unknown';
-const ACTIVE_SESSION_STATUSES = new Set(['PENDING', 'RUNNING']);
-
 function browserbaseSessionUrl(sessionId: string): string {
   return `https://www.browserbase.com/sessions/${sessionId}`;
-}
-
-async function getRemoteSessionState(
-  sessionId: string
-): Promise<RemoteSessionState> {
-  try {
-    const session = await createBrowserbaseClient().sessions.retrieve(sessionId);
-    return ACTIVE_SESSION_STATUSES.has(session.status)
-      ? 'active'
-      : 'terminal';
-  } catch (error) {
-    return error instanceof APIError && error.status === 404
-      ? 'terminal'
-      : 'unknown';
-  }
 }
 
 async function persistPartiallyCreatedSession(
@@ -54,7 +40,7 @@ async function persistPartiallyCreatedSession(
       q: createInitAttemptQuery(initAttemptId),
     });
     const active = sessions.find(session =>
-      ACTIVE_SESSION_STATUSES.has(session.status)
+      isActiveSessionStatus(session.status)
     );
     if (!active) return;
 
@@ -110,7 +96,8 @@ async function connect(): Promise<StagehandConnection> {
     } catch (error) {
       await disconnectStagehand(resumed);
 
-      if ((await getRemoteSessionState(current.id)) !== 'terminal') {
+      const sessions = createBrowserbaseClient().sessions;
+      if ((await getRemoteSessionState(sessions, current.id)) !== 'terminal') {
         throw error;
       }
 
@@ -168,30 +155,13 @@ export async function closeBrowserSession(
     const current = browserSession.get();
     if (!current.id) return current;
 
-    if ((await getRemoteSessionState(current.id)) === 'terminal') {
+    const sessions = createBrowserbaseClient().sessions;
+    if ((await getRemoteSessionState(sessions, current.id)) === 'terminal') {
       browserSession.update(() => ({ id: null, url: null }));
       return current;
     }
 
-    const stagehand = new Stagehand({
-      env: 'BROWSERBASE',
-      apiKey: extension.config.apiKey,
-      browserbaseSessionID: current.id,
-      disablePino: true,
-      // Eve bundles Stagehand without its CLI-only crash supervisor entrypoint.
-      // This path closes the session explicitly, so supervisor logging is not useful.
-      logger: () => {},
-      keepAlive: false,
-    });
-
-    try {
-      await stagehand.init();
-      await stagehand.close();
-    } catch (error) {
-      if ((await getRemoteSessionState(current.id)) !== 'terminal') {
-        throw error;
-      }
-    }
+    await releaseBrowserbaseSession(sessions, current.id);
 
     browserSession.update(() => ({ id: null, url: null }));
     return current;
