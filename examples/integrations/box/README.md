@@ -47,7 +47,7 @@ folder's Box URL. The agent can access only content available to its service acc
 
 ```bash
 cd examples/integrations/box
-pnpm install
+pnpm install --ignore-workspace
 cp .env.example .env
 # Fill in Browserbase and Box credentials.
 pnpm start
