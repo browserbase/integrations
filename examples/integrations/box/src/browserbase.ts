@@ -31,29 +31,8 @@ async function triggerDownload(stagehand: Stagehand, source: Source) {
     throw new Error(`Stagehand could not find the ${source.linkText} link.`);
   }
 
-  await page.evaluate(
-    ({ selector, downloadName }) => {
-      const xpath = selector.replace(/^xpath=/, '');
-      const element =
-        selector.startsWith('/') || selector.startsWith('xpath=')
-          ? (document.evaluate(
-              xpath,
-              document,
-              null,
-              XPathResult.FIRST_ORDERED_NODE_TYPE,
-              null
-            ).singleNodeValue as Element | null)
-          : document.querySelector(selector);
-
-      if (!element) {
-        throw new Error(`Could not resolve Stagehand selector: ${selector}`);
-      }
-      element.setAttribute('download', downloadName);
-    },
-    { selector: action.selector, downloadName: source.downloadName }
-  );
   await stagehand.act(action);
-  console.log(`Stagehand requested ${source.downloadName}`);
+  console.log(`Stagehand clicked ${source.linkText}`);
 }
 
 async function listDownloads(
@@ -80,33 +59,25 @@ async function listDownloads(
   return body.downloads.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
-async function waitForDownloads(
+async function waitForDownload(
   sessionId: string,
-  createdAfter: string
-): Promise<BrowserbaseDownload[]> {
-  const expectedFilenames = sources.map(source => source.downloadName);
+  createdAfter: string,
+  seenDownloadIds: Set<string>
+): Promise<BrowserbaseDownload> {
   for (let attempt = 1; attempt <= 15; attempt += 1) {
     const downloads = await listDownloads(sessionId, createdAfter);
-    const matched = expectedFilenames.flatMap(filename => {
-      const download = downloads.find(
-        candidate => candidate.filename === filename
-      );
-      return download ? [download] : [];
-    });
-
-    if (matched.length === expectedFilenames.length) {
-      return matched;
+    const download = downloads.find(
+      candidate => !seenDownloadIds.has(candidate.id)
+    );
+    if (download) {
+      return download;
     }
 
-    console.log(
-      `Waiting for Browserbase cloud sync (${matched.length}/${expectedFilenames.length})...`
-    );
+    console.log('Waiting for Browserbase cloud sync...');
     await new Promise(resolve => setTimeout(resolve, 2_000));
   }
 
-  throw new Error(
-    `Browserbase did not sync the expected files within 30 seconds: ${expectedFilenames.join(', ')}.`
-  );
+  throw new Error('Browserbase did not sync the download within 30 seconds.');
 }
 
 async function getDownload(
@@ -151,16 +122,22 @@ export async function downloadWithStagehand() {
       `Watch the browser live: https://browserbase.com/sessions/${sessionId}`
     );
 
-    const startedAt = new Date(Date.now() - 1_000).toISOString();
+    const files: DownloadedFile[] = [];
+    const seenDownloadIds = new Set<string>();
     for (const source of sources) {
+      const startedAt = new Date(Date.now() - 1_000).toISOString();
       await triggerDownload(stagehand, source);
-    }
-
-    const downloads = await waitForDownloads(sessionId, startedAt);
-    const files = await Promise.all(downloads.map(getDownload));
-    for (const file of files) {
+      const download = await waitForDownload(
+        sessionId,
+        startedAt,
+        seenDownloadIds
+      );
+      seenDownloadIds.add(download.id);
+      const file = await getDownload(download);
+      files.push(file);
       console.log(`Browserbase synced ${file.filename} (${file.size} bytes)`);
     }
+
     return { sessionId, stagehand, files };
   } catch (error) {
     await stagehand.close();

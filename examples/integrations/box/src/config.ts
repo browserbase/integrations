@@ -34,7 +34,6 @@ export type Source = {
   role: 'sds' | 'label';
   pageUrl: string;
   linkText: string;
-  downloadName: string;
 };
 
 export const sources: Source[] = [
@@ -44,7 +43,6 @@ export const sources: Source[] = [
       process.env.SDS_PAGE_URL ??
       'https://www.thecloroxcompany.com/sds/clorox-disinfecting-wipes1-fresh-scent/',
     linkText: process.env.SDS_LINK_TEXT ?? 'Download Safety Data Sheet',
-    downloadName: 'clorox-disinfecting-wipes-sds.pdf',
   },
   {
     role: 'label',
@@ -52,6 +50,5 @@ export const sources: Source[] = [
       process.env.LABEL_PAGE_URL ??
       'https://www.epa.gov/safepestcontrol/why-read-labels',
     linkText: process.env.LABEL_LINK_TEXT ?? 'How to Read a Disinfectant Label',
-    downloadName: 'epa-disinfectant-label-guide.png',
   },
 ];
