@@ -1,27 +1,13 @@
-export type ExtractionAnswer = Record<string, unknown>;
+export type ExtractionAnswer = {
+  epaRegistrationNumber?: string;
+  revisionDate?: string;
+  [key: string]: unknown;
+};
 
 export type ComplianceDecision = {
   status: 'APPROVED' | 'NEEDS_REVIEW';
   reasons: string[];
 };
-
-export function valueAsString(
-  answer: ExtractionAnswer,
-  key: string
-): string | undefined {
-  const value = answer[key];
-
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  }
-
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return String(value);
-  }
-
-  return undefined;
-}
 
 export function normalizeRegistrationNumber(
   value: string | undefined
@@ -40,10 +26,10 @@ export function decideCompliance(
 ): ComplianceDecision {
   const reasons: string[] = [];
   const sdsRegistration = normalizeRegistrationNumber(
-    valueAsString(sds, 'epaRegistrationNumber')
+    sds.epaRegistrationNumber
   );
   const labelRegistration = normalizeRegistrationNumber(
-    valueAsString(label, 'epaRegistrationNumber')
+    label.epaRegistrationNumber
   );
 
   if (!sdsRegistration) {
@@ -64,7 +50,7 @@ export function decideCompliance(
     );
   }
 
-  if (!valueAsString(sds, 'revisionDate')) {
+  if (!sds.revisionDate?.trim()) {
     reasons.push('The SDS is missing a revision date.');
   }
 
