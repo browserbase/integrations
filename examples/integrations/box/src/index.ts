@@ -218,21 +218,30 @@ async function listDownloads(
 async function waitForDownloads(
   sessionId: string,
   createdAfter: string,
-  expectedCount: number
+  expectedFilenames: string[]
 ): Promise<BrowserbaseDownload[]> {
-  for (let attempt = 1; attempt <= 10; attempt += 1) {
+  for (let attempt = 1; attempt <= 15; attempt += 1) {
     const downloads = await listDownloads(sessionId, createdAfter);
-    if (downloads.length >= expectedCount) {
-      return downloads;
+    const matched = expectedFilenames.flatMap(filename => {
+      const download = downloads.find(
+        candidate => candidate.filename === filename
+      );
+      return download ? [download] : [];
+    });
+
+    if (matched.length === expectedFilenames.length) {
+      return matched;
     }
 
     console.log(
-      `Waiting for Browserbase cloud sync (${downloads.length}/${expectedCount})...`
+      `Waiting for Browserbase cloud sync (${matched.length}/${expectedFilenames.length})...`
     );
     await new Promise(resolve => setTimeout(resolve, 2_000));
   }
 
-  throw new Error('Browserbase downloads did not sync within 20 seconds.');
+  throw new Error(
+    `Browserbase did not sync the expected files within 30 seconds: ${expectedFilenames.join(', ')}.`
+  );
 }
 
 async function getDownload(
@@ -459,7 +468,7 @@ async function downloadWithStagehand(): Promise<{
     const downloads = await waitForDownloads(
       sessionId,
       startedAt,
-      configuredSources.length
+      configuredSources.map(source => source.downloadName)
     );
     const files = await Promise.all(downloads.map(getDownload));
     for (const file of files) {
