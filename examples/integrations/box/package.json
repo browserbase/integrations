@@ -8,7 +8,7 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "@browserbasehq/stagehand": "^3.2.0",
+    "@browserbasehq/stagehand": "^3.7.1",
     "dotenv": "^16.4.7"
   },
   "devDependencies": {
