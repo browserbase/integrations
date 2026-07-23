@@ -1,7 +1,6 @@
 import type { DownloadedFile } from './browserbase.js';
 import { metadataValues, type ExtractionAnswer } from './compliance.js';
 import { config, type Source } from './config.js';
-import { responseError } from './http.js';
 
 export type BoxFile = {
   id: string;
@@ -23,6 +22,12 @@ export type BoxAiExtractResponse = {
   confidence_score?: Record<string, unknown>;
   reference?: Record<string, unknown>;
 };
+
+async function responseError(response: Response, action: string) {
+  throw new Error(
+    `${action} failed (${response.status} ${response.statusText}): ${await response.text()}`
+  );
+}
 
 function field(
   key: string,

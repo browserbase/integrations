@@ -1,6 +1,5 @@
 import { Stagehand } from '@browserbasehq/stagehand';
 import { config, sources, type Source } from './config.js';
-import { responseError } from './http.js';
 
 type BrowserbaseDownload = {
   id: string;
@@ -15,6 +14,12 @@ type BrowserbaseDownload = {
 export type DownloadedFile = BrowserbaseDownload & {
   bytes: ArrayBuffer;
 };
+
+async function responseError(response: Response, action: string) {
+  throw new Error(
+    `${action} failed (${response.status} ${response.statusText}): ${await response.text()}`
+  );
+}
 
 async function triggerDownload(stagehand: Stagehand, source: Source) {
   const page = stagehand.context.pages()[0];
