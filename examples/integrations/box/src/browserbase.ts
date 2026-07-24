@@ -18,8 +18,10 @@ export const sources: Source[] = [
     role: 'label',
     pageUrl:
       process.env.LABEL_PAGE_URL ??
-      'https://www.epa.gov/safepestcontrol/why-read-labels',
-    linkText: process.env.LABEL_LINK_TEXT ?? 'How to Read a Disinfectant Label',
+      'https://www.epa.gov/pesticide-labels/sample-pesticide-label-current-and-ghs-requirements',
+    linkText:
+      process.env.LABEL_LINK_TEXT ??
+      'Sample Pesticide Label with Current and GHS Requirements',
   },
 ];
 

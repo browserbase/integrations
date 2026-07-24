@@ -68,7 +68,7 @@ async function main() {
 
     console.log('\n=== Extracted SDS metadata ===');
     console.log(JSON.stringify(sdsExtraction, null, 2));
-    console.log('\n=== OCR-extracted label metadata ===');
+    console.log('\n=== Extracted label metadata ===');
     console.log(JSON.stringify(labelExtraction, null, 2));
     console.log('\n=== Compliance decision ===');
     console.log(JSON.stringify(decision, null, 2));

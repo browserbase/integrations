@@ -1,23 +1,23 @@
 # Browserbase + Box AI Compliance Intake
 
-This example uses Browserbase to download a safety data sheet and product-label
-image from the web, uploads both files to Box, and turns them into an agentic
+This example uses Browserbase to download a safety data sheet and product label
+from the web, uploads both files to Box, and turns them into an agentic
 compliance workflow with Box AI.
 
-The default sources are a Clorox safety data sheet and an EPA disinfectant-label
-guide. They intentionally demonstrate how an agent can identify a packet that
+The default sources are a Clorox safety data sheet and an EPA sample pesticide
+label. They intentionally demonstrate how an agent can identify a packet that
 needs human review. Override the source variables in `.env` to process a matching
 SDS and label pair.
 
 ## What it demonstrates
 
 1. Stagehand opens real manufacturer and government web pages in a Browserbase session.
-2. The remote browser downloads a PDF and PNG to Browserbase cloud storage.
+2. The remote browser downloads both PDFs to Browserbase cloud storage.
 3. The Browserbase Downloads API returns the original file bytes.
 4. The files are uploaded to Box.
 5. `POST /ai/ask` answers safety questions about the SDS with citations.
-6. `POST /ai/extract_structured` extracts structured metadata and automatically
-   applies OCR to the label image.
+6. `POST /ai/extract_structured` extracts structured metadata from the label
+   document, including text embedded in the label artwork.
 7. A deterministic agent checks the extracted EPA registration numbers and SDS
    revision date.
 8. The extraction and decision are saved on each Box file using the global
@@ -72,12 +72,11 @@ The command prints:
 | `BOX_FOLDER_ID`       | Yes      | Destination folder shared with the service account |
 | `SDS_PAGE_URL`        | No       | Web page containing the SDS link                   |
 | `SDS_LINK_TEXT`       | No       | Accessible name of the SDS download link           |
-| `LABEL_PAGE_URL`      | No       | Web page containing the label-image link           |
+| `LABEL_PAGE_URL`      | No       | Web page containing the product-label link         |
 | `LABEL_LINK_TEXT`     | No       | Accessible name of the label download link         |
 
-The source page and its file should share an origin so the demo can add the HTML
-`download` attribute before clicking the link. This is what reliably sends PDFs
-and images into Browserbase download storage instead of opening them in a tab.
+The source link must initiate a browser download. Stagehand clicks it normally,
+and the Browserbase Downloads API exposes the resulting file.
 
 New Box files can take a short time to become available to Box AI. The demo
 retries transient readiness, rate-limit, and server responses with bounded
