@@ -1,5 +1,27 @@
 import { Stagehand } from '@browserbasehq/stagehand';
-import { config, sources, type Source } from './config.js';
+
+type Source = {
+  role: 'sds' | 'label';
+  pageUrl: string;
+  linkText: string;
+};
+
+export const sources: Source[] = [
+  {
+    role: 'sds',
+    pageUrl:
+      process.env.SDS_PAGE_URL ??
+      'https://www.thecloroxcompany.com/sds/clorox-disinfecting-wipes1-fresh-scent/',
+    linkText: process.env.SDS_LINK_TEXT ?? 'Download Safety Data Sheet',
+  },
+  {
+    role: 'label',
+    pageUrl:
+      process.env.LABEL_PAGE_URL ??
+      'https://www.epa.gov/safepestcontrol/why-read-labels',
+    linkText: process.env.LABEL_LINK_TEXT ?? 'How to Read a Disinfectant Label',
+  },
+];
 
 type BrowserbaseDownload = {
   id: string;
@@ -51,7 +73,11 @@ async function listDownloads(
   });
   const response = await fetch(
     `https://api.browserbase.com/v1/downloads?${query}`,
-    { headers: { 'x-bb-api-key': config.browserbaseApiKey } }
+    {
+      headers: {
+        'x-bb-api-key': process.env.BROWSERBASE_API_KEY as string,
+      },
+    }
   );
 
   if (!response.ok) {
@@ -92,7 +118,7 @@ async function getDownload(
     `https://api.browserbase.com/v1/downloads/${download.id}`,
     {
       headers: {
-        'x-bb-api-key': config.browserbaseApiKey,
+        'x-bb-api-key': process.env.BROWSERBASE_API_KEY as string,
         accept: 'application/octet-stream',
       },
     }
@@ -108,7 +134,7 @@ async function getDownload(
 export async function downloadWithStagehand() {
   const stagehand = new Stagehand({
     env: 'BROWSERBASE',
-    apiKey: config.browserbaseApiKey,
+    apiKey: process.env.BROWSERBASE_API_KEY,
   });
   await stagehand.init();
   const sessionId = stagehand.browserbaseSessionID;

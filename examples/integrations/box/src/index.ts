@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import {
   applyGlobalProperties,
   askBox,
@@ -7,9 +9,8 @@ import {
   SDS_FIELDS,
   uploadToBox,
 } from './box.js';
-import { downloadWithStagehand } from './browserbase.js';
+import { downloadWithStagehand, sources } from './browserbase.js';
 import { decideCompliance } from './compliance.js';
-import { sources } from './config.js';
 
 async function main() {
   console.log('Starting Browserbase + Box compliance intake...');

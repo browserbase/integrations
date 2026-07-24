@@ -1,6 +1,5 @@
 import type { DownloadedFile } from './browserbase.js';
 import { metadataValues, type ExtractionAnswer } from './compliance.js';
-import { config, type Source } from './config.js';
 
 export type BoxFile = {
   id: string;
@@ -99,10 +98,10 @@ export async function boxAccessToken(): Promise<string> {
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       grant_type: 'client_credentials',
-      client_id: config.boxClientId,
-      client_secret: config.boxClientSecret,
+      client_id: process.env.BOX_CLIENT_ID as string,
+      client_secret: process.env.BOX_CLIENT_SECRET as string,
       box_subject_type: 'enterprise',
-      box_subject_id: config.boxEnterpriseId,
+      box_subject_id: process.env.BOX_ENTERPRISE_ID as string,
     }),
   });
 
@@ -120,7 +119,7 @@ export async function boxAccessToken(): Promise<string> {
 export async function uploadToBox(
   token: string,
   file: DownloadedFile,
-  role: Source['role']
+  role: 'sds' | 'label'
 ): Promise<BoxFile> {
   const extensionIndex = file.filename.lastIndexOf('.');
   const extension =
@@ -131,7 +130,7 @@ export async function uploadToBox(
     'attributes',
     JSON.stringify({
       name,
-      parent: { id: config.boxFolderId },
+      parent: { id: process.env.BOX_FOLDER_ID as string },
     })
   );
   form.append('file', new Blob([file.bytes], { type: file.mimeType }), name);
