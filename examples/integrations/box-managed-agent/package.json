@@ -1,0 +1,20 @@
+{
+  "name": "browserbase-managed-agent-box-compliance-intake",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "create-agent": "tsx src/agent.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@browserbasehq/sdk": "^2.16.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "tsx": "^4.19.2",
+    "typescript": "^6.0.2"
+  }
+}
