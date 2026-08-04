@@ -5,7 +5,7 @@ import asyncio
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_mcp_adapters.tools import load_mcp_tools
 
-from agent import CLI_PATH, STAGEHAND_CODEMODE_SKILL
+from agent import STDIO_SERVER_PATH, STAGEHAND_CODEMODE_SKILL
 
 
 async def main() -> None:
@@ -14,7 +14,7 @@ async def main() -> None:
             "stagehand": {
                 "transport": "stdio",
                 "command": "node",
-                "args": [str(CLI_PATH)],
+                "args": [str(STDIO_SERVER_PATH)],
             }
         }
     )

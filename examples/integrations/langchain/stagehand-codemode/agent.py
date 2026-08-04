@@ -10,7 +10,7 @@ from langchain_mcp_adapters.tools import load_mcp_tools
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
-CLI_PATH = REPOSITORY_ROOT / "packages/stagehand-codemode/dist/cli.js"
+STDIO_SERVER_PATH = REPOSITORY_ROOT / "packages/stagehand-codemode/dist/stdio-server.js"
 SKILL_PATH = REPOSITORY_ROOT / "packages/stagehand-codemode/SKILL.md"
 STAGEHAND_CODEMODE_SKILL = SKILL_PATH.read_text().strip()
 
@@ -21,7 +21,7 @@ async def run_stagehand_agent(prompt: str, model: str | Any = "openai:gpt-5-mini
             "stagehand": {
                 "transport": "stdio",
                 "command": "node",
-                "args": [str(CLI_PATH)],
+                "args": [str(STDIO_SERVER_PATH)],
                 "env": dict(os.environ),
             }
         },
