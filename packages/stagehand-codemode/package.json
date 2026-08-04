@@ -4,9 +4,6 @@
   "private": true,
   "description": "Local stdio MCP tool for Stagehand code mode",
   "type": "module",
-  "bin": {
-    "stagehand-codemode": "./dist/cli.js"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

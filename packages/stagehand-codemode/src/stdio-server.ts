@@ -1,28 +1,6 @@
-#!/usr/bin/env node
-
 import { stagehandCodeConfigFromEnv } from './config.js';
 import { StagehandCodeExecutor } from './executor.js';
 import { connectCodeModeStdio } from './mcp-server.js';
-
-const args = process.argv.slice(2);
-if (args.includes('--help') || args.includes('-h')) {
-  process.stdout.write(
-    [
-      'Usage: stagehand-codemode',
-      '',
-      'Starts a local MCP server over stdio. The parent agent framework owns the process.',
-      '',
-      'Environment:',
-      '  BROWSERBASE_API_KEY          Required before the first code_execute call',
-      '  STAGEHAND_MODEL_NAME         Optional provider/model name for Stagehand AI methods',
-      '  STAGEHAND_MODEL_API_KEY      Optional model-provider API key',
-      '  STAGEHAND_MODEL_BASE_URL     Optional model-provider base URL',
-      '',
-    ].join('\n')
-  );
-  process.exit(0);
-}
-if (args.length > 0) throw new Error(`Unknown argument: ${args[0]}`);
 
 const executor = new StagehandCodeExecutor(stagehandCodeConfigFromEnv());
 const server = await connectCodeModeStdio(executor);

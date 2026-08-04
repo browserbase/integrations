@@ -36,7 +36,7 @@ supervisor around this local single-agent session.
 Build the package, then configure the framework to launch:
 
 ```text
-node packages/stagehand-codemode/dist/cli.js
+node packages/stagehand-codemode/dist/stdio-server.js
 ```
 
 Set `BROWSERBASE_API_KEY` in the parent framework's environment. Stagehand V4 is an optional peer
