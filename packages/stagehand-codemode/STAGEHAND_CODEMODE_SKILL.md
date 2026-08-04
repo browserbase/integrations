@@ -77,8 +77,9 @@ return {
 ```
 
 The same browser, pages, cookies, and navigation state persist across successful tool calls. Local
-JavaScript variables do not persist, so rediscover pages and elements each call. A timeout or abort
-returns `browser_state: "discarded"`; the next call starts a new browser.
+JavaScript variables do not persist, so rediscover pages and elements each call. If a call stops
+responding, the owning agent framework should terminate and restart the local MCP process. That
+restart begins a fresh browser and loses the previous browser state.
 
 ## Return discipline
 

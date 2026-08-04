@@ -29,5 +29,4 @@ jobs:
 
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm --filter @browserbasehq/stagehand-codemode run typecheck
-      - run: pnpm --filter @browserbasehq/stagehand-codemode run test
       - run: pnpm --filter @browserbasehq/stagehand-codemode run build

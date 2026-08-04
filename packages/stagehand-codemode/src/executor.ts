@@ -1,31 +1,51 @@
-import { createStagehandChildRuntime } from './child-runtime.js';
+import { z } from 'zod/v4';
 import type {
   CodeExecuteFailure,
   CodeExecuteInput,
   CodeExecuteResult,
-  CodeRuntime,
-  StagehandCodeRuntimeConfig,
+  CodeLogEntry,
+  CodePageState,
+  StagehandCodeConfig,
 } from './types.js';
-import { CodeModeRuntimeError } from './types.js';
 
-export type StagehandCodeExecutorOptions = StagehandCodeRuntimeConfig & {
-  runtimeFactory?: () => CodeRuntime;
+type PageLike = {
+  url(): Promise<string>;
+  title(): Promise<string>;
 };
 
-const DEFAULT_TIMEOUT_MS = 120_000;
-const MAX_TIMEOUT_MS = 300_000;
+type ContextLike = {
+  activePage(): Promise<PageLike | undefined>;
+  pages(): Promise<PageLike[]>;
+  newPage(): Promise<PageLike>;
+};
+
+type StagehandLike = Record<string, unknown> & {
+  context: ContextLike;
+  init(): Promise<void>;
+  close(): Promise<void>;
+};
+
+type StagehandConstructor = new (
+  options: Record<string, unknown>
+) => StagehandLike;
+
+export type StagehandCodeExecutorOptions = StagehandCodeConfig;
+
+const AsyncFunction = Object.getPrototypeOf(async function () {})
+  .constructor as new (
+  ...args: string[]
+) => (...values: unknown[]) => Promise<unknown>;
 const MAX_CODE_BYTES = 100_000;
+const MAX_LOG_BYTES = 64 * 1024;
+const MAX_RESULT_BYTES = 256 * 1024;
 
 export class StagehandCodeExecutor {
-  private runtime?: CodeRuntime;
+  private stagehand?: StagehandLike;
   private queue = Promise.resolve();
+  private closed = false;
   private closePromise?: Promise<void>;
-  private readonly defaultTimeoutMs: number;
 
-  constructor(private readonly options: StagehandCodeExecutorOptions) {
-    this.defaultTimeoutMs = options.defaultTimeoutMs ?? DEFAULT_TIMEOUT_MS;
-    requireTimeout(this.defaultTimeoutMs, 'defaultTimeoutMs');
-  }
+  constructor(private readonly options: StagehandCodeExecutorOptions) {}
 
   execute(
     input: CodeExecuteInput,
@@ -33,6 +53,7 @@ export class StagehandCodeExecutor {
   ): Promise<CodeExecuteResult> {
     const validation = validate(input);
     if (validation) return Promise.resolve(validation);
+
     const operation = this.queue.then(() => this.executeQueued(input, signal));
     this.queue = operation.then(
       () => undefined,
@@ -42,10 +63,11 @@ export class StagehandCodeExecutor {
   }
 
   close(): Promise<void> {
+    this.closed = true;
     this.closePromise ??= this.queue.then(async () => {
-      const runtime = this.runtime;
-      this.runtime = undefined;
-      await runtime?.close();
+      const current = this.stagehand;
+      this.stagehand = undefined;
+      await current?.close();
     });
     return this.closePromise;
   }
@@ -54,38 +76,100 @@ export class StagehandCodeExecutor {
     input: CodeExecuteInput,
     signal?: AbortSignal
   ): Promise<CodeExecuteResult> {
-    if (this.closePromise)
-      return failure('closed', 'Code executor is closed.', false, false);
-    if (signal?.aborted)
-      return failure('aborted', 'Code execution was aborted.', true, false);
-    const runtime = (this.runtime ??= this.createRuntime());
+    if (this.closed) {
+      return failure('closed', 'Code executor is closed.');
+    }
+    if (signal?.aborted) {
+      return failure('aborted', 'Code execution was aborted before it began.');
+    }
+
+    const logs: CodeLogEntry[] = [];
+    let page: PageLike | undefined;
     try {
-      const result = await runtime.run(
-        input.code,
-        input.timeout_ms ?? this.defaultTimeoutMs,
-        signal
+      const stagehand = await this.ensureStagehand();
+      const context = stagehand.context;
+      page =
+        (await context.activePage()) ??
+        (await context.pages())[0] ??
+        (await context.newPage());
+
+      const fn = new AsyncFunction(
+        'page',
+        'context',
+        'stagehand',
+        'z',
+        'console',
+        input.code
       );
+      const value = await fn(
+        page,
+        context,
+        stagehand,
+        z,
+        createCodeConsole(logs)
+      );
+
       return {
         ok: true,
-        browser_state: 'preserved',
-        page: result.page,
-        ...(result.value === undefined ? {} : { value: result.value }),
-        ...(result.logs.length === 0 ? {} : { logs: result.logs }),
+        page: await readPageState(page),
+        ...(value === undefined ? {} : { value: jsonSafe(value) }),
+        ...(logs.length === 0 ? {} : { logs }),
       };
     } catch (error) {
-      const stateLost =
-        error instanceof CodeModeRuntimeError && error.browserStateLost;
-      if (stateLost) {
-        this.runtime = undefined;
-        await runtime.close().catch(() => undefined);
-      }
-      return failureFromError(error, stateLost);
+      const normalized =
+        error instanceof Error ? error : new Error(String(error));
+      const currentPage =
+        page ?? (await this.activePage().catch(() => undefined));
+      return failure('runtime', normalized.message, normalized.name, {
+        ...(currentPage
+          ? { page: await readPageState(currentPage).catch(() => undefined) }
+          : {}),
+        ...(logs.length === 0 ? {} : { logs }),
+      });
     }
   }
 
-  private createRuntime(): CodeRuntime {
-    if (this.options.runtimeFactory) return this.options.runtimeFactory();
-    return createStagehandChildRuntime(this.options);
+  private async ensureStagehand(): Promise<StagehandLike> {
+    if (this.stagehand) return this.stagehand;
+    if (!this.options.browserbaseApiKey) {
+      throw new Error(
+        'BROWSERBASE_API_KEY is required before the first code_execute call.'
+      );
+    }
+
+    const packageName = '@browserbasehq/stagehand';
+    const imported = (await import(packageName)) as {
+      Stagehand?: StagehandConstructor;
+      StagehandClientInitParamsSchema?: unknown;
+    };
+    if (!imported.Stagehand || !imported.StagehandClientInitParamsSchema) {
+      throw new Error(
+        'Stagehand code mode requires a local Stagehand V4 build resolvable as @browserbasehq/stagehand.'
+      );
+    }
+
+    const next = new imported.Stagehand({
+      apiKey: this.options.browserbaseApiKey,
+      browser: { type: 'browserbase' },
+      logging: { level: 'off' },
+      ...(this.options.model ? { model: this.options.model } : {}),
+    });
+    try {
+      await next.init();
+    } catch (error) {
+      await next.close().catch(() => undefined);
+      throw error;
+    }
+    this.stagehand = next;
+    return next;
+  }
+
+  private async activePage(): Promise<PageLike | undefined> {
+    if (!this.stagehand) return undefined;
+    return (
+      (await this.stagehand.context.activePage()) ??
+      (await this.stagehand.context.pages())[0]
+    );
   }
 }
 
@@ -97,71 +181,82 @@ function validate(input: CodeExecuteInput): CodeExecuteFailure | undefined {
   ) {
     return failure(
       'validation',
-      'code must be a non-empty JavaScript function body.',
-      false,
-      false
+      'code must be a non-empty JavaScript function body.'
     );
   }
   if (Buffer.byteLength(input.code) > MAX_CODE_BYTES) {
     return failure(
       'validation',
-      `code must be at most ${MAX_CODE_BYTES} UTF-8 bytes.`,
-      false,
-      false
+      `code must be at most ${MAX_CODE_BYTES} UTF-8 bytes.`
     );
-  }
-  if (input.timeout_ms !== undefined) {
-    try {
-      requireTimeout(input.timeout_ms, 'timeout_ms');
-    } catch (error) {
-      return failure('validation', (error as Error).message, false, false);
-    }
   }
   return undefined;
 }
 
-function requireTimeout(value: number, label: string): void {
-  if (!Number.isSafeInteger(value) || value <= 0 || value > MAX_TIMEOUT_MS) {
-    throw new Error(
-      `${label} must be an integer from 1 through ${MAX_TIMEOUT_MS}.`
-    );
-  }
+function createCodeConsole(logs: CodeLogEntry[]) {
+  let logBytes = 0;
+  const append = (level: CodeLogEntry['level'], values: unknown[]) => {
+    if (logBytes >= MAX_LOG_BYTES) return;
+    const text = formatLog(values);
+    const remaining = MAX_LOG_BYTES - logBytes;
+    const bounded = Buffer.from(text).subarray(0, remaining).toString();
+    logBytes += Buffer.byteLength(bounded);
+    logs.push({ level, text: bounded });
+  };
+  return Object.freeze({
+    log: (...values: unknown[]) => append('log', values),
+    warn: (...values: unknown[]) => append('warn', values),
+    error: (...values: unknown[]) => append('error', values),
+  });
 }
 
-function failureFromError(
-  error: unknown,
-  stateLost: boolean
-): CodeExecuteFailure {
-  const normalized = error instanceof Error ? error : new Error(String(error));
-  const runtimeError =
-    error instanceof CodeModeRuntimeError ? error : undefined;
-  return failure(
-    runtimeError?.kind ?? 'runtime',
-    normalized.message,
-    runtimeError?.retryable ?? true,
-    stateLost,
-    runtimeError?.mayHaveSideEffects ?? false,
-    normalized.name
-  );
+async function readPageState(page: PageLike): Promise<CodePageState> {
+  const [url, title] = await Promise.all([page.url(), page.title()]);
+  return { url, title };
+}
+
+function jsonSafe(value: unknown): unknown {
+  if (value === undefined) return undefined;
+  const serialized = JSON.stringify(value, (_key, nested) => {
+    if (typeof nested === 'bigint') return nested.toString();
+    if (nested instanceof Uint8Array) {
+      return {
+        type: 'bytes',
+        encoding: 'base64',
+        data: Buffer.from(nested).toString('base64'),
+      };
+    }
+    return nested;
+  });
+  if (serialized === undefined) return undefined;
+  const bytes = Buffer.byteLength(serialized);
+  if (bytes <= MAX_RESULT_BYTES) return JSON.parse(serialized);
+  return {
+    truncated: true,
+    original_bytes: bytes,
+    preview: Buffer.from(serialized).subarray(0, MAX_RESULT_BYTES).toString(),
+  };
+}
+
+function formatLog(values: unknown[]): string {
+  return values
+    .map(value => {
+      if (typeof value === 'string') return value;
+      const safe = jsonSafe(value);
+      return safe === undefined ? String(value) : JSON.stringify(safe);
+    })
+    .join(' ');
 }
 
 function failure(
   kind: CodeExecuteFailure['error']['kind'],
   message: string,
-  retryable: boolean,
-  stateLost: boolean,
-  mayHaveSideEffects = false,
-  name = 'CodeModeRuntimeError'
+  name = 'CodeModeError',
+  evidence: Pick<CodeExecuteFailure, 'page' | 'logs'> = {}
 ): CodeExecuteFailure {
   return {
     ok: false,
-    browser_state: stateLost ? 'discarded' : 'preserved',
-    error: {
-      kind,
-      name,
-      message,
-      retryable,
-      ...(mayHaveSideEffects ? { may_have_side_effects: true } : {}),
-    },
+    ...evidence,
+    error: { kind, name, message },
   };
 }

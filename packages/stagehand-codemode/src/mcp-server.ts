@@ -28,7 +28,6 @@ export function createCodeModeMcpServer(
       outputSchema: z
         .object({
           ok: z.boolean(),
-          browser_state: z.enum(['preserved', 'discarded']),
         })
         .loose(),
     },

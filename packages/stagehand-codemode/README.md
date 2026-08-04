@@ -16,23 +16,20 @@ The MCP server includes it in the tool description so the model does not need to
 
 ```json
 {
-  "code": "await page.goto('https://example.com'); return { title: await page.title() };",
-  "timeout_ms": 120000
+  "code": "await page.goto('https://example.com'); return { title: await page.title() };"
 }
 ```
 
 ## Trust boundary
 
-The executor runs model-authored JavaScript in a child process so a timeout can terminate a hung
-snippet. That process boundary is lifecycle containment, not a security sandbox: code can still
-access the local filesystem, network, and in-process SDK state with the permissions of the parent
-process. Only use this with trusted agents in a trusted local environment.
+The executor runs model-authored JavaScript directly in the local MCP process. This is not a security
+sandbox: code can access the local filesystem, network, environment, and in-process SDK state with
+that process's permissions. Only use it with trusted agents in a trusted local environment.
 
-Secrets are not copied into the child process environment, reducing accidental exposure through
-`process.env`. Browserbase and model configuration is sent over the private parent-child IPC channel,
-but this is defense in depth rather than secret isolation because the snippet shares a process with
-the configured SDK. A timeout or abort kills the child, requests release of its Browserbase session,
-and returns `browser_state: "discarded"`; the next call starts fresh.
+The agent framework owns the stdio MCP process. If generated code stops responding, the framework
+should terminate and restart the process. Restarting also starts a fresh browser, so the previous
+browser state is lost. The tool intentionally does not add a second worker, IPC protocol, or timeout
+supervisor around this local single-agent session.
 
 ## Local stdio MCP
 

@@ -1,8 +1,8 @@
-import type { StagehandCodeRuntimeConfig } from './types.js';
+import type { StagehandCodeConfig } from './types.js';
 
-export function runtimeConfigFromEnv(
+export function stagehandCodeConfigFromEnv(
   env: NodeJS.ProcessEnv = process.env
-): StagehandCodeRuntimeConfig {
+): StagehandCodeConfig {
   const explicitModelName = nonEmpty(env.STAGEHAND_MODEL_NAME);
   const explicitModelApiKey = nonEmpty(env.STAGEHAND_MODEL_API_KEY);
   const inferredGoogleKey =
@@ -13,8 +13,6 @@ export function runtimeConfigFromEnv(
     explicitModelName ??
     (inferredGoogleKey ? 'google/gemini-2.5-flash-lite' : undefined);
   const modelApiKey = explicitModelApiKey ?? inferredGoogleKey;
-  const defaultTimeoutMs = positiveInt(env.CODEMODE_DEFAULT_TIMEOUT_MS);
-
   return {
     browserbaseApiKey: nonEmpty(env.BROWSERBASE_API_KEY),
     ...(modelName
@@ -28,17 +26,10 @@ export function runtimeConfigFromEnv(
           },
         }
       : {}),
-    ...(defaultTimeoutMs ? { defaultTimeoutMs } : {}),
   };
 }
 
 function nonEmpty(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
-}
-
-function positiveInt(value: string | undefined): number | undefined {
-  if (!value) return undefined;
-  const parsed = Number(value);
-  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { runtimeConfigFromEnv } from './config.js';
+import { stagehandCodeConfigFromEnv } from './config.js';
 import { StagehandCodeExecutor } from './executor.js';
 import { connectCodeModeStdio } from './mcp-server.js';
 
@@ -17,7 +17,6 @@ if (args.includes('--help') || args.includes('-h')) {
       '  STAGEHAND_MODEL_NAME         Optional provider/model name for Stagehand AI methods',
       '  STAGEHAND_MODEL_API_KEY      Optional model-provider API key',
       '  STAGEHAND_MODEL_BASE_URL     Optional model-provider base URL',
-      '  CODEMODE_DEFAULT_TIMEOUT_MS  Optional default timeout (120000)',
       '',
     ].join('\n')
   );
@@ -25,7 +24,7 @@ if (args.includes('--help') || args.includes('-h')) {
 }
 if (args.length > 0) throw new Error(`Unknown argument: ${args[0]}`);
 
-const executor = new StagehandCodeExecutor(runtimeConfigFromEnv());
+const executor = new StagehandCodeExecutor(stagehandCodeConfigFromEnv());
 const server = await connectCodeModeStdio(executor);
 let closing = false;
 

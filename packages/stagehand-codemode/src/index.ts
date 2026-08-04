@@ -1,8 +1,4 @@
-export {
-  createStagehandChildRuntime,
-  StagehandChildRuntime,
-} from './child-runtime.js';
-export { runtimeConfigFromEnv } from './config.js';
+export { stagehandCodeConfigFromEnv } from './config.js';
 export {
   StagehandCodeExecutor,
   type StagehandCodeExecutorOptions,
