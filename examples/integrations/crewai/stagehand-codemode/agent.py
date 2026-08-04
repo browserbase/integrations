@@ -9,7 +9,7 @@ from crewai.mcp import MCPServerStdio
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
-CLI_PATH = REPOSITORY_ROOT / "packages/stagehand-codemode/dist/cli.js"
+STDIO_SERVER_PATH = REPOSITORY_ROOT / "packages/stagehand-codemode/dist/stdio-server.js"
 SKILL_PATH = REPOSITORY_ROOT / "packages/stagehand-codemode/SKILL.md"
 STAGEHAND_CODEMODE_SKILL = SKILL_PATH.read_text().strip()
 
@@ -17,7 +17,7 @@ STAGEHAND_CODEMODE_SKILL = SKILL_PATH.read_text().strip()
 def build_stagehand_agent(llm: str | Any = "openai/gpt-5-mini") -> Agent:
     server = MCPServerStdio(
         command="node",
-        args=[str(CLI_PATH)],
+        args=[str(STDIO_SERVER_PATH)],
         env=dict(os.environ),
         tool_filter=lambda _context, tool: tool.get("name") == "code_execute",
     )
