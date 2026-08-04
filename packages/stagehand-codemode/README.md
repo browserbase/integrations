@@ -154,3 +154,24 @@ globals, and in-process SDK state available to that process.
 Use Stagehand Code Mode only with trusted agents in a trusted execution environment. Applications
 that execute untrusted code must provide a real isolation boundary, such as a restricted container,
 virtual machine, or purpose-built code sandbox.
+
+## Vercel AI SDK
+
+```ts
+import { generateText } from 'ai';
+import { createStagehandTool } from '@browserbasehq/stagehand-codemode/ai-sdk';
+
+const stagehand = createStagehandTool({
+  browserbaseApiKey: process.env.BROWSERBASE_API_KEY,
+});
+
+try {
+  await generateText({
+    model,
+    tools: { code_execute: stagehand.tool },
+    prompt: 'Open example.com and return its title.',
+  });
+} finally {
+  await stagehand.close();
+}
+```

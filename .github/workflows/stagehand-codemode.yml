@@ -4,12 +4,16 @@ on:
   pull_request:
     paths:
       - '.github/workflows/stagehand-codemode.yml'
+      - 'examples/integrations/vercel/stagehand-codemode/**'
       - 'packages/stagehand-codemode/**'
+      - 'pnpm-workspace.yaml'
   push:
     branches: [main]
     paths:
       - '.github/workflows/stagehand-codemode.yml'
+      - 'examples/integrations/vercel/stagehand-codemode/**'
       - 'packages/stagehand-codemode/**'
+      - 'pnpm-workspace.yaml'
 
 permissions:
   contents: read
@@ -30,3 +34,20 @@ jobs:
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm --filter @browserbasehq/stagehand-codemode run typecheck
       - run: pnpm --filter @browserbasehq/stagehand-codemode run build
+
+  vercel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm --filter @browserbasehq/stagehand-codemode run build
+      - run: pnpm --filter stagehand-codemode-ai-sdk-example run check
+      - run: pnpm --filter stagehand-codemode-ai-sdk-example run smoke

@@ -2,12 +2,16 @@
   "name": "@browserbasehq/stagehand-codemode",
   "version": "0.0.0",
   "private": true,
-  "description": "Local stdio MCP tool for Stagehand code mode",
+  "description": "Local stdio MCP and agent-tool bindings for Stagehand code mode",
   "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./ai-sdk": {
+      "types": "./dist/ai-sdk.d.ts",
+      "import": "./dist/ai-sdk.js"
     }
   },
   "scripts": {
@@ -19,15 +23,20 @@
     "zod": "^4.4.3"
   },
   "peerDependencies": {
-    "@browserbasehq/stagehand": "*"
+    "@browserbasehq/stagehand": "*",
+    "ai": ">=5.0.0"
   },
   "peerDependenciesMeta": {
     "@browserbasehq/stagehand": {
+      "optional": true
+    },
+    "ai": {
       "optional": true
     }
   },
   "devDependencies": {
     "@types/node": "^25.0.9",
+    "ai": "^7.0.51",
     "tsdown": "^0.15.4",
     "typescript": "^5.9.3"
   },

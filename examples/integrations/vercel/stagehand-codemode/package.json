@@ -1,0 +1,18 @@
+{
+  "name": "stagehand-codemode-ai-sdk-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "smoke": "tsx src/smoke.ts"
+  },
+  "dependencies": {
+    "@browserbasehq/stagehand-codemode": "workspace:*",
+    "ai": "^7.0.51"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

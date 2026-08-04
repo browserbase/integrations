@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  entry: ['src/index.ts', 'src/stdio-server.ts'],
+  entry: ['src/index.ts', 'src/ai-sdk.ts', 'src/stdio-server.ts'],
   format: ['esm'],
   platform: 'node',
   target: 'node22',
