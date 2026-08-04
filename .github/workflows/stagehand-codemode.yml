@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/stagehand-codemode.yml'
+      - 'examples/integrations/crewai/stagehand-codemode/**'
       - 'examples/integrations/mastra/stagehand-codemode/**'
       - 'examples/integrations/vercel/stagehand-codemode/**'
       - 'packages/stagehand-codemode/**'
@@ -12,6 +13,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/stagehand-codemode.yml'
+      - 'examples/integrations/crewai/stagehand-codemode/**'
       - 'examples/integrations/mastra/stagehand-codemode/**'
       - 'examples/integrations/vercel/stagehand-codemode/**'
       - 'packages/stagehand-codemode/**'
@@ -70,3 +72,25 @@ jobs:
       - run: pnpm --filter @browserbasehq/stagehand-codemode run build
       - run: pnpm --filter stagehand-codemode-mastra-example run check
       - run: pnpm --filter stagehand-codemode-mastra-example run smoke
+
+  crewai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: examples/integrations/crewai/stagehand-codemode/requirements.txt
+
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm --filter @browserbasehq/stagehand-codemode run build
+      - run: python -m pip install -r examples/integrations/crewai/stagehand-codemode/requirements.txt
+      - run: python examples/integrations/crewai/stagehand-codemode/smoke.py
