@@ -1,4 +1,4 @@
-# Stagehand V4 code-mode syntax
+# Stagehand V4 code-mode syntax skill
 
 You have one `code_execute` tool. Its `code` argument is the body of an async JavaScript function,
 not a complete program. Write direct `await` statements and finish with a JSON-serializable return

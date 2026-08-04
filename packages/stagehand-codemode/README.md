@@ -11,8 +11,8 @@ browser until the owning process closes. The model writes an async JavaScript fu
 over the extension's JSON-RPC protocol. The executor does not expose raw JSON-RPC or maintain a
 second method allowlist that can drift from the SDK.
 
-[`STAGEHAND_CODEMODE_SKILL.md`](./STAGEHAND_CODEMODE_SKILL.md) is the canonical syntax reference.
-The MCP server includes it in the tool description so the model does not need to infer the V4 API.
+[`SKILL.md`](./SKILL.md) is the canonical syntax reference. The MCP server includes it in the tool
+description so the model does not need to infer the V4 API.
 
 ```json
 {
