@@ -14,11 +14,7 @@ export type CodeLogEntry = {
 };
 
 export type CodeExecuteErrorKind =
-  | 'validation'
-  | 'runtime'
-  | 'timeout'
-  | 'aborted'
-  | 'closed';
+  'validation' | 'runtime' | 'timeout' | 'aborted' | 'closed';
 
 export type CodeExecuteSuccess = {
   ok: true;
