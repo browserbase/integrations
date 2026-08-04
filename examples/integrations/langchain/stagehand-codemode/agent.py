@@ -11,7 +11,7 @@ from langchain_mcp_adapters.tools import load_mcp_tools
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
 CLI_PATH = REPOSITORY_ROOT / "packages/stagehand-codemode/dist/cli.js"
-SKILL_PATH = REPOSITORY_ROOT / "packages/stagehand-codemode/STAGEHAND_CODEMODE_SKILL.md"
+SKILL_PATH = REPOSITORY_ROOT / "packages/stagehand-codemode/SKILL.md"
 STAGEHAND_CODEMODE_SKILL = SKILL_PATH.read_text().strip()
 
 
