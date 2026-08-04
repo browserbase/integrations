@@ -1,0 +1,19 @@
+{
+  "name": "stagehand-codemode-mastra-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "smoke": "tsx src/smoke.ts"
+  },
+  "dependencies": {
+    "@browserbasehq/stagehand-codemode": "workspace:*",
+    "@mastra/core": "^1.55.0",
+    "@mastra/mcp": "^1.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

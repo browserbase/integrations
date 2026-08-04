@@ -1,4 +1,5 @@
 packages:
   - 'examples/*'
+  - 'examples/integrations/mastra/stagehand-codemode'
   - 'examples/integrations/vercel/stagehand-codemode'
   - 'packages/*'
