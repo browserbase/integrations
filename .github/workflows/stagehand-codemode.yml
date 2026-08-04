@@ -1,0 +1,33 @@
+name: Stagehand code-mode tool
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/stagehand-codemode.yml'
+      - 'packages/stagehand-codemode/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/stagehand-codemode.yml'
+      - 'packages/stagehand-codemode/**'
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm --filter @browserbasehq/stagehand-codemode run typecheck
+      - run: pnpm --filter @browserbasehq/stagehand-codemode run test
+      - run: pnpm --filter @browserbasehq/stagehand-codemode run build

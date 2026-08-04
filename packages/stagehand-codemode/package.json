@@ -1,0 +1,44 @@
+{
+  "name": "@browserbasehq/stagehand-codemode",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local stdio MCP tool for Stagehand code mode",
+  "type": "module",
+  "bin": {
+    "stagehand-codemode": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:live": "pnpm run build && node tests/live-mcp-smoke.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@browserbasehq/sdk": "^2.16.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "@browserbasehq/stagehand": "*"
+  },
+  "peerDependenciesMeta": {
+    "@browserbasehq/stagehand": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "tsdown": "^0.15.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.6"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}
