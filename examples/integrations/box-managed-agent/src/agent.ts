@@ -8,30 +8,26 @@ const browserbase = new Browserbase({
 
 async function main() {
   const agent = await browserbase.agents.create({
-    name: 'Box compliance document gatherer',
-    systemPrompt: `Gather the compliance documents requested in each run.
+    name: 'Authenticated PDF gatherer for Box',
+    systemPrompt: `Download the private PDF requested in each run.
 
-Use the browser to visit each supplied source page in the requested order and click the named download link. The files must be real browser downloads attached to the Browserbase session so they can be retrieved with the Downloads API. Do not substitute web search, Fetch API results, shell downloads, summaries, or copied page text for the requested files.
+The browser session already contains the user's authenticated state. Visit the supplied private page and use the named control to download its PDF. The file must be a real browser download attached to the Browserbase session so it can be retrieved with the Downloads API. Do not use web search, a Fetch API, a shell download, copied page text, or a public replacement for the requested private file.
 
-Wait for each download to begin before continuing. Finish only after both documents have been downloaded. Return the source URL, role, and downloaded filename for each document.`,
+If the site shows a login screen, stop and report that the saved context needs to be refreshed. Otherwise, wait for the download to begin and return the source URL and exact downloaded filename.`,
     resultSchema: {
       type: 'object',
       properties: {
-        downloadedFiles: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              role: { type: 'string', enum: ['sds', 'label'] },
-              sourceUrl: { type: 'string' },
-              filename: { type: 'string' },
-            },
-            required: ['role', 'sourceUrl', 'filename'],
-            additionalProperties: false,
+        downloadedFile: {
+          type: 'object',
+          properties: {
+            sourceUrl: { type: 'string' },
+            filename: { type: 'string' },
           },
+          required: ['sourceUrl', 'filename'],
+          additionalProperties: false,
         },
       },
-      required: ['downloadedFiles'],
+      required: ['downloadedFile'],
       additionalProperties: false,
     },
   });

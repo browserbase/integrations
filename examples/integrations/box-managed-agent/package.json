@@ -1,10 +1,11 @@
 {
-  "name": "browserbase-managed-agent-box-compliance-intake",
+  "name": "browserbase-managed-agent-private-document-intake",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "setup-context": "tsx src/context.ts",
     "create-agent": "tsx src/agent.ts",
     "start": "tsx src/index.ts"
   },

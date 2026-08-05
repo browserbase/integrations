@@ -1,5 +1,6 @@
-import { metadataValues, type ExtractionAnswer } from './compliance.js';
 import type { DownloadedFile } from './downloads.js';
+
+type ExtractionAnswer = Record<string, unknown>;
 
 export type BoxFile = {
   id: string;
@@ -37,58 +38,37 @@ function field(
   return { key, displayName, prompt, type };
 }
 
-export const SDS_FIELDS = [
+export const DOCUMENT_FIELDS = [
+  field('title', 'Title', 'The document title.'),
+  field('documentType', 'Document type', 'The type or category of document.'),
   field(
-    'productName',
-    'Product name',
-    'The product identifier or product name.'
-  ),
-  field('manufacturer', 'Manufacturer', 'The supplier or manufacturer name.'),
-  field(
-    'epaRegistrationNumber',
-    'EPA registration number',
-    'The EPA pesticide registration number, preserving its printed punctuation.'
-  ),
-  field('revisionDate', 'Revision date', 'The document revision date.', 'date'),
-  field(
-    'emergencyPhone',
-    'Emergency phone',
-    'The medical or transportation emergency phone number.'
-  ),
-  field('recommendedUse', 'Recommended use', 'The recommended product use.'),
-  field('hazards', 'Hazards', 'The primary hazards or hazard statements.'),
-  field('ppe', 'PPE', 'Required personal protective equipment.'),
-  field(
-    'storageRequirements',
-    'Storage requirements',
-    'The conditions required for safe storage.'
-  ),
-];
-
-export const LABEL_FIELDS = [
-  field('productName', 'Product name', 'The product name shown on the label.'),
-  field(
-    'epaRegistrationNumber',
-    'EPA registration number',
-    'The EPA registration number shown on the label, preserving punctuation.'
+    'issuer',
+    'Issuer',
+    'The organization or person that issued the document.'
   ),
   field(
-    'signalWord',
-    'Signal word',
-    'The signal word, such as Danger or Caution.'
+    'effectiveDate',
+    'Effective date',
+    'The date the document takes effect.',
+    'date'
   ),
-  field('activeIngredients', 'Active ingredients', 'The active ingredients.'),
   field(
-    'contactTime',
-    'Contact time',
-    'The required wet contact or dwell time.'
+    'expirationDate',
+    'Expiration date',
+    'The date the document expires, if present.',
+    'date'
   ),
-  field('firstAid', 'First aid', 'The first-aid instructions.'),
-  field('directions', 'Directions', 'The directions for use.'),
+  field('parties', 'Parties', 'The people or organizations named as parties.'),
+  field('summary', 'Summary', 'A concise summary of the document.'),
   field(
-    'storageAndDisposal',
-    'Storage and disposal',
-    'The storage and disposal instructions.'
+    'keyObligations',
+    'Key obligations',
+    'The main obligations, requirements, or action items.'
+  ),
+  field(
+    'monetaryAmounts',
+    'Monetary amounts',
+    'Important prices, fees, totals, or other monetary amounts.'
   ),
 ];
 
@@ -118,13 +98,12 @@ export async function boxAccessToken(): Promise<string> {
 
 export async function uploadToBox(
   token: string,
-  file: DownloadedFile,
-  role: 'sds' | 'label'
+  file: DownloadedFile
 ): Promise<BoxFile> {
   const extensionIndex = file.filename.lastIndexOf('.');
   const extension =
     extensionIndex >= 0 ? file.filename.slice(extensionIndex) : '';
-  const name = `browserbase-agent-${role}-${Date.now()}${extension}`;
+  const name = `browserbase-agent-private-document-${Date.now()}${extension}`;
   const form = new FormData();
   form.append(
     'attributes',
@@ -208,7 +187,7 @@ export function askBox(token: string, file: BoxFile) {
   return boxAiRequest<BoxAiAskResponse>(token, '/ai/ask', {
     mode: 'single_item_qa',
     prompt:
-      'Summarize the safe handling, storage, personal protective equipment, and emergency response requirements in this safety data sheet.',
+      'Summarize this document, including its purpose, important dates, named parties, obligations, risks, and recommended next actions.',
     items: [{ type: 'file', id: file.id }],
     include_citations: true,
   });
@@ -240,7 +219,18 @@ export async function applyGlobalProperties(
         authorization: `Bearer ${token}`,
         'content-type': 'application/json',
       },
-      body: JSON.stringify(metadataValues(properties)),
+      body: JSON.stringify(
+        Object.fromEntries(
+          Object.entries(properties).flatMap(([key, value]) => {
+            if (value === undefined || value === null) {
+              return [];
+            }
+            return [
+              [key, typeof value === 'string' ? value : JSON.stringify(value)],
+            ];
+          })
+        )
+      ),
     }
   );
 

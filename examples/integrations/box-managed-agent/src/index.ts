@@ -5,54 +5,34 @@ import {
   applyGlobalProperties,
   askBox,
   boxAccessToken,
+  DOCUMENT_FIELDS,
   extractBoxMetadata,
-  LABEL_FIELDS,
-  SDS_FIELDS,
   uploadToBox,
 } from './box.js';
-import { decideCompliance } from './compliance.js';
-import { getAgentDownloads } from './downloads.js';
+import { getAgentDownload } from './downloads.js';
 
 const browserbase = new Browserbase({
   apiKey: process.env.BROWSERBASE_API_KEY,
 });
 
-const sources = [
-  {
-    role: 'sds',
-    pageUrl:
-      process.env.SDS_PAGE_URL ??
-      'https://www.thecloroxcompany.com/sds/clorox-disinfecting-wipes1-fresh-scent/',
-    linkText: process.env.SDS_LINK_TEXT ?? 'Download Safety Data Sheet',
-  },
-  {
-    role: 'label',
-    pageUrl:
-      process.env.LABEL_PAGE_URL ??
-      'https://www.epa.gov/pesticide-labels/sample-pesticide-label-current-and-ghs-requirements',
-    linkText:
-      process.env.LABEL_LINK_TEXT ??
-      'Sample Pesticide Label with Current and GHS Requirements',
-  },
-] as const;
-
 type AgentResult = {
   output?: {
-    downloadedFiles?: Array<{
+    downloadedFile?: {
       filename: string;
-    }>;
+    };
   };
 };
 
 async function runAgent() {
   const { runId } = await browserbase.agents.runs.create({
     agentId: process.env.BROWSERBASE_AGENT_ID as string,
-    task: `Download these two compliance documents in this exact order:
-
-1. Visit ${sources[0].pageUrl} and click the link named "${sources[0].linkText}".
-2. After the first download begins, visit ${sources[1].pageUrl} and click the link named "${sources[1].linkText}".
-
-Use the browser for both downloads and confirm both files are downloaded before finishing.`,
+    task: `Visit ${process.env.PROTECTED_PAGE_URL}. Using the authenticated browser session, download the PDF with the control named "${process.env.PROTECTED_PDF_LINK_TEXT}". Confirm the file is downloaded before finishing.`,
+    browserSettings: {
+      context: {
+        id: process.env.BROWSERBASE_CONTEXT_ID as string,
+        persist: true,
+      },
+    },
   });
 
   console.log(`Browserbase Agent run started: ${runId}`);
@@ -85,58 +65,38 @@ Use the browser for both downloads and confirm both files are downloaded before 
 }
 
 async function main() {
-  console.log('Starting Browserbase managed Agent + Box compliance intake...');
+  console.log(
+    'Starting authenticated Browserbase Agent + Box document intake...'
+  );
   const run = await runAgent();
   const agentResult = run.result as AgentResult | undefined;
-  const expectedFilenames = agentResult?.output?.downloadedFiles?.map(
-    file => file.filename
-  );
-  if (expectedFilenames?.length !== sources.length) {
+  const expectedFilename = agentResult?.output?.downloadedFile?.filename;
+  if (!expectedFilename) {
     throw new Error(
-      'Browserbase Agent result did not include both downloaded filenames.'
+      'Browserbase Agent result did not include a downloaded filename.'
     );
   }
 
-  const files = await getAgentDownloads(
+  const file = await getAgentDownload(
     run.sessionId as string,
-    expectedFilenames
+    expectedFilename
   );
   const token = await boxAccessToken();
 
-  const [sdsFile, labelFile] = await Promise.all([
-    uploadToBox(token, files[0], 'sds'),
-    uploadToBox(token, files[1], 'label'),
+  const boxFile = await uploadToBox(token, file);
+  const [qa, extraction] = await Promise.all([
+    askBox(token, boxFile),
+    extractBoxMetadata(token, boxFile, DOCUMENT_FIELDS),
   ]);
-  const [qa, sdsExtraction, labelExtraction] = await Promise.all([
-    askBox(token, sdsFile),
-    extractBoxMetadata(token, sdsFile, SDS_FIELDS),
-    extractBoxMetadata(token, labelFile, LABEL_FIELDS),
-  ]);
-  const decision = decideCompliance(
-    sdsExtraction.answer,
-    labelExtraction.answer
-  );
 
-  await Promise.all([
-    applyGlobalProperties(token, sdsFile, {
-      ...sdsExtraction.answer,
-      browserbaseAgentId: run.agentId,
-      browserbaseRunId: run.runId,
-      browserbaseSessionId: run.sessionId,
-      documentRole: 'safety_data_sheet',
-      complianceStatus: decision.status,
-      sourceUrl: sources[0].pageUrl,
-    }),
-    applyGlobalProperties(token, labelFile, {
-      ...labelExtraction.answer,
-      browserbaseAgentId: run.agentId,
-      browserbaseRunId: run.runId,
-      browserbaseSessionId: run.sessionId,
-      documentRole: 'product_label',
-      complianceStatus: decision.status,
-      sourceUrl: sources[1].pageUrl,
-    }),
-  ]);
+  await applyGlobalProperties(token, boxFile, {
+    ...extraction.answer,
+    browserbaseAgentId: run.agentId,
+    browserbaseContextId: process.env.BROWSERBASE_CONTEXT_ID,
+    browserbaseRunId: run.runId,
+    browserbaseSessionId: run.sessionId,
+    sourceUrl: process.env.PROTECTED_PAGE_URL,
+  });
 
   console.log('\n=== Box AI Q&A ===');
   console.log(qa.answer);
@@ -149,15 +109,10 @@ async function main() {
     }
   }
 
-  console.log('\n=== Extracted SDS metadata ===');
-  console.log(JSON.stringify(sdsExtraction, null, 2));
-  console.log('\n=== Extracted label metadata ===');
-  console.log(JSON.stringify(labelExtraction, null, 2));
-  console.log('\n=== Compliance decision ===');
-  console.log(JSON.stringify(decision, null, 2));
-  console.log('\nBox files:');
-  console.log(`- https://app.box.com/file/${sdsFile.id}`);
-  console.log(`- https://app.box.com/file/${labelFile.id}`);
+  console.log('\n=== Extracted document metadata ===');
+  console.log(JSON.stringify(extraction, null, 2));
+  console.log('\nBox file:');
+  console.log(`https://app.box.com/file/${boxFile.id}`);
 }
 
 main().catch((error: unknown) => {

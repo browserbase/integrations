@@ -60,34 +60,30 @@ async function getDownload(
   return { ...download, bytes: await response.arrayBuffer() };
 }
 
-export async function getAgentDownloads(
+export async function getAgentDownload(
   sessionId: string,
-  expectedFilenames: string[]
-): Promise<DownloadedFile[]> {
+  expectedFilename: string
+): Promise<DownloadedFile> {
   for (let attempt = 1; attempt <= 15; attempt += 1) {
     const downloads = await listDownloads(sessionId);
-    const matched = expectedFilenames.map(filename =>
-      downloads.find(download => download.filename === filename)
+    const matched = downloads.find(
+      download => download.filename === expectedFilename
     );
-    if (matched.every(download => download !== undefined)) {
+    if (matched) {
       console.log('\n=== Browserbase Agent downloads ===');
       for (const download of downloads) {
         console.log(
           `- ${download.filename} (${download.mimeType}, ${download.size} bytes)`
         );
       }
-      return Promise.all(
-        matched.map(download => getDownload(download as BrowserbaseDownload))
-      );
+      return getDownload(matched);
     }
 
-    console.log(
-      `Waiting for Browserbase cloud sync (${matched.filter(Boolean).length}/${expectedFilenames.length})...`
-    );
+    console.log('Waiting for Browserbase cloud sync...');
     await new Promise(resolve => setTimeout(resolve, 2_000));
   }
 
   throw new Error(
-    `Browserbase did not sync the Agent downloads within 30 seconds: ${expectedFilenames.join(', ')}.`
+    `Browserbase did not sync the Agent download within 30 seconds: ${expectedFilename}.`
   );
 }
