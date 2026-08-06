@@ -37,7 +37,7 @@ async function listDownloads(
   const body = (await response.json()) as {
     downloads: BrowserbaseDownload[];
   };
-  return body.downloads.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  return body.downloads.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 async function getDownload(
@@ -61,17 +61,18 @@ async function getDownload(
 }
 
 export async function getAgentDownload(
-  sessionId: string,
-  expectedFilename: string
+  sessionId: string
 ): Promise<DownloadedFile> {
-  for (let attempt = 1; attempt <= 15; attempt += 1) {
+  for (let attempt = 1; attempt <= 30; attempt += 1) {
     const downloads = await listDownloads(sessionId);
-    const matched = downloads.find(
-      download => download.filename === expectedFilename
+    const bill = downloads.find(
+      download =>
+        download.mimeType === 'application/pdf' ||
+        download.filename.toLowerCase().endsWith('.pdf')
     );
-    if (matched) {
+    if (bill) {
       console.log('Private bill downloaded from the Agent session.');
-      return getDownload(matched);
+      return getDownload(bill);
     }
 
     console.log('Waiting for Browserbase cloud sync...');
@@ -79,6 +80,6 @@ export async function getAgentDownload(
   }
 
   throw new Error(
-    'Browserbase did not sync the Agent download within 30 seconds.'
+    'Browserbase did not sync a PDF from the Agent session within 60 seconds.'
   );
 }

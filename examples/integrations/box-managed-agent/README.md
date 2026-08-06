@@ -17,11 +17,13 @@ browser session.
    to the Context.
 4. The managed Agent reuses that Context, opens Billing & Payment History, and
    downloads the latest bill using **View Bill PDF**.
-5. The application retrieves the bill from the Agent session through the
-   Browserbase Downloads API and uploads it to a private Box folder.
-6. Box AI answers a narrowly scoped billing question and extracts an allowlist
+5. The application independently waits for the newest PDF in the Agent session
+   through the Browserbase Downloads API. It does not rely on the Agent to know
+   the filename or confirm that the download completed.
+6. The application uploads the PDF to a private Box folder.
+7. Box AI answers a narrowly scoped billing question and extracts an allowlist
    of non-identifying utility metadata.
-7. The Q&A answer is stored privately in Box metadata. The terminal prints only
+8. The Q&A answer is stored privately in Box metadata. The terminal prints only
    its completion and the allowlisted structured billing fields.
 
 ## Setup
@@ -83,6 +85,14 @@ The bill, Q&A answer, session ID, and Box file ID remain private.
 - If PG&E redirects the Agent to login, run `pnpm setup-context` again and
   replace `BROWSERBASE_CONTEXT_ID`.
 - Do not run simultaneous sessions using the same Context.
+
+## Download verification
+
+The managed Agent only clicks **View Bill PDF**. After the run finishes, the
+application polls the Browserbase Downloads API for up to 60 seconds and selects
+the newest PDF from that run's session. This avoids false failures when the
+browser completed the download but the Agent could not observe its filename or
+filesystem state.
 
 ## Environment variables
 

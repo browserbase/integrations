@@ -15,16 +15,10 @@ const browserbase = new Browserbase({
   apiKey: process.env.BROWSERBASE_API_KEY,
 });
 
-type AgentResult = {
-  output?: {
-    filename?: string;
-  };
-};
-
 async function runAgent() {
   const { runId } = await browserbase.agents.runs.create({
     agentId: process.env.BROWSERBASE_AGENT_ID as string,
-    task: `Visit ${process.env.PGE_PORTAL_URL}. Using the authenticated browser session, open Billing & Payment History and download the latest bill with "View Bill PDF". Confirm the file is downloaded before finishing.`,
+    task: `Visit https://www.pge.com/myaccount using the authenticated browser session, open Billing & Payment History, and click "View Bill PDF" exactly once for the latest bill. Finish after clicking it; the application will verify the download separately.`,
     browserSettings: {
       context: {
         id: process.env.BROWSERBASE_CONTEXT_ID as string,
@@ -63,18 +57,7 @@ async function main() {
     'Starting private PG&E bill intake with Browserbase Agent + Box AI...'
   );
   const run = await runAgent();
-  const agentResult = run.result as AgentResult | undefined;
-  const expectedFilename = agentResult?.output?.filename;
-  if (!expectedFilename) {
-    throw new Error(
-      'Browserbase Agent result did not include a downloaded filename.'
-    );
-  }
-
-  const file = await getAgentDownload(
-    run.sessionId as string,
-    expectedFilename
-  );
+  const file = await getAgentDownload(run.sessionId as string);
   const token = await boxAccessToken();
 
   const boxFile = await uploadToBox(token, file);
