@@ -17,16 +17,14 @@ const browserbase = new Browserbase({
 
 type AgentResult = {
   output?: {
-    downloadedFile?: {
-      filename: string;
-    };
+    filename?: string;
   };
 };
 
 async function runAgent() {
   const { runId } = await browserbase.agents.runs.create({
     agentId: process.env.BROWSERBASE_AGENT_ID as string,
-    task: `Visit ${process.env.PROTECTED_PAGE_URL}. Using the authenticated browser session, download the PDF with the control named "${process.env.PROTECTED_PDF_LINK_TEXT}". Confirm the file is downloaded before finishing.`,
+    task: `Visit ${process.env.PGE_PORTAL_URL}. Using the authenticated browser session, open Billing & Payment History and download the latest bill with "View Bill PDF". Confirm the file is downloaded before finishing.`,
     browserSettings: {
       context: {
         id: process.env.BROWSERBASE_CONTEXT_ID as string,
@@ -53,10 +51,6 @@ async function runAgent() {
         throw new Error('Browserbase Agent run did not return a session ID.');
       }
 
-      console.log(
-        `Inspect the Agent session: https://browserbase.com/sessions/${run.sessionId}`
-      );
-      console.log('Agent result:', JSON.stringify(run.result, null, 2));
       return run;
     }
 
@@ -66,11 +60,11 @@ async function runAgent() {
 
 async function main() {
   console.log(
-    'Starting authenticated Browserbase Agent + Box document intake...'
+    'Starting private PG&E bill intake with Browserbase Agent + Box AI...'
   );
   const run = await runAgent();
   const agentResult = run.result as AgentResult | undefined;
-  const expectedFilename = agentResult?.output?.downloadedFile?.filename;
+  const expectedFilename = agentResult?.output?.filename;
   if (!expectedFilename) {
     throw new Error(
       'Browserbase Agent result did not include a downloaded filename.'
@@ -91,28 +85,20 @@ async function main() {
 
   await applyGlobalProperties(token, boxFile, {
     ...extraction.answer,
+    boxAiAnswer: qa.answer,
     browserbaseAgentId: run.agentId,
     browserbaseContextId: process.env.BROWSERBASE_CONTEXT_ID,
     browserbaseRunId: run.runId,
     browserbaseSessionId: run.sessionId,
-    sourceUrl: process.env.PROTECTED_PAGE_URL,
+    sourceUrl: process.env.PGE_PORTAL_URL,
   });
 
   console.log('\n=== Box AI Q&A ===');
-  console.log(qa.answer);
-  if (qa.citations?.length) {
-    console.log('Citations:');
-    for (const citation of qa.citations) {
-      console.log(
-        `- ${citation.name ?? citation.id}: ${citation.content ?? ''}`
-      );
-    }
-  }
+  console.log('Completed; the answer is stored privately in Box metadata.');
 
-  console.log('\n=== Extracted document metadata ===');
-  console.log(JSON.stringify(extraction, null, 2));
-  console.log('\nBox file:');
-  console.log(`https://app.box.com/file/${boxFile.id}`);
+  console.log('\n=== Public-safe utility bill metadata ===');
+  console.log(JSON.stringify(extraction.answer, null, 2));
+  console.log('\nPrivate bill uploaded to Box and metadata applied.');
 }
 
 main().catch((error: unknown) => {

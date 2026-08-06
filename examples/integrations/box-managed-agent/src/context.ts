@@ -13,6 +13,8 @@ async function main() {
   const session = await browserbase.sessions.create({
     browserSettings: {
       context: { id: context.id, persist: true },
+      logSession: false,
+      recordSession: false,
     },
     keepAlive: true,
     timeout: 900,
@@ -21,12 +23,12 @@ async function main() {
 
   console.log(`Created Browserbase Context: ${context.id}`);
   console.log(`Open Live View: ${liveView.debuggerFullscreenUrl}`);
-  console.log(`Navigate to: ${process.env.AUTH_START_URL}`);
+  console.log(`Navigate to: ${process.env.PGE_PORTAL_URL}`);
   console.log('Log in normally, including any MFA steps.');
 
   const prompt = createInterface({ input: stdin, output: stdout });
   await prompt.question(
-    'Once the protected PDF is accessible in Live View, press Enter to save the login...'
+    'Once the PG&E account dashboard is accessible, press Enter to save the login...'
   );
   prompt.close();
 

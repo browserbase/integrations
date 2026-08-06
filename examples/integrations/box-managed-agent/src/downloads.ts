@@ -54,7 +54,7 @@ async function getDownload(
   );
 
   if (!response.ok) {
-    await responseError(response, `Retrieving ${download.filename}`);
+    await responseError(response, 'Retrieving the private utility bill');
   }
 
   return { ...download, bytes: await response.arrayBuffer() };
@@ -70,12 +70,7 @@ export async function getAgentDownload(
       download => download.filename === expectedFilename
     );
     if (matched) {
-      console.log('\n=== Browserbase Agent downloads ===');
-      for (const download of downloads) {
-        console.log(
-          `- ${download.filename} (${download.mimeType}, ${download.size} bytes)`
-        );
-      }
+      console.log('Private bill downloaded from the Agent session.');
       return getDownload(matched);
     }
 
@@ -84,6 +79,6 @@ export async function getAgentDownload(
   }
 
   throw new Error(
-    `Browserbase did not sync the Agent download within 30 seconds: ${expectedFilename}.`
+    'Browserbase did not sync the Agent download within 30 seconds.'
   );
 }

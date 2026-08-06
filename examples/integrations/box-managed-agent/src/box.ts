@@ -9,18 +9,11 @@ export type BoxFile = {
 
 export type BoxAiAskResponse = {
   answer: string;
-  citations?: Array<{
-    id: string;
-    name?: string;
-    content?: string;
-    type: string;
-  }>;
 };
 
 export type BoxAiExtractResponse = {
   answer: ExtractionAnswer;
   confidence_score?: Record<string, unknown>;
-  reference?: Record<string, unknown>;
 };
 
 async function responseError(response: Response, action: string) {
@@ -39,37 +32,42 @@ function field(
 }
 
 export const DOCUMENT_FIELDS = [
-  field('title', 'Title', 'The document title.'),
-  field('documentType', 'Document type', 'The type or category of document.'),
   field(
-    'issuer',
-    'Issuer',
-    'The organization or person that issued the document.'
-  ),
-  field(
-    'effectiveDate',
-    'Effective date',
-    'The date the document takes effect.',
+    'statementDate',
+    'Statement date',
+    'The date the utility statement was issued.',
     'date'
   ),
   field(
-    'expirationDate',
-    'Expiration date',
-    'The date the document expires, if present.',
-    'date'
+    'billingPeriod',
+    'Billing period',
+    'The service start and end dates for this bill.'
   ),
-  field('parties', 'Parties', 'The people or organizations named as parties.'),
-  field('summary', 'Summary', 'A concise summary of the document.'),
+  field('dueDate', 'Due date', 'The date payment is due.', 'date'),
+  field('amountDue', 'Amount due', 'The total amount currently due.'),
+  field('previousBalance', 'Previous balance', 'The previous balance.'),
   field(
-    'keyObligations',
-    'Key obligations',
-    'The main obligations, requirements, or action items.'
+    'paymentsReceived',
+    'Payments received',
+    'Payments or credits received during this billing period.'
   ),
   field(
-    'monetaryAmounts',
-    'Monetary amounts',
-    'Important prices, fees, totals, or other monetary amounts.'
+    'electricityCharges',
+    'Electricity charges',
+    'The current electricity charges.'
   ),
+  field('gasCharges', 'Gas charges', 'The current natural gas charges.'),
+  field(
+    'electricityUsage',
+    'Electricity usage',
+    'Electricity usage for the billing period, including its unit.'
+  ),
+  field(
+    'gasUsage',
+    'Gas usage',
+    'Natural gas usage for the billing period, including its unit.'
+  ),
+  field('ratePlan', 'Rate plan', 'The named utility rate plan.'),
 ];
 
 export async function boxAccessToken(): Promise<string> {
@@ -103,7 +101,7 @@ export async function uploadToBox(
   const extensionIndex = file.filename.lastIndexOf('.');
   const extension =
     extensionIndex >= 0 ? file.filename.slice(extensionIndex) : '';
-  const name = `browserbase-agent-private-document-${Date.now()}${extension}`;
+  const name = `browserbase-agent-utility-bill-${Date.now()}${extension}`;
   const form = new FormData();
   form.append(
     'attributes',
@@ -121,18 +119,16 @@ export async function uploadToBox(
   });
 
   if (!response.ok) {
-    await responseError(response, `Uploading ${file.filename} to Box`);
+    await responseError(response, 'Uploading the utility bill to Box');
   }
 
   const body = (await response.json()) as { entries: BoxFile[] };
   const uploaded = body.entries[0];
   if (!uploaded) {
-    throw new Error(
-      `Box did not return an uploaded file for ${file.filename}.`
-    );
+    throw new Error('Box did not return an uploaded utility bill.');
   }
 
-  console.log(`Uploaded ${uploaded.name} to Box (file ${uploaded.id})`);
+  console.log('Private utility bill uploaded to Box.');
   return uploaded;
 }
 
@@ -187,9 +183,8 @@ export function askBox(token: string, file: BoxFile) {
   return boxAiRequest<BoxAiAskResponse>(token, '/ai/ask', {
     mode: 'single_item_qa',
     prompt:
-      'Summarize this document, including its purpose, important dates, named parties, obligations, risks, and recommended next actions.',
+      'Return exactly one sentence containing only the billing period, amount due, due date, electricity usage, and gas usage. Do not include the customer name, service address, account number, meter number, payment method, or any other identifying information.',
     items: [{ type: 'file', id: file.id }],
-    include_citations: true,
   });
 }
 
@@ -202,7 +197,6 @@ export function extractBoxMetadata(
     items: [{ type: 'file', id: file.id }],
     fields,
     include_confidence_score: true,
-    include_reference: true,
   });
 }
 

@@ -8,26 +8,18 @@ const browserbase = new Browserbase({
 
 async function main() {
   const agent = await browserbase.agents.create({
-    name: 'Authenticated PDF gatherer for Box',
-    systemPrompt: `Download the private PDF requested in each run.
+    name: 'PG&E utility bill gatherer for Box',
+    systemPrompt: `Download the latest PG&E bill requested in each run.
 
-The browser session already contains the user's authenticated state. Visit the supplied private page and use the named control to download its PDF. The file must be a real browser download attached to the Browserbase session so it can be retrieved with the Downloads API. Do not use web search, a Fetch API, a shell download, copied page text, or a public replacement for the requested private file.
+The browser session already contains the user's authenticated state. Open the PG&E account dashboard, find Billing & Payment History, select the newest available bill, and click "View Bill PDF". The bill must be a real browser download attached to the Browserbase session so it can be retrieved with the Downloads API. Do not use web search, a Fetch API, a shell download, copied page text, or a public replacement.
 
-If the site shows a login screen, stop and report that the saved context needs to be refreshed. Otherwise, wait for the download to begin and return the source URL and exact downloaded filename.`,
+If the site shows a login screen, stop and report that the saved context needs to be refreshed. Otherwise, wait for the download to begin and return only its exact downloaded filename. Never return or describe the customer name, service address, account number, or payment details.`,
     resultSchema: {
       type: 'object',
       properties: {
-        downloadedFile: {
-          type: 'object',
-          properties: {
-            sourceUrl: { type: 'string' },
-            filename: { type: 'string' },
-          },
-          required: ['sourceUrl', 'filename'],
-          additionalProperties: false,
-        },
+        filename: { type: 'string' },
       },
-      required: ['downloadedFile'],
+      required: ['filename'],
       additionalProperties: false,
     },
   });

@@ -1,28 +1,28 @@
-# Authenticated Browserbase Agent + Box AI
+# Authenticated PG&E Bill Intake with Browserbase + Box AI
 
-This example uses a Browserbase Context to save a real user's login, lets a
-Browserbase managed Agent download a private PDF with that authenticated browser
-state, then uploads the file to Box for AI Q&A and structured metadata
-extraction.
+This example uses a Browserbase Context to save a real PG&E login, lets a
+Browserbase managed Agent download the latest utility bill, and uploads the PDF
+to Box for AI Q&A and structured metadata extraction.
 
-A private PDF in Google Drive is an easy demo: viewers can see the Agent access
-a file that is unavailable in a fresh browser, without putting a username,
-password, or MFA secret in the Agent task.
+It is designed for a public presentation without displaying the customer name,
+service address, account number, payment details, raw PDF, or authenticated
+browser session.
 
 ## Flow
 
-1. `pnpm setup-context` creates a Browserbase Context and a persistent login
-   session.
-2. You open Live View, navigate to the configured login page, and authenticate
-   normally, including MFA.
-3. The setup script ends the session and saves its cookies and browser storage
+1. `pnpm setup-context` creates a Browserbase Context and a private login
+   session with session recording and logging disabled.
+2. You open Live View privately and authenticate to PG&E, including any MFA.
+3. The setup script closes the session and saves its cookies and browser storage
    to the Context.
-4. The managed Agent starts with that Context, opens the private document page,
-   and performs a real browser download.
-5. The application retrieves the file from the Agent session with the
-   Browserbase Downloads API.
-6. The PDF is uploaded to Box, where Box AI answers questions, extracts
-   structured metadata, and stores the result on the file.
+4. The managed Agent reuses that Context, opens Billing & Payment History, and
+   downloads the latest bill using **View Bill PDF**.
+5. The application retrieves the bill from the Agent session through the
+   Browserbase Downloads API and uploads it to a private Box folder.
+6. Box AI answers a narrowly scoped billing question and extracts an allowlist
+   of non-identifying utility metadata.
+7. The Q&A answer is stored privately in Box metadata. The terminal prints only
+   its completion and the allowlisted structured billing fields.
 
 ## Setup
 
@@ -32,22 +32,16 @@ pnpm install --ignore-workspace
 cp .env.example .env
 ```
 
-Fill in the Browserbase and Box credentials. For a Google Drive demo:
-
-1. Upload a PDF to your private Drive.
-2. Set `AUTH_START_URL` to `https://drive.google.com/drive/my-drive`.
-3. Set `PROTECTED_PAGE_URL` to the private PDF's Drive URL.
-4. Leave `PROTECTED_PDF_LINK_TEXT=Download`.
-
-Create and authenticate a reusable Context:
+Fill in the Browserbase and Box credentials, then create and authenticate a
+reusable Context:
 
 ```bash
 pnpm setup-context
 ```
 
-Open the Live View URL printed in the terminal, navigate to `AUTH_START_URL`,
-and log in. Confirm that the private PDF is accessible, return to the terminal,
-and press Enter. Copy the printed ID into `.env` as
+Open the Live View URL printed in the terminal, navigate to the displayed PG&E
+portal, and log in. Once the account dashboard is accessible, return to the
+terminal and press Enter. Copy the printed ID into `.env` as
 `BROWSERBASE_CONTEXT_ID`.
 
 Create the reusable managed Agent:
@@ -63,32 +57,51 @@ workflow:
 pnpm start
 ```
 
-The terminal prints the Agent status and Session Inspector URL, the downloaded
-filename, Box AI's answer and extracted fields, and a link to the uploaded Box
-file.
+The terminal shows Agent status, confirms that Box AI Q&A completed, and prints
+these allowlisted fields when present:
 
-If the site later redirects the Agent to its login page, its cookies have
-expired. Run `pnpm setup-context` again and replace `BROWSERBASE_CONTEXT_ID`.
-Do not run multiple sessions against the same Context at the same time.
+- Statement date and billing period
+- Due date and amount due
+- Previous balance and payments received
+- Electricity and gas charges
+- Electricity and gas usage
+- Rate plan
+
+The bill, Q&A answer, session ID, and Box file ID remain private.
+
+## Public demo safety
+
+- Run `pnpm setup-context` before the presentation and never show its Live View.
+- Do not open the PG&E page, Agent Session Inspector, Box file, or PDF while
+  screen sharing.
+- The login session disables Browserbase recording and logging. Managed Agent
+  sessions may still be inspectable by authorized Browserbase project members,
+  so do not share the Agent session from the Dashboard.
+- Box extraction references and Q&A citations are disabled because they can
+  contain source text from the bill.
+- Keep the Box destination folder private and restrict it to the demo operators.
+- If PG&E redirects the Agent to login, run `pnpm setup-context` again and
+  replace `BROWSERBASE_CONTEXT_ID`.
+- Do not run simultaneous sessions using the same Context.
 
 ## Environment variables
 
-| Variable                  | Description                                        |
-| ------------------------- | -------------------------------------------------- |
-| `BROWSERBASE_API_KEY`     | Browserbase API key                                |
-| `BROWSERBASE_CONTEXT_ID`  | Authenticated Context from `pnpm setup-context`    |
-| `BROWSERBASE_AGENT_ID`    | Managed Agent ID from `pnpm create-agent`          |
-| `AUTH_START_URL`          | Login page shown during the one-time setup         |
-| `PROTECTED_PAGE_URL`      | Private page containing the PDF                    |
-| `PROTECTED_PDF_LINK_TEXT` | Name of the download control                       |
-| `BOX_CLIENT_ID`           | Box Server App client ID                           |
-| `BOX_CLIENT_SECRET`       | Box Server App client secret                       |
-| `BOX_ENTERPRISE_ID`       | Enterprise that owns the app's service account     |
-| `BOX_FOLDER_ID`           | Destination folder shared with the service account |
+| Variable                 | Description                                        |
+| ------------------------ | -------------------------------------------------- |
+| `BROWSERBASE_API_KEY`    | Browserbase API key                                |
+| `BROWSERBASE_CONTEXT_ID` | Authenticated Context from `pnpm setup-context`    |
+| `BROWSERBASE_AGENT_ID`   | Managed Agent ID from `pnpm create-agent`          |
+| `PGE_PORTAL_URL`         | PG&E account portal                                |
+| `BOX_CLIENT_ID`          | Box Server App client ID                           |
+| `BOX_CLIENT_SECRET`      | Box Server App client secret                       |
+| `BOX_ENTERPRISE_ID`      | Enterprise that owns the app's service account     |
+| `BOX_FOLDER_ID`          | Private destination folder for the service account |
 
 ## Documentation
 
+- [PG&E: View past bills](https://www.pge.com/en/account/billing-and-assistance/view-past-bills.html)
 - [Browserbase Contexts](https://docs.browserbase.com/platform/browser/core-features/contexts)
+- [Browserbase session recording](https://docs.browserbase.com/platform/browser/observability/session-recording)
 - [Integrating managed Agents](https://docs.browserbase.com/platform/agents/integrate-api-sdk)
 - [Managing Agent files](https://docs.browserbase.com/platform/agents/managing-files)
 - [Browserbase Downloads API](https://docs.browserbase.com/platform/browser/files/downloads)
