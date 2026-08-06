@@ -29,7 +29,7 @@ browser session.
 ## Setup
 
 ```bash
-cd examples/integrations/box-managed-agent
+cd examples/integrations/box/agent
 pnpm install --ignore-workspace
 cp .env.example .env
 ```
