@@ -38,10 +38,9 @@
     "typecheck": "tsc",
     "check": "pnpm typecheck && pnpm build"
   },
-  "//": "TODO: Replace this commit pin with @browserbasehq/stagehand@4.0.0 after it is published.",
   "dependencies": {
     "@browserbasehq/sdk": "2.16.0",
-    "@browserbasehq/stagehand": "github:browserbase/stagehand#d7556e9a395c7cea32064aa9357bd2df1e316ee6&path:/packages/sdk-ts",
+    "@browserbasehq/stagehand": "4.0.0",
     "zod": "4.4.3"
   },
   "devDependencies": {
