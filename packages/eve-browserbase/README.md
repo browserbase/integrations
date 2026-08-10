@@ -9,8 +9,11 @@ navigation tools that Eve agents can compose into multi-step browser workflows.
 ## Install
 
 ```bash
-pnpm add @browserbasehq/eve
+pnpm add @browserbasehq/eve @browserbasehq/stagehand@4.0.0
 ```
+
+Declare Stagehand directly because Eve keeps it external in the consuming
+agent build so its packaged browser-extension asset remains available.
 
 Add your credentials to the consuming Eve app:
 
@@ -35,6 +38,22 @@ export default browserbase({
 });
 ```
 
+Keep Stagehand external when Eve builds the consuming agent. Stagehand V4
+loads its browser extension from its installed package at runtime, so bundling
+it would separate the JavaScript from that asset:
+
+```ts
+// agent/agent.ts
+import { defineAgent } from 'eve';
+
+export default defineAgent({
+  model: 'openai/gpt-5.4-mini',
+  build: {
+    externalDependencies: ['@browserbasehq/stagehand'],
+  },
+});
+```
+
 Start Eve and give the agent a browser task:
 
 ```bash
@@ -47,10 +66,9 @@ five stories.
 ```
 
 The extension keeps the Browserbase session ID in Eve's durable per-session
-state. Each browser tool reconnects to that browser, performs one operation,
-and disconnects without terminating it. `browserbase__create_session` creates
-or reconnects the browser explicitly, and `browserbase__stop_session`
-terminates it.
+state and reuses one live Stagehand V4 connection across browser tools in the
+current runtime. `browserbase__create_session` creates or reuses that browser,
+and `browserbase__stop_session` closes the connection and terminates it.
 
 ## Tools
 
@@ -87,12 +105,12 @@ Stagehand runs through Browserbase Model Gateway, so consumers do not need an
 OpenAI or other model-provider API key. The Browserbase API key covers both the
 browser session and Stagehand inference.
 
-The extension uses Browserbase `keepAlive` sessions so it can reconnect across
-Eve workflow steps and Vercel function invocations. Parallel browser calls made
-inside one Eve workflow step are queued in that step's managed runtime; durable
-state reconnects later steps and invocations. Close the session after the task
-to avoid leaving billable browser time running. Keep-alive availability depends
-on your Browserbase plan.
+Parallel browser calls made inside one Eve workflow step are queued in that
+step's managed runtime. Stagehand V4's browser-extension runtime supports one
+SDK initialization, so a replacement process releases a stale persisted
+session and creates a new browser rather than trying to initialize that session
+twice. Close the session after the task to avoid leaving billable browser time
+running.
 
 ## Build
 

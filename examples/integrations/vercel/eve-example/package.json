@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@browserbasehq/eve": "workspace:*",
+    "@browserbasehq/stagehand": "4.0.0",
     "ai": "^7.0.26",
     "eve": "0.31.3",
     "zod": "4.4.3"
