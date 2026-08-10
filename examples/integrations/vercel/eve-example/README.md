@@ -3,9 +3,9 @@
 This agent mounts the local `@browserbasehq/eve` extension as `browserbase`, so
 its tools are available as `browserbase__create_session`,
 `browserbase__navigate`, `browserbase__observe`, `browserbase__act`,
-`browserbase__extract`, `browserbase__agent`, and
-`browserbase__stop_session`. It also exposes `browserbase__search` and
-`browserbase__fetch`, which do not require a browser session.
+`browserbase__extract`, and `browserbase__stop_session`. It also exposes
+`browserbase__search` and `browserbase__fetch`, which do not require a browser
+session.
 
 ## Run it
 

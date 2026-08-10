@@ -2,9 +2,9 @@
 
 An [Eve extension](https://eve.dev/docs/extensions) that gives an agent
 Browserbase Search and Fetch plus a persistent Browserbase browser powered by
-[Stagehand](https://docs.stagehand.dev/). It exposes Stagehand's focused
-primitives (`act`, `observe`, and `extract`) plus navigation and autonomous agent
-tools.
+[Stagehand V4](https://docs.stagehand.dev/v4), the SDK for browser agents. It
+exposes Stagehand's focused primitives (`act`, `observe`, and `extract`) plus
+navigation tools that Eve agents can compose into multi-step browser workflows.
 
 ## Install
 
@@ -64,7 +64,6 @@ terminates it.
 | `observe`        | Find relevant elements and candidate actions.           |
 | `act`            | Perform one natural-language page interaction.          |
 | `extract`        | Return data validated against a supplied JSON Schema.   |
-| `agent`          | Run a multi-step autonomous Stagehand task.             |
 
 Use Search → Fetch → browser as an escalation path: discover sources cheaply,
 retrieve straightforward content without a session, and create a browser only
@@ -72,8 +71,8 @@ when the page requires JavaScript or interaction. Fetch supports Browserbase's
 `raw`, `markdown`, and schema-driven `json` formats.
 
 For predictable and efficient runs, use `create_session` → `navigate` →
-`observe` → `act` or `extract`, then `stop_session`. Reserve `agent` for
-workflows that need Stagehand to plan several steps on its own.
+`observe` → `act` or `extract`, then `stop_session`. Eve remains the agent and
+can compose these focused Stagehand tools for longer workflows.
 
 ## Configuration
 

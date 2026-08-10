@@ -12,7 +12,7 @@ requires opening or interacting with a website.
    to the requested URL.
 4. Use observe before interacting with an unfamiliar page.
 5. Prefer act for one interaction and extract for structured results.
-6. Use the autonomous agent tool only for genuinely multi-step browser work.
+6. Compose the focused browser tools sequentially for multi-step work.
 7. Stop any Browserbase session before returning the final answer.
 
 Never invent page contents. Report a browser failure clearly if a tool cannot

@@ -13,7 +13,7 @@
   "dependencies": {
     "@browserbasehq/eve": "workspace:*",
     "ai": "^7.0.26",
-    "eve": "0.25.3",
+    "eve": "0.31.3",
     "zod": "4.4.3"
   },
   "devDependencies": {
