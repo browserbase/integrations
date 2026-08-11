@@ -1,15 +1,11 @@
-import { Stagehand, type Page } from "@browserbasehq/stagehand";
-import StagehandConfig from "./stagehand.config.js";
+import { browserbase, Stagehand, type Page } from "@browserbasehq/stagehand";
 import chalk from "chalk";
-import boxen from "boxen";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { MongoServerError } from "mongodb";
 import { MongoClient, Db, Document } from 'mongodb';
 
 /**
  * 🤘 Welcome to Stagehand! Thanks so much for trying us out!
- * 🛠️ CONFIGURATION: stagehand.config.ts will help you configure Stagehand
- *
  * 📝 Check out our docs for more fun use cases, like building agents
  * https://docs.stagehand.dev/
  *
@@ -43,7 +39,7 @@ const ProductSchema = z.object({
   imageUrl: z.string().optional(),
   reviewCount: z.number().optional(),
   description: z.string().optional(),
-  specs: z.record(z.any()).optional()
+  specs: z.record(z.string(), z.any()).optional()
 }) satisfies z.ZodType<Document>;
 
 // Product list schema for results from category pages
@@ -314,7 +310,7 @@ async function scrapeProductList(
     totalProducts: z.number().optional(),
   });
 
-  const data = await stagehand.extract(
+  const { data } = await stagehand.extract(
     "Extract all product information from this Amazon category page, including product names, prices, URLs, ratings",
     listSchema,
   );
@@ -363,7 +359,7 @@ async function scrapeProductDetails(
   });
   await page.waitForTimeout(1000);
 
-  const product = await stagehand.extract(
+  const { data: product } = await stagehand.extract(
     "Extract detailed product information from this Amazon product page, including name, price, description, specifications, brand, category, image URL, rating, review count, and availability",
     ProductSchema.omit({ dateScraped: true }),
   );
@@ -513,27 +509,26 @@ async function main({
 
 // ========== Entry Point ==========
 async function run() {
-  const stagehand = new Stagehand({
-    ...StagehandConfig,
+  const apiKey = process.env.BROWSERBASE_API_KEY;
+  if (!apiKey) throw new Error("BROWSERBASE_API_KEY is required");
+
+  const browser = await browserbase.launch({
+    apiKey,
+    browserSettings: {
+      blockAds: true,
+      viewport: { width: 1024, height: 768 },
+    },
   });
-  await stagehand.init();
+  const stagehand = await Stagehand.create({
+    browser,
+    logging: { level: "info", format: "pretty" },
+  });
 
-  if (StagehandConfig.env === "BROWSERBASE" && stagehand.browserbaseSessionID) {
-    console.log(
-      boxen(
-        `View this session live in your browser: \n${chalk.blue(
-          `https://browserbase.com/sessions/${stagehand.browserbaseSessionID}`,
-        )}`,
-        {
-          title: "Browserbase",
-          padding: 1,
-          margin: 3,
-        },
-      ),
-    );
-  }
+  console.log(
+    `View this session live: https://browserbase.com/sessions/${browser.sessionId}`,
+  );
 
-  const page = stagehand.context.pages()[0];
+  const [page] = await browser.context.pages();
 
   await main({
     page,
@@ -541,6 +536,7 @@ async function run() {
   });
   
   await stagehand.close();
+  await browser.close();
 }
 
 run();
