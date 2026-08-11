@@ -22,6 +22,5 @@ The second example shows how to use Puppeteer with Vercel on Fluid Compute. It d
 
 The [`@browserbasehq/eve`](../../../packages/eve-browserbase/) package gives Eve
 agents a persistent Browserbase browser through Stagehand's `act`, `observe`,
-`extract`, and autonomous agent primitives. The
-[example agent](./eve-example/) mounts the extension in a runnable pnpm
-workspace.
+and `extract` primitives. The [example agent](./eve-example/) composes those
+tools in a runnable pnpm workspace.

@@ -40,12 +40,12 @@
   },
   "dependencies": {
     "@browserbasehq/sdk": "2.16.0",
-    "@browserbasehq/stagehand": "3.7.0",
+    "@browserbasehq/stagehand": "4.0.0",
     "zod": "4.4.3"
   },
   "devDependencies": {
     "@types/node": "24.10.1",
-    "eve": "0.25.3",
+    "eve": "0.31.3",
     "typescript": "7.0.2"
   },
   "peerDependencies": {

@@ -3,9 +3,9 @@
 This agent mounts the local `@browserbasehq/eve` extension as `browserbase`, so
 its tools are available as `browserbase__create_session`,
 `browserbase__navigate`, `browserbase__observe`, `browserbase__act`,
-`browserbase__extract`, `browserbase__agent`, and
-`browserbase__stop_session`. It also exposes `browserbase__search` and
-`browserbase__fetch`, which do not require a browser session.
+`browserbase__extract`, and `browserbase__stop_session`. It also exposes
+`browserbase__search` and `browserbase__fetch`, which do not require a browser
+session.
 
 ## Run it
 
@@ -46,4 +46,9 @@ The environment requires:
 
 The dependency on `@browserbasehq/eve` uses pnpm's `workspace:*` protocol, so
 the example exercises the local package without publishing it first. The
-workspace-level install provides dependencies for both packages.
+workspace-level install provides dependencies for both packages. Stagehand is
+also a direct dependency because Eve keeps it external at runtime.
+
+The agent keeps `@browserbasehq/stagehand` in `build.externalDependencies` so
+Stagehand V4 can load its packaged browser-extension asset at runtime in both
+development and hosted builds.

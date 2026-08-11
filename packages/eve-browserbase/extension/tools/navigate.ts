@@ -11,9 +11,11 @@ export default defineTool({
   }),
   async execute({ url }, ctx) {
     return withStagehand(ctx.session.id, async stagehand => {
-      const page = await stagehand.context.awaitActivePage();
+      const page =
+        (await stagehand.browser.context.activePage()) ??
+        (await stagehand.browser.context.newPage());
       await page.goto(url);
-      return { url: page.url(), title: await page.title() };
+      return { url: await page.url(), title: await page.title() };
     });
   },
 });
