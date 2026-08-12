@@ -2,18 +2,21 @@ import { NextResponse } from "next/server";
 import { browserbase, Stagehand, type Action } from "@browserbasehq/stagehand";
 
 export async function GET() {
+  let browser: Awaited<ReturnType<typeof browserbase.launch>> | undefined;
+  let stagehand: Stagehand | undefined;
+
   try {
     const url = "https://file.1040.com/estimate/";
     const apiKey = process.env.BROWSERBASE_API_KEY;
     if (!apiKey) throw new Error("BROWSERBASE_API_KEY is required");
 
-    const browser = await browserbase.launch({
+    browser = await browserbase.launch({
       apiKey,
       browserSettings: {
         viewport: { width: 1920, height: 1080 },
       },
     });
-    const stagehand = await Stagehand.create({ browser });
+    stagehand = await Stagehand.create({ browser });
     const [page] = await browser.context.pages();
 
     await page.goto(url, {
@@ -79,9 +82,6 @@ export async function GET() {
 
     console.log(updatedFields);
 
-    await stagehand.close();
-    await browser.close();
-
     return NextResponse.json({
       url: url,
       fields: updatedFields.map((field: Action) => ({
@@ -100,5 +100,12 @@ export async function GET() {
       },
       { status: 500 }
     );
+  } finally {
+    await stagehand?.close().catch((cleanupError) => {
+      console.error("Stagehand cleanup error:", cleanupError);
+    });
+    await browser?.close().catch((cleanupError) => {
+      console.error("Browser cleanup error:", cleanupError);
+    });
   }
 }
