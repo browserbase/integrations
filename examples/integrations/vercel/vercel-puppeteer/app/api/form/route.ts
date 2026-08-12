@@ -1,39 +1,29 @@
 import { NextResponse } from "next/server";
-import Browserbase from "@browserbasehq/sdk";
-import { Stagehand, type Action } from "@browserbasehq/stagehand";
-import type { Page as PlaywrightPage } from "playwright-core";
+import { browserbase, Stagehand, type Action } from "@browserbasehq/stagehand";
 
 export async function GET() {
+  let browser: Awaited<ReturnType<typeof browserbase.launch>> | undefined;
+  let stagehand: Stagehand | undefined;
+
   try {
     const url = "https://file.1040.com/estimate/";
+    const apiKey = process.env.BROWSERBASE_API_KEY;
+    if (!apiKey) throw new Error("BROWSERBASE_API_KEY is required");
 
-    const bb = new Browserbase({ apiKey: process.env.BROWSERBASE_API_KEY! });
-
-    const session = await bb.sessions.create({
-      projectId: process.env.BROWSERBASE_PROJECT_ID!,
+    browser = await browserbase.launch({
+      apiKey,
       browserSettings: {
         viewport: { width: 1920, height: 1080 },
       },
     });
-
-    const stagehand = new Stagehand({
-      env: "BROWSERBASE",
-      apiKey: process.env.BROWSERBASE_API_KEY!,
-      projectId: process.env.BROWSERBASE_PROJECT_ID!,
-      model: "anthropic/claude-sonnet-4-6",
-      browserbaseSessionID: session.id,
-    });
-    await stagehand.init();
-
-    const page = stagehand.context.pages()[0] as unknown as PlaywrightPage;
-
-    await page.route("**/manifest.json", (route) => route.abort());
+    stagehand = await Stagehand.create({ browser });
+    const [page] = await browser.context.pages();
 
     await page.goto(url, {
       waitUntil: "domcontentloaded",
     });
 
-    const observed = await stagehand.observe(
+    const { data: observed } = await stagehand.observe(
       "fill all the form fields in the page with mock data. In the description include the field name"
     );
 
@@ -92,8 +82,6 @@ export async function GET() {
 
     console.log(updatedFields);
 
-    await stagehand.close();
-
     return NextResponse.json({
       url: url,
       fields: updatedFields.map((field: Action) => ({
@@ -112,5 +100,12 @@ export async function GET() {
       },
       { status: 500 }
     );
+  } finally {
+    await stagehand?.close().catch((cleanupError) => {
+      console.error("Stagehand cleanup error:", cleanupError);
+    });
+    await browser?.close().catch((cleanupError) => {
+      console.error("Browser cleanup error:", cleanupError);
+    });
   }
 }

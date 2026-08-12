@@ -13,9 +13,9 @@ A web scraping project that uses Stagehand to extract structured data from e-com
 
 ## Prerequisites
 
-- Node.js 16 or higher
+- Node.js 22.18 or higher
 - MongoDB installed locally or MongoDB Atlas account
-- Stagehand API key
+- Browserbase API key
 
 ## Installation
 
@@ -33,6 +33,7 @@ A web scraping project that uses Stagehand to extract structured data from e-com
 3. Set up environment variables:
    ```
    # Create a .env file with the following variables
+   BROWSERBASE_API_KEY=your_browserbase_api_key
    MONGO_URI=mongodb://localhost:27017
    DB_NAME=scraper_db
    ```
@@ -69,7 +70,6 @@ The project has a simple structure with a single file containing all functionali
   - Scraping functions
   - Data analysis
   - Main execution logic
-- `stagehand.config.js`: Stagehand configuration
 - `.env.example`: Example environment variables
 
 ## Data Models

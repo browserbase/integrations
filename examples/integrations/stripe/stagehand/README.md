@@ -26,16 +26,12 @@ Required API keys/environment variables are in the `.env.example` file. Copy it 
 cp .env.example .env && nano .env # Add your API keys to .env
 ```
 
-### Custom .cursorrules
+### Requirements
 
-We have custom .cursorrules for this project. It'll help quite a bit with writing Stagehand easily.
+- Node.js 22.18 or newer
+- A Browserbase API key
+- A Stripe API key
 
 ### Run on Browserbase
 
-To run on Browserbase, add your API keys to .env and change `env: "LOCAL"` to `env: "BROWSERBASE"` in [stagehand.config.ts](stagehand.config.ts).
-
-### Use Anthropic Claude 3.5 Sonnet
-
-1. Add your API key to .env
-2. Change `modelName: "gpt-4o"` to `modelName: "claude-3-5-sonnet-latest"` in [stagehand.config.ts](stagehand.config.ts)
-3. Change `modelClientOptions: { apiKey: process.env.OPENAI_API_KEY }` to `modelClientOptions: { apiKey: process.env.ANTHROPIC_API_KEY }` in [stagehand.config.ts](stagehand.config.ts)
+Copy `.env.example` to `.env`, add your Browserbase and Stripe credentials, then run `npm start`. Stagehand launches a Browserbase browser and uses the Browserbase Model Gateway by default.

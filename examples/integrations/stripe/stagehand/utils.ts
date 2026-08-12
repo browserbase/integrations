@@ -7,7 +7,7 @@ import type {
 import boxen from "boxen";
 import chalk from "chalk";
 import fs from "fs/promises";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export function announce(message: string, title?: string) {
   console.log(
@@ -37,7 +37,7 @@ export function validateZodSchema(schema: z.ZodTypeAny, data: unknown) {
 }
 
 export async function drawObserveOverlay(page: Page, results: ObserveResult) {
-  const xpathList = results.map((result: Action) => result.selector);
+  const xpathList = results.data.map((result: Action) => result.selector);
 
   const validXpaths = xpathList.filter((xpath) => xpath !== "xpath=");
 
@@ -131,7 +131,7 @@ export async function actWithCache(
   const results = await stagehand.observe(instruction);
   console.log(chalk.blue("Got results:"), results);
 
-  const actionToCache = results[0];
+  const actionToCache = results.data[0];
   console.log(chalk.blue("Taking cacheable action:"), actionToCache);
   await simpleCache(instruction, actionToCache);
   await drawObserveOverlay(page, results);
