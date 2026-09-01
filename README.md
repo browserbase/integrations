@@ -24,6 +24,7 @@ integrations/
 │   └── integrations/
 │       ├── agentkit/             # AgentKit implementations
 │       ├── agno/                 # Agno agent framework integration
+│       ├── arize/                # Arize AX observability & tracing
 │       ├── braintrust/           # Evaluation and testing tools
 │       ├── box/                  # Box AI document Q&A, OCR, and metadata extraction
 │       ├── browser-use/          # Browser Use automation
