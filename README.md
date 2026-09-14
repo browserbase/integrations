@@ -39,6 +39,7 @@ integrations/
 │       ├── trigger/              # Trigger.dev background jobs & automation
 │       └── vercel/               # Vercel integrations
 ├── packages/                     # Published npm packages
+│   └── herdr/                    # Persistent workspace browsers for Herdr
 └── README.md
 ```
 
