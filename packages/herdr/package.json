@@ -1,0 +1,49 @@
+{
+  "name": "@browserbasehq/herdr",
+  "version": "0.1.0",
+  "description": "Give every Herdr workspace a persistent Browserbase browser.",
+  "type": "module",
+  "bin": {
+    "herdr-browse": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check-types": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "herdr-plugin.toml",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/browserbase/integrations.git",
+    "directory": "packages/herdr"
+  },
+  "keywords": [
+    "herdr",
+    "browserbase",
+    "browse",
+    "browser-automation",
+    "persistent-context"
+  ],
+  "author": "Browserbase",
+  "license": "MIT",
+  "dependencies": {
+    "browse": "0.9.6"
+  },
+  "devDependencies": {
+    "@types/node": "25.0.9",
+    "typescript": "7.0.2",
+    "vitest": "4.0.6"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,0 +1,30 @@
+id = "browserbase.browser"
+name = "Browserbase Browser"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "A workspace-scoped browser that keeps its cloud login state."
+platforms = ["linux", "macos"]
+
+[[build]]
+command = ["npm", "install", "--ignore-scripts", "--workspaces=false", "--package-lock=false"]
+
+[[build]]
+command = ["npm", "run", "build"]
+
+[[actions]]
+id = "start"
+title = "Start workspace browser"
+contexts = ["workspace"]
+command = ["node", "dist/cli.js", "open", "about:blank", "--cloud"]
+
+[[actions]]
+id = "status"
+title = "Workspace browser status"
+contexts = ["workspace"]
+command = ["node", "dist/cli.js", "status"]
+
+[[actions]]
+id = "stop"
+title = "Stop workspace browser"
+contexts = ["workspace"]
+command = ["node", "dist/cli.js", "stop"]
