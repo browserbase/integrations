@@ -113,14 +113,7 @@ If approval takes more than five minutes, rerun `npm run checkout` to resume the
 
 The scripts prevent concurrent payment runs with `artifacts/run.lock`. A killed process can leave that lock behind; remove it only after confirming the old process has stopped. If a run reaches `submitting` but misses the confirmation, inspect the merchant's existing transaction before retrying. Don't delete the state file to blindly repeat a payment.
 
-## Map the earlier example
-
-| Earlier Stripe Issuing example    | Link example                                                                                   |
-| --------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Create a cardholder               | Connect the user's Link wallet through your application's authorization flow                   |
-| Issue a card                      | Create a spend request for the specific purchase                                               |
-| Retrieve the card                 | Wait for approval, then retrieve the credential                                                |
-| Navigate and fill a donation form | Use Stagehand to read and operate checkout, fill credentials directly, and verify confirmation |
+## Adapt the example
 
 Keep your agent's planning, search, and item selection in your application. Replace the checkout adapter when you support another merchant. Validate the final amount, billing terms, shipping, tax, and receipt for that site. This fixed test adapter does not cover arbitrary merchants, authentication challenges, or live purchases.
 
