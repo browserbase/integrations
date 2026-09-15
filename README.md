@@ -34,7 +34,7 @@ integrations/
 │       ├── logs/                 # Logging utilities
 │       ├── mastra/               # Mastra AI agent integration
 │       ├── mongodb/              # MongoDB data extraction & storage
-│       ├── stripe/               # Stripe Issuing + automation
+│       ├── stripe/               # Agentic payments with Link
 │       ├── temporal/             # Temporal workflow orchestration
 │       ├── trigger/              # Trigger.dev background jobs & automation
 │       └── vercel/               # Vercel integrations
@@ -50,6 +50,7 @@ integrations/
 4. **Review the code samples** to understand implementation patterns
 
 Each integration includes:
+
 - Complete setup instructions
 - Environment configuration guides
 - Working code examples
@@ -59,6 +60,7 @@ Each integration includes:
 ## Prerequisites
 
 Most integrations require:
+
 - A [Browserbase account](https://browserbase.com) and API key
 - Node.js 18+ or Python 3.8+ (depending on implementation)
 - Framework-specific dependencies (detailed in each integration)
@@ -72,11 +74,14 @@ For comprehensive documentation, tutorials, and API references, visit:
 ## Community & Support
 
 ### Get Help
+
 - **Email Support**: [support@browserbase.com](mailto:support@browserbase.com)
 - **Documentation**: [docs.browserbase.com](https://docs.browserbase.com)
 
 ### Contributing
+
 We welcome contributions! Each integration has its own contribution guidelines. Feel free to:
+
 - Report bugs and request features
 - Submit pull requests with improvements
 - Share your own integration examples

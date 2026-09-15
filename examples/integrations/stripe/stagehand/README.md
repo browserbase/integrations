@@ -1,4 +1,8 @@
-# 🤘 Welcome to Stagehand!
+# Stripe Issuing example — Stagehand (legacy)
+
+> For new agentic payment integrations, use the [Browse CLI + Link CLI quickstart](../link/README.md) or the [Link SDK](https://github.com/stripe/link-cli/tree/main/packages/sdk).
+>
+> This earlier example creates cardholders and cards through Stripe Issuing. It requires Issuing access and a Stripe API key; it does not use Link's wallet or payment approval flow.
 
 Hey! This is a project built with [Stagehand](https://github.com/browserbase/stagehand).
 
