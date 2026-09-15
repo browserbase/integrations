@@ -32,7 +32,7 @@ If it isn't, start the login flow:
 link-cli auth login --client-name "Browserbase shopping agent" --interval 5 --timeout 300
 ```
 
-Open the verification URL returned by Link, sign in, and approve the connection. Wait for authentication to finish before requesting a payment.
+Open the verification URL that Link returns, sign in, and approve the connection. Wait for authentication to finish before requesting a payment.
 
 ```bash
 link-cli payment-methods list
@@ -68,7 +68,7 @@ The agent should read the delivery calendar carefully: it can show more than one
 
 ## 4. Approve the complete order in Link
 
-The flower price is not the final total. The agent must finish the recipient step and read delivery charges, service fees, and tax before it creates a spend request. An order with charges still marked `TBD` is not ready for approval.
+The flower price is not the final total. The agent must finish the recipient step and read delivery charges, service fees, and tax before it creates a spend request. If the merchant still marks any charge `TBD`, wait for the complete quote before requesting approval.
 
 The payment skill uses `link-cli spend-request create` with the actual merchant, final amount in cents, currency, and purchase context. Open the approval URL and review that order in Link. The agent must wait for `approved` before retrieving a credential. If the order changes, it needs approval for the updated purchase.
 

@@ -12,12 +12,13 @@ You need Node.js 22.18 or newer and a Browserbase API key available as `BROWSERB
 
 ```bash
 git clone https://github.com/browserbase/integrations.git
+git -C integrations checkout 6ea9236c9cfefa46924671403e9ccd38f7c44c34
 cd integrations/examples/integrations/stripe/link-sdk
 npm ci
 cp flowers.example.json flowers.json
 ```
 
-The example configuration selects the bouquet, size, destination, delivery timing, and budget:
+The checkout command selects the example revision that this guide uses. The configuration selects the bouquet, size, destination, delivery timing, and budget:
 
 ```json
 {
@@ -79,7 +80,7 @@ const { data: item } = await stagehand.extract(
 );
 ```
 
-[flowers-browser.mjs](https://github.com/browserbase/integrations/blob/main/examples/integrations/stripe/link-sdk/flowers-browser.mjs) contains the browser actions and cart checks. [flowers.mjs](https://github.com/browserbase/integrations/blob/main/examples/integrations/stripe/link-sdk/flowers.mjs) handles the session, run lock, result file, and cleanup. The browser flow uses controls discovered from the page, without hardcoded merchant selectors.
+[flowers-browser.mjs](https://github.com/browserbase/integrations/blob/6ea9236c9cfefa46924671403e9ccd38f7c44c34/examples/integrations/stripe/link-sdk/flowers-browser.mjs) contains the browser actions and cart checks. [flowers.mjs](https://github.com/browserbase/integrations/blob/6ea9236c9cfefa46924671403e9ccd38f7c44c34/examples/integrations/stripe/link-sdk/flowers.mjs) handles the session, run lock, result file, and cleanup. Stagehand discovers the controls on each page as the script runs.
 
 If you leave `recipient: null`, the script returns `DELIVERY_DETAILS_REQUIRED`, writes `artifacts/flowers-result.json`, and closes the browser. The result distinguishes the item price from a final total and reports whether fees remain pending.
 
@@ -108,7 +109,7 @@ Do not use the bouquet price as the Link approval amount. The merchant can show 
 
 ## 4. Request approval for the flower order
 
-Connect the user's Link wallet through your application's authorization flow. Supply its user-authorized access token as `LINK_ACCESS_TOKEN` through your secret manager. **Link SDK does not perform login or manage token storage and refresh.** See the [SDK authentication contract](https://github.com/stripe/link-cli/tree/main/packages/sdk#credentials). For a coding agent that needs a ready-made login flow, use [Browse CLI + Link CLI](https://github.com/browserbase/integrations/tree/main/examples/integrations/stripe/link).
+Connect the user's Link wallet through your application's authorization flow. Supply its user-authorized access token as `LINK_ACCESS_TOKEN` through your secret manager. **Link SDK does not perform login or manage token storage and refresh.** See the [SDK authentication contract](https://github.com/stripe/link-cli/tree/main/packages/sdk#credentials). For a coding agent that needs a ready-made login flow, use [Browse CLI + Link CLI](https://github.com/browserbase/integrations/tree/6ea9236c9cfefa46924671403e9ccd38f7c44c34/examples/integrations/stripe/link).
 
 Once the checkout adapter produces a verified `quote` with `amount`, `currency`, `deliveryDate`, and `feesPending`, the application can request Link approval. Persist an idempotency key for that order before creation and the returned request ID before requesting approval, so a retry resumes the same purchase.
 
@@ -134,7 +135,7 @@ const request = await link.spendRequests.create({
 });
 ```
 
-Here, `link` is the client from [link.mjs](https://github.com/browserbase/integrations/blob/main/examples/integrations/stripe/link-sdk/link.mjs), and `method` is an eligible method from `link.paymentMethods.list()`. After saving `request.id`, call `link.spendRequests.requestApproval(request.id)`, present its `approval_url`, and poll that same request for `approved`. A wallet connection alone does not authorize the order.
+Here, `link` is the client from [link.mjs](https://github.com/browserbase/integrations/blob/6ea9236c9cfefa46924671403e9ccd38f7c44c34/examples/integrations/stripe/link-sdk/link.mjs), and `method` is an eligible method from `link.paymentMethods.list()`. After saving `request.id`, call `link.spendRequests.requestApproval(request.id)`, present its `approval_url`, and poll that same request for `approved`. A wallet connection alone does not authorize the order.
 
 1-800-Flowers is a live merchant. The spend request describes an intended flower delivery and uses live credentials; Link test credentials do not make its checkout a sandbox.
 
