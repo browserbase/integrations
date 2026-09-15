@@ -107,3 +107,36 @@ export async function openCardForm(page, stagehand) {
     "card fields",
   );
 }
+
+export async function discoverCardFields(page, stagehand) {
+  async function findControl(description) {
+    const { data: actions } = await stagehand.observe(
+      `Find only the ${description} in the checkout form. Return one action targeting that control.`,
+      { page, cache: false },
+    );
+    assert(actions.length === 1, `Expected one ${description}`);
+    const locator = page.locator(actions[0].selector);
+    assert((await locator.count()) === 1, `Ambiguous ${description}`);
+    return locator;
+  }
+  const saveInfo = await findControl(
+    '"Save my information for faster checkout" checkbox',
+  );
+  if (await saveInfo.isChecked()) await saveInfo.click();
+  const fields = {};
+  for (const [name, description] of Object.entries({
+    email: '"Email" input',
+    number: '"Card number" input',
+    expiry: '"Expiration" input',
+    cvc: '"Credit or debit card CVC/CVV" input',
+    name: '"Cardholder name" input',
+    country: '"Country or region" select',
+    zip: '"ZIP" input',
+    submit: `"${checkout.submitLabel}" payment submission button`,
+  })) {
+    fields[name] = await findControl(description);
+  }
+  // Discover the empty form before retrieving credentials. Later fills use these
+  // locators directly so payment data never enters an act() or extract() prompt.
+  return fields;
+}

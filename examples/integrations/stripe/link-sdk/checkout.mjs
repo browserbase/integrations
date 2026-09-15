@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
-import { checkout, openCardForm, waitFor, withCheckout } from "./browser.mjs";
+import {
+  checkout,
+  openCardForm,
+  discoverCardFields,
+  waitFor,
+  withCheckout,
+} from "./browser.mjs";
 import { connectLink, waitForApproval } from "./link.mjs";
 import { assertCardNumberForCheckout } from "./payment-card.mjs";
 import { acquireRunLock, readState, reportError, saveState } from "./state.mjs";
@@ -17,39 +23,12 @@ try {
   await waitForApproval(link, state.spendRequestId);
   phase = "browser";
   await withCheckout("checkout", async (page, stagehand) => {
-    let snapshot = await openCardForm(page, stagehand);
+    const snapshot = await openCardForm(page, stagehand);
     assert(
       !snapshot.formattedTree.includes(checkout.successText),
       "Confirmation text must not already appear before checkout",
     );
-    function field(label) {
-      const lines = snapshot.formattedTree.split("\n");
-      const matches = lines.filter(
-        (line) =>
-          line
-            .trim()
-            .replace(/^\[[\d-]+\] /, "")
-            .replace(/ \[checked\]$/, "") === label,
-      );
-      assert(matches.length === 1, `Expected one ${label}`);
-      const ref = matches[0].match(/\[([\d-]+)\]/)?.[1];
-      assert(ref && snapshot.xpathMap[ref], `Missing selector for ${label}`);
-      return page.locator(`xpath=${snapshot.xpathMap[ref]}`);
-    }
-    // Resolve selectors while the form is empty, before loading payment data.
-    const saveInfo = field("checkbox: Save my information for faster checkout");
-    if (await saveInfo.isChecked()) await saveInfo.click();
-    snapshot = await page.snapshot();
-    const fields = {
-      email: field("textbox: Email"),
-      number: field("textbox: Card number"),
-      expiry: field("textbox: Expiration"),
-      cvc: field("textbox: Credit or debit card CVC/CVV"),
-      name: field("textbox: Cardholder name"),
-      country: field("select: Country or region"),
-      zip: field("textbox: ZIP"),
-      submit: field(`button: ${checkout.submitLabel}`),
-    };
+    const fields = await discoverCardFields(page, stagehand);
     assert(
       snapshot.formattedTree.includes(checkout.product),
       "Checkout product changed",

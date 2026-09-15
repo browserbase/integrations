@@ -2,7 +2,13 @@
 
 Add a user-approved checkout step to your agent. Stagehand reads and operates the website in a Browserbase browser. Link SDK requests access to the user's wallet for the purchase. Your application connects those steps and resumes after approval.
 
-This example uses a **Stripe test Payment Link**, USD, and a US card form. It uses Stagehand's `extract()` and `act()` before loading the payment credential, then fills the card fields directly. It doesn't require Playwright or a separate Browserbase SDK package.
+## 1-800-Flowers example
+
+The [1-800-Flowers walkthrough](./flowers.md) prepares a real flower-delivery cart with Stagehand. Run `npm run flowers` to select a bouquet and delivery date, skip optional gifts, and choose a complimentary gift message. It stops for recipient details before requesting any payment. The final quote and Link payment adapter are still in progress.
+
+## Stripe test checkout
+
+This example uses a **Stripe test Payment Link**, USD, and a US card form. It uses Stagehand's `extract()`, `act()`, and `observe()` before loading the payment credential, then fills the card fields directly. It doesn't require Playwright or a separate Browserbase SDK package.
 
 ## Test credential compatibility
 
@@ -38,7 +44,7 @@ Keep credentials in your secret manager. `checkout.json` contains checkout confi
 npm run inspect
 ```
 
-The script opens a Browserbase browser, checks the test-mode indicator, reads the order with `stagehand.extract()`, and compares it to your configuration. Then `stagehand.act()` selects Card. This step doesn't access Link or submit payment.
+The script opens a Browserbase browser, checks the test-mode indicator, reads the order with `stagehand.extract()`, and compares it to your configuration. Then `stagehand.act()` selects Card and `stagehand.observe()` discovers the empty form controls. This step doesn't access Link or submit payment.
 
 ```javascript Node.js
 const { data: order } = await stagehand.extract(
@@ -97,7 +103,7 @@ This example requests a test virtual card. Link Pay Token is another execution o
 npm run checkout
 ```
 
-The script waits for `approved`, opens the checkout again, and checks that the order still matches. It resolves the empty form's selectors before retrieving the card. Card details go from Link SDK to deterministic Stagehand locator calls:
+The script waits for `approved`, opens the checkout again, and checks that the order still matches. It uses `stagehand.observe()` to discover the empty form's controls before retrieving the card. Card details then go directly from Link SDK to those fields, without another model call:
 
 ```javascript Node.js
 const approved = await link.spendRequests.retrieve(state.spendRequestId, {

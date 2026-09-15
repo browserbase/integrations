@@ -6,6 +6,7 @@ For a standard card checkout, the agent uses the merchant's existing website. Th
 
 ## Start with Link
 
+- [1-800-Flowers walkthrough](./link-sdk/flowers.md): prepare a flower-delivery cart with Stagehand. The final quote and Link payment adapter are in progress.
 - [Stagehand + Link SDK example](./link-sdk/README.md): read a checkout, request user approval, and submit a test payment.
 - [Browse CLI + Link CLI quickstart](./link/README.md): install the tools, prepare an order, and request payment approval.
 - [Browserbase integration docs](https://docs.browserbase.com/integrations/stripe/introduction): how the browser and wallet fit together.
