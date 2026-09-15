@@ -1,0 +1,10 @@
+{
+  "url": "https://buy.stripe.com/test_REPLACE_WITH_YOUR_PAYMENT_LINK",
+  "merchant": "Your test store",
+  "product": "Notebook",
+  "amount": 900,
+  "currency": "usd",
+  "billingInterval": "one_time",
+  "submitLabel": "Pay",
+  "successText": "Thanks for your order"
+}

@@ -1,6 +1,6 @@
 # Stripe Issuing example — Python (legacy)
 
-> For new agentic payment integrations, use the [Browse CLI + Link CLI quickstart](../link/README.md) or the [Link SDK](https://github.com/stripe/link-cli/tree/main/packages/sdk).
+> For new agentic payment integrations, use the [Stagehand + Link SDK example](../link-sdk/README.md) or [Browse CLI + Link CLI quickstart](../link/README.md).
 >
 > This earlier example creates cardholders and cards through Stripe Issuing. It requires Issuing access and a Stripe API key; it does not use Link's wallet or payment approval flow.
 

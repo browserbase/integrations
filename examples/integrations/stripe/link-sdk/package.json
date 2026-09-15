@@ -1,0 +1,18 @@
+{
+  "name": "browserbase-link-sdk-example",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "inspect": "node inspect.mjs",
+    "request": "node request.mjs",
+    "checkout": "node checkout.mjs"
+  },
+  "dependencies": {
+    "@browserbasehq/stagehand": "4.1.0",
+    "@stripe/link-sdk": "0.4.2",
+    "zod": "4.4.3"
+  }
+}

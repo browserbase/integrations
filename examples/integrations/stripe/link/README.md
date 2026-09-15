@@ -128,6 +128,10 @@ rmdir "$LINK_CHECKOUT_DIR"
 browse stop --session checkout
 ```
 
+## Build with Stagehand + Link SDK
+
+For a runnable application example, follow [Stagehand + Link SDK](../link-sdk/README.md). It covers order inspection, approval, direct credential filling, and confirmation.
+
 ## Use Link from application code
 
 For a Node.js application built with [Stagehand](https://docs.stagehand.dev) or Playwright, you can use the [Link SDK](https://github.com/stripe/link-cli/tree/main/packages/sdk):
