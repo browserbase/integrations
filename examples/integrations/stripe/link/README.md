@@ -56,7 +56,7 @@ complimentary message "Thinking of you!". Do not sign up for marketing.
 
 Ask me for the recipient's name, address, and phone number, plus any buyer
 information the checkout requires. Show me the bouquet, delivery date,
-recipient, and complete total once every charge is known.
+recipient, and complete total once the merchant shows every charge.
 
 Use Link's create-payment-credential skill to request approval for that exact
 flower order. This is a live merchant. Wait for Link to report approval,

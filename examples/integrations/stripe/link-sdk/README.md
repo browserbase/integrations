@@ -81,7 +81,7 @@ const { data: item } = await stagehand.extract(
 
 [flowers-browser.mjs](https://github.com/browserbase/integrations/blob/main/examples/integrations/stripe/link-sdk/flowers-browser.mjs) contains the browser actions and cart checks. [flowers.mjs](https://github.com/browserbase/integrations/blob/main/examples/integrations/stripe/link-sdk/flowers.mjs) handles the session, run lock, result file, and cleanup. The browser flow uses controls discovered from the page, without hardcoded merchant selectors.
 
-With no recipient configured, the script returns `DELIVERY_DETAILS_REQUIRED`, writes `artifacts/flowers-result.json`, and closes the browser. The result distinguishes the item price from a final total and reports whether fees remain pending.
+If you leave `recipient: null`, the script returns `DELIVERY_DETAILS_REQUIRED`, writes `artifacts/flowers-result.json`, and closes the browser. The result distinguishes the item price from a final total and reports whether fees remain pending.
 
 ## 3. Enter delivery details and verify the final quote
 
@@ -104,7 +104,7 @@ Replace the placeholders with the intended delivery information. The recipient Z
 
 The remaining checkout adapter must read a complete quote after delivery validation: bouquet and size, recipient destination, delivery date, item price, delivery and service fees, tax, currency, and final amount. It must also collect any buyer details the checkout requires.
 
-Do not use the bouquet price as the Link approval amount. The merchant can show an “Order Total” while tax or service fees still say `TBD`. Wait until every required charge is known, then check the complete amount against `maxTotal`.
+Do not use the bouquet price as the Link approval amount. The merchant can show an “Order Total” while tax or service fees still say `TBD`. Wait until the merchant shows every required charge, then check the complete amount against `maxTotal`.
 
 ## 4. Request approval for the flower order
 
@@ -112,7 +112,7 @@ Connect the user's Link wallet through your application's authorization flow. Su
 
 Once the checkout adapter produces a verified `quote` with `amount`, `currency`, `deliveryDate`, and `feesPending`, the application can request Link approval. Persist an idempotency key for that order before creation and the returned request ID before requesting approval, so a retry resumes the same purchase.
 
-These are the Link calls for the handoff; they are not yet wired into the flower runner:
+The flower runner does not call Link yet. Your application can use these calls for the payment handoff:
 
 ```javascript Node.js
 assert(quote.feesPending === false);
