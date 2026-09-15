@@ -4,6 +4,12 @@ Add a user-approved checkout step to your agent. Stagehand reads and operates th
 
 This example uses a **Stripe test Payment Link**, USD, and a US card form. It uses Stagehand's `extract()` and `act()` before loading the payment credential, then fills the card fields directly. It doesn't require Playwright or a separate Browserbase SDK package.
 
+## Test credential compatibility
+
+Link test mode exercises wallet approval without moving money. It does not guarantee that a merchant's test checkout accepts the returned credential. In this example's verified run, Link returned a test card that failed the card-number checksum, and Stripe Checkout rejected it before sending a payment request. A separate browser control reached confirmation with Stripe's documented test card.
+
+The example stops with `INVALID_PAYMENT_CREDENTIAL` when the returned number fails validation. Confirm a compatible test credential or checkout with Link before using this guide to verify payment completion. Don't modify Link's credential or substitute another card and count the result as a Link payment.
+
 ## Set up
 
 You need:
@@ -107,7 +113,7 @@ await fields.expiry.fill(
 await fields.cvc.fill(card.cvc);
 ```
 
-[checkout.mjs](./checkout.mjs) also handles the email and billing fields, disables saving payment information, checks credential expiration, submits once, and waits for your configured confirmation text. It makes no model calls after filling credentials. It writes a result only after the merchant confirms checkout.
+[checkout.mjs](./checkout.mjs) also handles the email and billing fields, disables saving payment information, validates the card number and expiration, submits once, and waits for your configured confirmation text. It makes no model calls after filling credentials. It writes a result only after the merchant confirms checkout.
 
 If approval takes more than five minutes, rerun `npm run checkout` to resume the saved request. If Link denies, cancels, or expires the request, the script stops. For `requires_action`, it prints Link's next action and polls only when Link specifies `auto_resume`.
 

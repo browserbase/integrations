@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { checkout, openCardForm, waitFor, withCheckout } from "./browser.mjs";
 import { connectLink, waitForApproval } from "./link.mjs";
+import { assertCardNumberForCheckout } from "./payment-card.mjs";
 import { acquireRunLock, readState, reportError, saveState } from "./state.mjs";
 let phase = "approval";
 let release;
@@ -72,6 +73,7 @@ try {
       card && typeof card.number === "string" && typeof card.cvc === "string",
       "Link must return a complete test card",
     );
+    assertCardNumberForCheckout(card.number);
     assert(
       Number.isInteger(card.exp_month) && Number.isInteger(card.exp_year),
       "Card expiration is required",

@@ -66,6 +66,9 @@ export function reportError(error) {
       name: value.name,
       code: value.code,
       status: value.status,
+      ...(value.code === "INVALID_PAYMENT_CREDENTIAL" && {
+        hint: "Link returned a card number this checkout cannot accept. Confirm a supported test credential with Link before retrying.",
+      }),
     }),
   );
   process.exitCode = 1;
