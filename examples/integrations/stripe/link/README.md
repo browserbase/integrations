@@ -92,7 +92,7 @@ link-cli spend-request create \
 - `--request-approval` starts the approval flow. Present any approval URL to the user; they can also review the request in the [Link app](https://link.com/download).
 - `--test` returns test credentials and doesn't charge the underlying payment method. Use them only with a merchant's test checkout. Omit `--test` when you're ready to make a real, user-approved purchase.
 
-**Continue only when the spend request's `status` is `approved`.** A successful CLI exit can also mean the request was denied, expired, or canceled. Those outcomes do not authorize checkout.
+**Continue only after the user approves the spend request and Link reports `status: "approved"`.** The CLI can also exit successfully after the user denies the request, the request expires, or the agent cancels it. Those outcomes do not authorize checkout.
 
 In JSON mode, creation returns the request and an approval URL. Present the URL to the user and poll the same request using its returned ID. If polling times out, resume with that ID:
 
@@ -105,7 +105,7 @@ For `requires_action`, show the user the action Link returns. Resume polling the
 
 ## 5. Complete checkout and confirm the order
 
-Once the request is approved, retrieve the credential into a temporary file outside your repository:
+After the user approves the request, retrieve the credential into a temporary file outside your repository:
 
 ```bash
 LINK_CHECKOUT_DIR=$(mktemp -d)
