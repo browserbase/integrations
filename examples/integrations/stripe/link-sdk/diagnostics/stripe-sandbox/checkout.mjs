@@ -6,8 +6,8 @@ import {
   waitFor,
   withCheckout,
 } from "./browser.mjs";
-import { connectLink, waitForApproval } from "./link.mjs";
-import { assertCardNumberForCheckout } from "./payment-card.mjs";
+import { connectLink, waitForApproval } from "../../link.mjs";
+import { assertCardNumberForCheckout } from "../../payment-card.mjs";
 import { acquireRunLock, readState, reportError, saveState } from "./state.mjs";
 let phase = "approval";
 let release;

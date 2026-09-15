@@ -6,10 +6,7 @@
     "node": ">=22.18.0"
   },
   "scripts": {
-    "flowers": "node flowers.mjs",
-    "inspect": "node inspect.mjs",
-    "request": "node request.mjs",
-    "checkout": "node checkout.mjs"
+    "flowers": "node flowers.mjs"
   },
   "dependencies": {
     "@browserbasehq/stagehand": "4.1.0",

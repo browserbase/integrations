@@ -1,132 +1,151 @@
-# Stagehand + Link SDK
+# Send flowers with Stagehand + Link SDK
 
-Add a user-approved checkout step to your agent. Stagehand reads and operates the website in a Browserbase browser. Link SDK requests access to the user's wallet for the purchase. Your application connects those steps and resumes after approval.
+Give your agent a concrete task: send a small Floral Embrace bouquet from **1-800-Flowers** to a recipient in ZIP **94107**, on the next available delivery date, within a **$100 total budget**.
 
-## 1-800-Flowers example
+Stagehand operates the merchant's website in a Browserbase browser. Link SDK requests the user's approval to pay for the order. Your application connects the browser task to the user's wallet.
 
-The [1-800-Flowers walkthrough](./flowers.md) prepares a real flower-delivery cart with Stagehand. Run `npm run flowers` to select a bouquet and delivery date, skip optional gifts, and choose a complimentary gift message. It stops for recipient details before requesting any payment. The final quote and Link payment adapter are still in progress.
+**Implementation status:** the runnable example prepares the flower cart and reaches the recipient form. The final quote, Link approval, and payment steps still need a verified checkout adapter. The payment sections below describe that handoff; `npm run flowers` does not request payment or place an order.
 
-## Stripe test checkout
+## 1. Set up the flower delivery
 
-This example uses a **Stripe test Payment Link**, USD, and a US card form. It uses Stagehand's `extract()`, `act()`, and `observe()` before loading the payment credential, then fills the card fields directly. It doesn't require Playwright or a separate Browserbase SDK package.
-
-## Test credential compatibility
-
-Link test mode exercises wallet approval without moving money. It does not guarantee that a merchant's test checkout accepts the returned credential. In this example's verified run, Link returned a test card that failed the card-number checksum, and Stripe Checkout rejected it before sending a payment request. A separate browser control reached confirmation with Stripe's documented test card.
-
-The example stops with `INVALID_PAYMENT_CREDENTIAL` when the returned number fails validation. Confirm a compatible test credential or checkout with Link before using this guide to verify payment completion. Don't modify Link's credential or substitute another card and count the result as a Link payment.
-
-## Set up
-
-You need:
-
-- Node.js 22.18 or newer.
-- A Browserbase API key available as `BROWSERBASE_API_KEY` through your environment or secret manager.
-- A user-authorized Link access token with payment access, available as `LINK_ACCESS_TOKEN` through your environment or secret manager.
-- A Stripe test Payment Link supplied by you or your integration maintainer. Configure a fixed USD price, a US billing form, and no shipping, automatic taxes, or additional required fields.
-
-**Link SDK does not log users in or store and refresh credentials.** Your application owns those flows. A CLI login does not automatically authenticate this example. See the [SDK authentication contract](https://github.com/stripe/link-cli/tree/main/packages/sdk#credentials). For a coding agent that needs Link to handle login, use [Browse CLI + Link CLI](../link/README.md).
+You need Node.js 22.18 or newer and a Browserbase API key available as `BROWSERBASE_API_KEY` through your environment or secret manager.
 
 ```bash
 git clone https://github.com/browserbase/integrations.git
 cd integrations/examples/integrations/stripe/link-sdk
-npm install
-cp checkout.example.json checkout.json
+npm ci
+cp flowers.example.json flowers.json
 ```
 
-Edit `checkout.json` with your test link, the exact merchant and product names, the total in cents, and the checkout's confirmation text. Set `billingInterval` to `one_time` for a purchase or the displayed recurrence, such as `month`. Set `submitLabel` to `Pay` or `Subscribe` to match the form. The scripts reject live Payment Links.
+The example configuration selects the bouquet, size, destination, delivery timing, and budget:
 
-Keep credentials in your secret manager. `checkout.json` contains checkout configuration, not API keys. Git ignores it and the run artifacts.
+```json
+{
+  "productUrl": "https://www.1800flowers.com/floral-embrace-191167",
+  "product": "Floral Embrace™",
+  "size": "Small",
+  "deliveryZip": "94107",
+  "deliveryTimeZone": "America/Los_Angeles",
+  "locationType": "Residence",
+  "deliveryDate": "next_available",
+  "maxTotal": 10000,
+  "recipient": null,
+  "giftMessage": "Thinking of you!"
+}
+```
 
-## 1. Inspect the checkout with Stagehand
+Amounts use integer cents. Keep `recipient: null` to inspect the cart before providing delivery details. Git ignores `flowers.json` and the run artifacts. Keep credentials in your secret manager.
+
+## 2. Prepare the cart with Stagehand
 
 ```bash
-npm run inspect
+npm run flowers
 ```
 
-The script opens a Browserbase browser, checks the test-mode indicator, reads the order with `stagehand.extract()`, and compares it to your configuration. Then `stagehand.act()` selects Card and `stagehand.observe()` discovers the empty form controls. This step doesn't access Link or submit payment.
+The script opens a Browserbase session and prints its Session Inspector URL. It selects the small bouquet, enters the delivery ZIP, chooses the earliest available date, skips optional gifts and email signup, and selects the complimentary greeting message.
+
+Use `act()` for browser interaction and `observe()` to discover controls on the current page. For example, the cart helper fills the delivery ZIP through an observed action:
 
 ```javascript Node.js
-const { data: order } = await stagehand.extract(
-  "Read the checkout merchant, product, final total due today in integer cents, three-letter currency, and billing interval (one_time, day, week, month, or year). Use only visible checkout details.",
-  z.object({
-    merchant: z.string(),
-    product: z.string(),
-    amount: z.number().int(),
-    currency: z.string(),
-    billingInterval: z.string(),
-  }),
-  { page },
-);
+await stagehand.act(`Select the ${config.size} bouquet size.`, {
+  page,
+  cache: false,
+});
 
+const { data: zipFields } = await stagehand.observe(
+  "Find the Delivery Zip Code input field.",
+  { page, cache: false },
+);
+assert(zipFields.length === 1);
 await stagehand.act(
-  "Select Card as the payment method. Do not submit a payment.",
-  { page },
+  { ...zipFields[0], method: "fill", arguments: [config.deliveryZip] },
+  { page, cache: false },
 );
 ```
 
-See [browser.mjs](./browser.mjs) for browser setup, order checks, and cleanup.
+The calendar can show multiple months. The script gives `extract()` today's date in the delivery time zone, finds the earliest enabled date, then uses `observe()` to locate that date's control. Surcharged dates count as available. After adding the bouquet, it checks that the cart contains the selected date.
 
-## 2. Request approval with Link SDK
-
-```bash
-npm run request
-```
-
-The script inspects the checkout, lists eligible Link payment methods, and creates a test spend request. It saves the request ID and an idempotency key so a retry can resume the same request.
-
-The core Link calls in [request.mjs](./request.mjs) are:
+Read the cart with `extract()`:
 
 ```javascript Node.js
+const { data: item } = await stagehand.extract(
+  "Read the flower product name, displayed item price in integer cents, and selected delivery date as YYYY-MM-DD. Exclude optional add-on products. This price is not the complete order total.",
+  z.object({
+    product: z.string(),
+    itemAmount: z.number().int().positive(),
+    deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  }),
+  { page, cache: false },
+);
+```
+
+[flowers-browser.mjs](https://github.com/browserbase/integrations/blob/main/examples/integrations/stripe/link-sdk/flowers-browser.mjs) contains the browser actions and cart checks. [flowers.mjs](https://github.com/browserbase/integrations/blob/main/examples/integrations/stripe/link-sdk/flowers.mjs) handles the session, run lock, result file, and cleanup. The browser flow uses controls discovered from the page, without hardcoded merchant selectors.
+
+With no recipient configured, the script returns `DELIVERY_DETAILS_REQUIRED`, writes `artifacts/flowers-result.json`, and closes the browser. The result distinguishes the item price from a final total and reports whether fees remain pending.
+
+## 3. Enter delivery details and verify the final quote
+
+Set `recipient` in your local `flowers.json` to the intended recipient's details:
+
+```json
+{
+  "firstName": "Recipient first name",
+  "lastName": "Recipient last name",
+  "address1": "Recipient street address",
+  "address2": "",
+  "city": "San Francisco",
+  "state": "CA",
+  "postalCode": "94107",
+  "phone": "4155550100"
+}
+```
+
+Replace the placeholders with the intended delivery information. The recipient ZIP must match `deliveryZip`; update `deliveryTimeZone` if you change the destination. The script uses observed fields to enter the recipient details and attempts to save the shipment. This recipient submission path still needs verification.
+
+The remaining checkout adapter must read a complete quote after delivery validation: bouquet and size, recipient destination, delivery date, item price, delivery and service fees, tax, currency, and final amount. It must also collect any buyer details the checkout requires.
+
+Do not use the bouquet price as the Link approval amount. The merchant can show an “Order Total” while tax or service fees still say `TBD`. Wait until every required charge is known, then check the complete amount against `maxTotal`.
+
+## 4. Request approval for the flower order
+
+Connect the user's Link wallet through your application's authorization flow. Supply its user-authorized access token as `LINK_ACCESS_TOKEN` through your secret manager. **Link SDK does not perform login or manage token storage and refresh.** See the [SDK authentication contract](https://github.com/stripe/link-cli/tree/main/packages/sdk#credentials). For a coding agent that needs a ready-made login flow, use [Browse CLI + Link CLI](https://github.com/browserbase/integrations/tree/main/examples/integrations/stripe/link).
+
+Once the checkout adapter produces a verified `quote` with `amount`, `currency`, `deliveryDate`, and `feesPending`, the application can request Link approval. Persist an idempotency key for that order before creation and the returned request ID before requesting approval, so a retry resumes the same purchase.
+
+These are the Link calls for the handoff; they are not yet wired into the flower runner:
+
+```javascript Node.js
+assert(quote.feesPending === false);
+assert(quote.currency === "usd");
+assert(Number.isInteger(quote.amount) && quote.amount > 0);
+assert(quote.amount <= config.maxTotal);
+
 const request = await link.spendRequests.create({
   idempotency_key: state.idempotencyKey,
   payment_details: method.id,
   credential_type: "card",
-  amount: checkout.amount,
-  currency: checkout.currency,
-  merchant_name: checkout.merchant,
-  merchant_url: checkout.url,
-  context: `Test the Browserbase and Link SDK integration by buying ${checkout.product} from ${checkout.merchant} for ${checkout.amount / 100} USD. Billing interval: ${checkout.billingInterval}. This is a test checkout using test credentials. No real money will move.`,
+  amount: quote.amount,
+  currency: quote.currency,
+  merchant_name: "1-800-Flowers.com",
+  merchant_url: "https://www.1800flowers.com",
+  context: `The user asked for a ${config.size} ${config.product} bouquet delivered to ZIP ${config.deliveryZip} on ${quote.deliveryDate}, with a complimentary greeting message. The verified total is ${quote.amount / 100} USD, including delivery, service fees, and tax.`,
   request_approval: false,
-  test: true,
+  test: false,
 });
-const approval = await link.spendRequests.requestApproval(request.id);
 ```
 
-Open the approval URL that the script prints. Your user decides whether to approve the purchase in Link. A connected wallet alone does not authorize payment.
+Here, `link` is the client from [link.mjs](https://github.com/browserbase/integrations/blob/main/examples/integrations/stripe/link-sdk/link.mjs), and `method` is an eligible method from `link.paymentMethods.list()`. After saving `request.id`, call `link.spendRequests.requestApproval(request.id)`, present its `approval_url`, and poll that same request for `approved`. A wallet connection alone does not authorize the order.
 
-This example requests a test virtual card. Link Pay Token is another execution option for compatible Stripe checkouts, but it doesn't support test mode.
+1-800-Flowers is a live merchant. The spend request describes an intended flower delivery and uses live credentials; Link test credentials do not make its checkout a sandbox.
 
-## 3. Resume and verify checkout
+## 5. Complete checkout and verify the order
 
-```bash
-npm run checkout
-```
+The flower payment adapter still needs implementation against the merchant's payment form. Its responsibilities are:
 
-The script waits for `approved`, opens the checkout again, and checks that the order still matches. It uses `stagehand.observe()` to discover the empty form's controls before retrieving the card. Card details then go directly from Link SDK to those fields, without another model call:
+1. Recheck the flower order and final total against the approved request.
+2. Use `observe()` to discover the empty payment controls before retrieving the credential.
+3. Retrieve the approved credential with `link.spendRequests.retrieve(request.id, { include: ["card"] })` and validate it.
+4. Fill the credential directly into the observed fields. Make no model calls, screenshots, or payment-data logs after filling the card.
+5. Record that submission has started, submit once, and verify the merchant's order confirmation. Preserve an ambiguous result for inspection before any retry.
 
-```javascript Node.js
-const approved = await link.spendRequests.retrieve(state.spendRequestId, {
-  include: ["card"],
-});
-assert(approved?.status === "approved");
-const card = approved.card;
-
-await fields.number.fill(card.number);
-await fields.expiry.fill(
-  `${String(card.exp_month).padStart(2, "0")}${String(card.exp_year).slice(-2)}`,
-);
-await fields.cvc.fill(card.cvc);
-```
-
-[checkout.mjs](./checkout.mjs) also handles the email and billing fields, disables saving payment information, validates the card number and expiration, submits once, and waits for your configured confirmation text. It makes no model calls after filling credentials. It writes a result only after the merchant confirms checkout.
-
-If approval takes more than five minutes, rerun `npm run checkout` to resume the saved request. If Link denies, cancels, or expires the request, the script stops. For `requires_action`, it prints Link's next action and polls only when Link specifies `auto_resume`.
-
-The scripts prevent concurrent payment runs with `artifacts/run.lock`. A killed process can leave that lock behind; remove it only after confirming the old process has stopped. If a run reaches `submitting` but misses the confirmation, inspect the merchant's existing transaction before retrying. Don't delete the state file to blindly repeat a payment.
-
-## Adapt the example
-
-Keep your agent's planning, search, and item selection in your application. Replace the checkout adapter when you support another merchant. Validate the final amount, billing terms, shipping, tax, and receipt for that site. This fixed test adapter does not cover arbitrary merchants, authentication challenges, or live purchases.
-
-For long-running applications, replace the fixed token in [link.mjs](./link.mjs) with Link's `getAccessToken` callback backed by your credential manager. Browser recording and diagnostics also need your application's payment-data policy; direct field filling keeps card values out of model prompts, but it does not establish universal redaction.
+Link approval confirms permission to pay. The merchant's receipt confirms the order. Keep both checks in the integration, and leave your agent's planning, recipient selection, and conversation flow in your application.

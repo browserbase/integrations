@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { getDuplicateSpendRequest } from "@stripe/link-sdk";
 import { checkout, openCardForm, withCheckout } from "./browser.mjs";
-import { connectLink } from "./link.mjs";
+import { connectLink } from "../../link.mjs";
 import { acquireRunLock, readState, reportError, saveState } from "./state.mjs";
 let release;
 try {

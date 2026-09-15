@@ -50,7 +50,7 @@ export async function waitForApproval(link, requestId) {
   console.log(
     JSON.stringify({
       event: "approval_pending",
-      next: "Run npm run checkout again to resume the same request",
+      next: "Resume polling the saved spend request after the user responds",
     }),
   );
   throw Object.assign(new Error("Approval is still pending"), {

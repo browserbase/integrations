@@ -1,0 +1,10 @@
+{
+  "name": "browserbase-link-stripe-sandbox-diagnostic",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "inspect": "node inspect.mjs",
+    "request": "node request.mjs",
+    "checkout": "node checkout.mjs"
+  }
+}

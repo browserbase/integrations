@@ -4,16 +4,16 @@ Add purchases to your agent with **Stagehand on Browserbase + Link SDK**. Stageh
 
 For a standard card checkout, the agent uses the merchant's existing website. The merchant doesn't need to add a machine payments protocol to support that flow.
 
-## Start with Link
+## Send flowers with Link
 
-- [1-800-Flowers walkthrough](./link-sdk/flowers.md): prepare a flower-delivery cart with Stagehand. The final quote and Link payment adapter are in progress.
-- [Stagehand + Link SDK example](./link-sdk/README.md): read a checkout, request user approval, and submit a test payment.
-- [Browse CLI + Link CLI quickstart](./link/README.md): install the tools, prepare an order, and request payment approval.
+The main example uses **1-800-Flowers**: choose a bouquet, arrange delivery, verify the complete quote, and request the user's approval to pay. The runnable flow currently prepares the cart and reaches recipient details; the final quote and payment adapter remain in progress.
+
+- [Stagehand + Link SDK quickstart](./link-sdk/README.md): the flower walkthrough and runnable Node.js project.
+- [Browse CLI + Link CLI](./link/README.md): give a coding agent the same flower-delivery task through its browser and wallet skills.
 - [Browserbase integration docs](https://docs.browserbase.com/integrations/stripe/introduction): how the browser and wallet fit together.
-- [Link CLI](https://github.com/stripe/link-cli): authentication, spend requests, payment credentials, and the agent skill.
-- [Link SDK](https://github.com/stripe/link-cli/tree/main/packages/sdk): a Node.js client for applications that manage their own Link authorization and tokens.
+- [Link SDK](https://github.com/stripe/link-cli/tree/main/packages/sdk): the application API and authentication contract.
 
-You'll need a Browserbase API key, a Link account with an eligible payment method, and Node.js 22.18 or newer for the CLI workflow. Link handles access to the user's wallet; this flow doesn't require a Stripe Issuing account or Stripe secret API key.
+You'll need a Browserbase API key, a Link account with an eligible payment method, and Node.js 22.18 or newer. For the SDK, your application owns Link authorization and token refresh. The CLI handles those flows for a coding agent.
 
 ## Earlier Stripe Issuing examples
 
