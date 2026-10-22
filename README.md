@@ -34,6 +34,7 @@ integrations/
 │       ├── logs/                 # Logging utilities
 │       ├── mastra/               # Mastra AI agent integration
 │       ├── mongodb/              # MongoDB data extraction & storage
+│       ├── openai/               # OpenAI Realtime voice agent + browser agent
 │       ├── stripe/               # Stripe Issuing + automation
 │       ├── temporal/             # Temporal workflow orchestration
 │       ├── trigger/              # Trigger.dev background jobs & automation
