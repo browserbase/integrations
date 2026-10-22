@@ -9,12 +9,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@browserbasehq/sdk": "^2.6.0",
-    "@inngest/agent-kit": "^0.8.4",
+    "@inngest/agent-kit": "^0.13.2",
     "dotenv": "^17.2.1",
+    "inngest": "^3.54.2",
     "playwright-core": "^1.55.0",
-    "zod": "^3.25.76"
+    "zod": "^4.6.7"
   }
 }

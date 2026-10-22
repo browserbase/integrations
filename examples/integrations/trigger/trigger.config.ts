@@ -5,6 +5,7 @@ import { puppeteer } from "@trigger.dev/build/extensions/puppeteer";
 export default defineConfig({
   project: "proj_ljbidlufugyxuhjxzkyy",
   logLevel: "log",
+  maxDuration: 300,
   retries: {
     enabledInDev: true,
     default: {
