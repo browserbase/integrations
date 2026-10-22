@@ -6,7 +6,7 @@ It provides:
 
 - interactive Browserbase credential setup,
 - config status/env helpers,
-- dynamic skill sync from `github:browserbase/skills`.
+- dynamic skill sync from `github:browserbase/browse-plugin`.
 
 ## Install
 
@@ -26,8 +26,8 @@ openclaw plugins install -l .
 openclaw browserbase setup
 ```
 
-By default setup will also sync Browserbase skills from `browserbase/skills` into
-`~/.openclaw/skills`.
+By default setup will also sync Browserbase skills from `browserbase/browse-plugin`
+into `~/.openclaw/skills`.
 
 You can manage skill sync directly:
 
@@ -49,7 +49,7 @@ openclaw browserbase env --format dotenv       # dotenv output
 openclaw browserbase env --format json         # JSON output
 openclaw browserbase where                     # config file path used
 openclaw browserbase skills status             # check dynamic skills sync status
-openclaw browserbase skills sync               # download/update skills from browserbase/skills
+openclaw browserbase skills sync               # download/update skills from browserbase/browse-plugin
 ```
 
 Legacy CLI alias support remains:
@@ -64,10 +64,9 @@ OpenClaw installs plugins with lifecycle scripts disabled, so plugin install hoo
 
 This plugin instead syncs skills during setup and (optionally) on startup when missing:
 
-- `browser-automation`
-- `functions`
+- `browse` — the canonical `browse` CLI skill
 
-Source of truth: [https://github.com/browserbase/skills](https://github.com/browserbase/skills)
+Source of truth: [https://github.com/browserbase/browse-plugin](https://github.com/browserbase/browse-plugin)
 
 ## Development
 
@@ -83,5 +82,5 @@ pnpm test
 - OpenClaw Skills Config: https://docs.openclaw.ai/tools/skills-config
 - OpenClaw Plugin System: https://docs.openclaw.ai/tools/plugin
 - OpenClaw Plugin Manifest: https://docs.openclaw.ai/plugins/manifest
-- Browserbase skills reference: https://github.com/browserbase/skills
+- Browserbase skills reference: https://github.com/browserbase/browse-plugin
 - Example plugin reference: https://github.com/pepicrft/clawd-plugin-ralph
