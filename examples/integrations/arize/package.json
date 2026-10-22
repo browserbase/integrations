@@ -1,0 +1,36 @@
+{
+  "name": "@browserbasehq/arize",
+  "version": "1.0.0",
+  "description": "Browserbase as a tool for agents, traced with Arize AX",
+  "main": "dist/agent.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "tsx src/agent.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@arizeai/openinference-instrumentation-openai": "^3.2.5",
+    "@arizeai/openinference-semantic-conventions": "^2.0.0",
+    "@browserbasehq/sdk": "^2.15.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.220.0",
+    "@opentelemetry/instrumentation": "^0.220.0",
+    "@opentelemetry/resources": "^2.0.0",
+    "@opentelemetry/sdk-trace-base": "^2.0.0",
+    "@opentelemetry/sdk-trace-node": "^2.0.0",
+    "@opentelemetry/semantic-conventions": "^1.30.0",
+    "dotenv": "^16.4.0",
+    "openai": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "overrides": {
+    "@opentelemetry/core": "^2.8.0"
+  }
+}
