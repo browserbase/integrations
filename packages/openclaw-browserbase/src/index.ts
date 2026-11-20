@@ -173,13 +173,13 @@ async function runSkillsSync(options?: {
 
     if (!options?.silent) {
       console.log(
-        `Synced Browserbase skills from browserbase/skills@${result.ref} to ${result.targetRoot}`
+        `Synced Browserbase skills from browserbase/browse-plugin@${result.ref} to ${result.targetRoot}`
       );
       console.log(`Files updated: ${result.filesWritten.length}`);
     }
 
     logger?.info(
-      `browserbase: synced skills from browserbase/skills@${result.ref} to ${result.targetRoot}`
+      `browserbase: synced skills from browserbase/browse-plugin@${result.ref} to ${result.targetRoot}`
     );
     return true;
   } catch (error) {
@@ -214,7 +214,11 @@ function registerCli(
         false
       )
       .option('--skills-dir <path>', 'Override skills target directory')
-      .option('--skills-ref <ref>', 'Git ref for browserbase/skills', 'main')
+      .option(
+        '--skills-ref <ref>',
+        'Git ref for browserbase/browse-plugin',
+        'main'
+      )
       .action(async (options: any) => {
         const configPath = resolveConfigPath(options.config);
         const shouldSyncSkills = !options.skipSkillsSync;
@@ -344,14 +348,14 @@ function registerCli(
     const browserbaseSkills = browserbase
       .command('skills')
       .description(
-        'Manage Browserbase skills synced from github:browserbase/skills'
+        'Manage Browserbase skills synced from github:browserbase/browse-plugin'
       );
 
     browserbaseSkills
       .command('sync')
       .description('Download/update Browserbase skills into ~/.openclaw/skills')
       .option('--dir <path>', 'Override skills target directory')
-      .option('--ref <ref>', 'Git ref for browserbase/skills', 'main')
+      .option('--ref <ref>', 'Git ref for browserbase/browse-plugin', 'main')
       .action(async (options: any) => {
         const targetRoot = resolveSkillsRoot(options.dir);
         const ref =
@@ -478,7 +482,7 @@ async function maybePromptOnStartup(
     !hasBrowserbaseSkills(managedSkillsRoot)
   ) {
     logger.info(
-      `browserbase: Browserbase skills not found in ${managedSkillsRoot}; syncing from browserbase/skills`
+      `browserbase: Browserbase skills not found in ${managedSkillsRoot}; syncing from browserbase/browse-plugin`
     );
     await runSkillsSync({
       targetRoot: managedSkillsRoot,
